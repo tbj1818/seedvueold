@@ -67,8 +67,8 @@
                                     <span class="left_cell">树苗售价:<strong
                                             class="greenText">{{item.goodsPrice}}BGT/棵</strong></span>
                                     <span class="right_cell">
-                                        <button @click="clickHandler(token,item)" v-if="getType==20" class="smallbuyBtn">立即购买</button>
-                                        <button @click="clickHandler(token,item)"  v-if="getType==10" class="smallbuyBtn">立即出售</button>
+                                        <button @click="clickHandler(token,item)" v-if="getType==10" class="smallbuyBtn">立即购买</button>
+                                        <button @click="clickHandler(token,item)"  v-if="getType==20" class="smallbuyBtn">立即出售</button>
                                   </span>
                                 </section>
                             </section>
@@ -100,12 +100,11 @@
             data: {
                 token: GetQueryString('token'),//头部获取。,
                 appType: GetQueryString('appType'),//头部获取设备来源,
-                saplingBalance: GetQueryString('saplingBalance'),       //头部获取树苗总量,
                 userphoto: "../../images/notuserphoto.png",
                 userName: "珠穆拉玛",
                 tabactive: true,
                 tabactive2: false,
-                getType:20,                            //交易类型10：出售单，20：收购单
+                getType:10,                            //交易类型10：出售单，20：收购单
                 buylist: [{
                     userPhoto: "../../images/notuserphoto.png",
                     userName: '低调的风',
@@ -119,26 +118,26 @@
             methods: {
                 saletab: function (type) {
                     if (type == 0) {
-                        this.getType =20;
+                        this.getType =10;
                         this.tabactive = true;
                         this.tabactive2 = false;
                         this.getlist();
                     } else if (type == 1) {
-                        this.getType =10;
+                        this.getType =20;
                         this.tabactive = false;
                         this.tabactive2 = true;
                         this.getlist();
                     }
                 },
                 gorecord:function(token){
-                  window.location.href="dealRecord.html?token="+token+"&saplingBalance="+this.saplingBalance
+                  window.location.href="dealRecord.html?token="+token;
                 },
                 pluslink: function (token) {
-                    window.location.href = "orderDeal.html?token=" + token+"&saplingBalance="+this.saplingBalance
+                    window.location.href = "orderDeal.html?token=" + token;
                 },
                 clickHandler: function (token,item) {
                     // this.$router.push({ path: "/view/h5/app/seed/seedBuy" });
-                    window.location.href = "seedBuy.html?token=" + token+"&goodsNum="+item.goodsNum+"&residueNum="+item.residueNum+"&goodsId="+item.rowId+"&goodsPrice="+item.goodsPrice+"&finishNum="+item.userId+"&getType="+this.getType;
+                    window.location.href = "seedBuy.html?token=" + token+"&goodsNum="+item.goodsNum+"&residueNum="+item.residueNum+"&goodsId="+item.rowId+"&goodsPrice="+item.goodsPrice+"&finishNum="+item.userId+"&getType="+this.getType+"&userNickname="+encodeURIComponent(item.userNickname)+"&userPhoto="+item.userPhoto;
                 },
                 getlist: function () {
                     var that=this;
@@ -155,27 +154,21 @@
                     }).then(function (data) {
                         console.log(data);
                         // this.buylist = data.data.data.list;
+                        if(data.data.code==0){
                             that.finishnum=data.data.data.finishNumMap;
                       
-                                for (var i  in data.data.data.list) {
-                                        var item = data.data.data.list[i]
-                                            that.buylist.push(item);
-                                            if(!item.userPhoto){
-                                                item.userPhoto="../../images/notuserphoto.png";
-                                            }
-                                            var num=item.userId;
-                                        
-                                            if(item.userId=that.finishnum[num]){
-                                                item.userId=that.finishnum[num]
-                                            };
-                                }
-                                // for(var i in that.buylist){
-                                //     var item3=that.buylist[i] ;
-                                //     var num=item3.userId;
-                                //     // this.$set(that.buylist,"rowId", that.finishnum[num]);
-                                //     // Vue.set(that.buylist,i,{gameNum:that.finishnum[num]});
-                                // }
-                                // console.log(that.buylist)
+                            for (var i  in data.data.data.list) {
+                                    var item = data.data.data.list[i]
+                                        that.buylist.push(item);
+                                        if(!item.userPhoto){
+                                            item.userPhoto="../../images/notuserphoto.png";
+                                        }
+                                        var num=item.userId;
+                                        if(item.userId=that.finishnum[num]){
+                                            item.userId=that.finishnum[num]
+                                        };
+                            }
+                        }
                     }, function (error) {
                         layer.msg('接口出错');
                     });

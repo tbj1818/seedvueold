@@ -32,12 +32,13 @@
     <div class="seedcontain seedbg">
         <ul>
             <li class="seedlist">
-                <h1><span class="userphoto"><img :src="userphoto" /></span><span class="userName">{{userName}}</span></h1>
-                <h2>已成交20笔</h2>
+                <h1><span class="userphoto"><img :src="userPhoto" /></span><span class="userName">{{UserNickname}}</span></h1>
+                <h2>已成交{{finishNum}}笔</h2>
                 <section class="seedWbg">
                     <div class="listcell">
                         <div class="cellLR">
-                            <div class="left_cell">出售总数:</div>
+                            <div class="left_cell" v-if="getType==10">出售总数:</div>
+                            <div class="left_cell" v-if="getType==20">收购总数:</div>
                             <div class="right_cell">{{goodsNum}}</div>
                         </div>
                         <div class="cellLR">
@@ -55,32 +56,43 @@
             </li>
         </ul>
         <div class="seedbuynum">
-            <h1>购买数量</h1>
+            <h1 v-if="getType==10">购买数量</h1>
+            <h1 v-if="getType==20">出售数量</h1>
             <section class="buynum">
                 <input
-                        type="number"
+                        type="number" v-if="getType==10"
                         onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')" 
                         pattern="[0-9]*" v-model="buynum"
                         class="cell-input"
                         placeholder="请输入购买数量"
                         autocomplete="off"
                 />
-                <a href="javascript:;" @click="allbuy" class="btn btn-hollow">全部购买</a>
+                <input
+                        type="number" v-if="getType==20"
+                        onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')" 
+                        pattern="[0-9]*" v-model="buynum"
+                        class="cell-input"
+                        placeholder="请输入出售数量"
+                        autocomplete="off"
+                />
+                <a href="javascript:;" @click="allbuy" class="btn btn-hollow" v-if="getType==10">全部购买</a>
+                <a href="javascript:;" @click="allbuy" class="btn btn-hollow" v-if="getType==20">全部出售</a>
             </section>
             <div class="cellLR">
                 <div class="left_cell">最多可持有7000棵树</div>
                 <div class="right_cell">BGT余额: <span class="graytext marl10"> {{bgtnum | numSlicefour}}</span></div>
             </div>
         </div>
-        <button type="button" class="btn-block btn_redgradual" @click="enterbuy">确定购买</button>
+        <button type="button" class="btn-block btn_redgradual" @click="enterbuy"  v-if="getType==10">确定购买</button>
+        <button type="button" class="btn-block btn_redgradual" @click="enterbuy"  v-if="getType==20">确定出售</button>
     </div>
     <!-- 订单确认弹窗 -->
     <div class="mask-black-dialog" id="YDUI_CONFRIM" v-show="dialogshow">
         <div class="m-confirm">
             <div class="confirm-hd"><strong class="confirm-title">订单确认</strong></div>
             <div class="confirm-bd">购买数量: <em class="bluetext">{{buynum}}棵</em></div>
-            <div class="confirm-bd">订单总价: <em class="bluetext">{{buynum*goodsPrice}}BGT</em></div>
-            <div class="confirm-bd">交易手续费: <em class="bluetext">{{buynum*goodsPrice*0.01 | numSlicefour}}BGT  1%</em></div>
+            <div class="confirm-bd">订单总价: <em class="bluetext">{{buynum*goodsPrice | numSlicefour}}BGT</em></div>
+            <div class="confirm-bd" v-if="getType==20">交易手续费: <em class="bluetext">{{buynum*goodsPrice*0.01 | numSlicefour}}BGT  1%</em></div>
             <div class="confirm-ft">
                 <a
                         href="javascript:;"
@@ -90,7 +102,7 @@
                 <a
                         href="javascript:;"
                         class="confirm-btn primary"
-                        @click="dealGoods(token,dealType,buynum,goodsId)"
+                        @click="dealGoods(token,getType,goodsId,buynum)"
                 ><em class="bluetext">确定</em></a>
             </div>
         </div>
@@ -111,17 +123,16 @@
             el: '#htmlWap',
             data: {
                 token:GetQueryString('token'),//头部获取。,
+                UserNickname:decodeURIComponent( GetQueryString('userNickname')),//头部获取商品ID,
+                userPhoto:GetQueryString('userPhoto'),//头部获取商品ID,
                 goodsId:GetQueryString('goodsId'),//头部获取商品ID,
                 goodsNum:GetQueryString('goodsNum'),//头部获取出售总数,
                 residueNum:GetQueryString('residueNum'),//头部获取剩余数量,
                 goodsPrice:GetQueryString('goodsPrice'),//头部获取树苗单价,
                 finishNum:GetQueryString('finishNum'),//头部获取已成交数,
-                dealType:GetQueryString('getType'),//头部获取已成交数,
-                userphoto:"../../images/notuserphoto.png",
+                getType:GetQueryString('getType'),//头部获取已成交数,
                 buynum:'',                      //交易数量
                 bgtnum:'',                     //bgt余额
-                userName: "珠穆拉玛",
-                // goodsTotal:'',              //商品总价
                 dialogshow: false
         },
         methods:{
@@ -138,19 +149,19 @@
                 this.dialogshow = false;
             },
             allbuy:function(){
-                this.buynum=this.goodsNum;
+                this.buynum=this.residueNum;
             },
             goback:function(){
                  window.location.href="treeDeal.html?token="+this.token
             },
-            dealGoods:function(token,dealType,buynum,goodsId){
+            dealGoods:function(token,getType,goodsId,buynum ){
                 var that =this;
                 this.$http({
                         method: "post",
                         url: fund+"/appSceneGoods/dealGoods",
                         data: {
                             token:token,
-                            dealType:dealType,
+                            dealType:getType,
                             num:buynum,
                             goodsId:goodsId,
                             platform:'H5'
@@ -158,10 +169,15 @@
                         emulateJSON: true
                     }).then(function (data) {
                         layer.msg(data.data.message);
-                        setTimeout(function(){
-                            window.location.href="dealDetail.html?token="+that.token
-                        },1000);
+                        if(data.data.code==0){
+                            setTimeout(function(){
+                                window.location.href="dealDetail.html?token="+token+"&orderNo="+data.data.data.orderNo+"&getType="+getType;
+                            },1000);
+                        }else{
+                            layer.msg(data.data.message);
+                        }
                     }, function (error) {
+                        layer.msg(data.data.message);
                         console.log(error);
                     });
             },
@@ -190,17 +206,14 @@
         filters: {
                 numSlicefour: function (val) {
                     if (val) {
-                            return parseFloat(val.toFixed(4));
+                       return parseFloat(val.toFixed(4));
                     }
                 },
             },
         mounted:function(){
             this.getUserWalletInfo();
-                if(this.dealType==10){
-                    this.dealType=20
+                if(this.getType==20){
                     $('.navbar-title').text('出售树苗');
-                }else if(this.dealType==20){
-                    this.dealType=10
                 }
         }
     })

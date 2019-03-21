@@ -34,19 +34,35 @@
                                 src="../../images/seed/icon-chushou@2x.png"/></span>出售树苗</span>
                         <span class="left_cell" style="flex:1" v-if="item.dealType==20"><span class="sellIcon margr10"><img
                                 src="../../images/seed/icon-goumai@2x.png"/></span>购买树苗</span>
-                        <span class="right_cell" style="flex:1">{{item.buyTime}}</span>
+                        <span class="right_cell" style="flex:1">{{item.publishTime}}</span>
                     </section>
                     <section class="cellLR ">
                         <span class="left_cell" style="flex:1">单价</span>
                         <span class="right_cell" style="flex:1">{{item.goodsPrice}}BGt/棵</span>
                     </section>
-                    <section class="cellLR ">
+                    <section class="cellLR " v-if="item.dealType==10">
                         <span class="left_cell" style="flex:1">出售总量</span>
                         <span class="right_cell" style="flex:1">{{item.goodsNum}}</span>
                     </section>
-                    <section class="cellLR bottborl">
+                    <section class="cellLR " v-if="item.dealType==20">
+                        <span class="left_cell" style="flex:1">购买总量</span>
+                        <span class="right_cell" style="flex:1">{{item.goodsNum}}</span>
+                    </section>
+                    <section class="cellLR bottborl"  v-if="item.dealType==10">
                         <span class="left_cell" style="flex:1">已出售量</span>
                         <span class="right_cell" style="flex:1">{{item.residueNum}}</span>
+                    </section>
+                    <section class="cellLR"  v-if="item.dealType==20">
+                        <span class="left_cell" style="flex:1">已购买量</span>
+                        <span class="right_cell" style="flex:1">{{item.goodsNum-item.residueNum}}</span>
+                    </section>
+                    <section class="cellLR"  v-if="item.dealType==20">
+                        <span class="left_cell" style="flex:1">初始保证金</span>
+                        <span class="right_cell" style="flex:1">{{item.promiseFeeDeduct}}</span>
+                    </section>
+                    <section class="cellLR bottborl"  v-if="item.dealType==20">
+                        <span class="left_cell" style="flex:1">当前保证金</span>
+                        <span class="right_cell" style="flex:1">{{item.promiseFeeResidue}}</span>
                     </section>
                     <section class="cellLR "  v-if="item.state==10">
                         <span class="left_cell" style="flex:1"></span>

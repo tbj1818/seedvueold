@@ -38,15 +38,15 @@
 
         <div class="seedWcontainr">
             <div class="tab-panel-item">
-                    <div class="m-cell seedWbg" @click="dealdetail(token,getType)" v-for="item in orderlist">
+                    <div class="m-cell seedWbg" @click="dealdetail(token,getType,item)" v-for="item in orderlist">
                         <section class="cellLR bottborl">
                             <span class="left_cell blacktext" v-if="getType==20"  style="flex:1"><span class="sellIcon margr10"><img src="../../images/seed/icon-chushou@2x.png" /></span>出售树苗</span>
                             <span class="left_cell blacktext" v-if="getType==10" style="flex:1"><span class="sellIcon margr10"><img src="../../images/seed/icon-goumai@2x.png" /></span>购买树苗</span>
                             <span class="right_cell fontcolorB" style="flex:1;">{{item.buyTime}}</span>
                         </section>
                         <section class="cellLR ">
-                            <span class="left_cell fontcolorB" v-if="getType==20" style="flex:1">卖家</span>
-                            <span class="left_cell fontcolorB" v-if="getType==10" style="flex:1">买家</span>
+                            <span class="left_cell fontcolorB" v-if="getType==10" style="flex:1">卖家</span>
+                            <span class="left_cell fontcolorB" v-if="getType==20" style="flex:1">买家</span>
                             <span class="right_cell" style="flex:1">{{item.sellerUserNickname}}</span>
                         </section>
                         <section class="cellLR ">
@@ -66,7 +66,7 @@
                             <span class="right_cell" style="flex:1">{{item.orderNo}}</span>
                         </section>
                         <section class="cellLR lh12">
-                            <span class="left_cell fontcolorB" style="flex:1">数量<span class="blacktext">{{item.buyNum}}</span></span>
+                            <span class="left_cell fontcolorB" style="flex:1">数量<span class="blacktext mar_l5">{{item.buyNum}}</span></span>
                             <span class="right_cell blacktext" style="flex:1">交易成功</span>
                         </section>
                     </div>
@@ -112,7 +112,6 @@
                     }).then(function (data) {
                         console.log(data);
                         if(data.data.code==0){
-                            layer.msg(data.data.message);
                             if(data.data.data){
                                 for (var i  in data.data.data.list) {
                                         var item = data.data.data.list[i]
@@ -141,8 +140,8 @@
                         this.getlist();
                     }
                 },
-            dealdetail:function(token,buystate){
-                window.location.href="dealDetail.html?token="+token+"&buystate="+buystate;
+            dealdetail:function(token,getType,item){
+                window.location.href="dealDetail.html?token="+token+"&getType="+getType+"&orderNo="+item.orderNo;
             },
             goorderdetail:function(token){
                 window.location.href="orderDetail.html?token="+token;

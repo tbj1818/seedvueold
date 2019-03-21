@@ -173,19 +173,19 @@
 
                         <a href="javascript:;" v-if="item.backFeeNotGet ==0" class="grids-item btn-notsmallget">
                             <p class="bgticon"><img src="../../images/teacher/icon-bgt-d@2x.png" /></p>
-                            <span>0.45658BGT</span>
+                            <span>0BGT</span>
                         </a>
                         <button href="javascript:;" v-if="item.backFeeNotGet >0" class="grids-item" :disabled="isDisable" @click="getBgt(item.backFeeNotGet,item.rowId,item.buyerType,$event)">
                             <p class="bgticon"><img src="../../images/teacher/icon-bgt@2x.png" /></p>
-                            <span>0.45658BGT</span>
+                            <span>{{item.backFeeNotGet}}BGT</span>
                         </button>
-                        <a href="javascript:;" v-if="item.backFeeNotGet ==0" class="grids-item btn-notsmallget">
+                        <a href="javascript:;" v-if="item.backSunNotGet ==0" class="grids-item btn-notsmallget">
                             <p class="bgticon"><img src="../../images/teacher/icon-taiyang-d@2x.png" /></p>
-                            <span>0.45658BGT</span>
+                            <span>0克</span>
                         </a>
-                        <button href="javascript:;" v-if="item.backFeeNotGet >0" class="grids-item" :disabled="isDisable" @click="getBgt(item.backFeeNotGet,item.rowId,item.buyerType,$event)">
+                        <button href="javascript:;" v-if="item.backSunNotGet >0" class="grids-item" :disabled="isDisable" @click="getTgSun(item.backSunNotGet,item.rowId,item.buyerType,$event)">
                             <p class="bgticon"><img src="../../images/teacher/icon-taiyang@2x.png" /></p>
-                            <span>0.45658BGT</span>
+                            <span>{{item.backSunNotGet}}克</span>
                         </button>
                     </div>
                     <div class="m-grids-4" v-for="item in dataList2">
@@ -200,19 +200,19 @@
 
                         <a href="javascript:;" v-if="item.backFeeNotGet ==0" class="grids-item btn-notsmallget">
                             <p class="bgticon"><img src="../../images/teacher/icon-bgt-d@2x.png" /></p>
-                            <span>0.45658BGT</span>
+                            <span>0BGT</span>
                         </a>
                         <button href="javascript:;" v-if="item.backFeeNotGet >0" class="grids-item" :disabled="isDisable" @click="getBgt(item.backFeeNotGet,item.rowId,item.buyerType,$event)">
                             <p class="bgticon"><img src="../../images/teacher/icon-bgt@2x.png" /></p>
-                            <span>0.45658BGT</span>
+                            <span>{{item.backFeeNotGet}}BGT</span>
                         </button>
-                        <a href="javascript:;" v-if="item.backFeeNotGet ==0" class="grids-item btn-notsmallget">
+                        <a href="javascript:;" v-if="item.backSunNotGet ==0" class="grids-item btn-notsmallget">
                             <p class="bgticon"><img src="../../images/teacher/icon-taiyang-d@2x.png" /></p>
-                            <span>0.45658BGT</span>
+                            <span>0克</span>
                         </a>
-                        <button href="javascript:;" v-if="item.backFeeNotGet >0" class="grids-item" :disabled="isDisable" @click="getBgt(item.backFeeNotGet,item.rowId,item.buyerType,$event)">
+                        <button href="javascript:;" v-if="item.backSunNotGet >0" class="grids-item" :disabled="isDisable" @click="getTgSun(item.backFeeNotGet,item.rowId,item.buyerType,$event)">
                             <p class="bgticon"><img src="../../images/teacher/icon-taiyang@2x.png" /></p>
-                            <span>0.45658BGT</span>
+                            <span>{{item.backSunNotGet}}克</span>
                         </button>
                     </div>
                     <p v-if="dataList.length==0 && dataList2.length==0" class="nodata">暂无数据</p>
@@ -373,7 +373,7 @@
                     that.nowIndex = index;
                     this.$http({
                         method: "post",
-                        url: "/appUserMarketingTgSum/getTgRecord",
+                        url:web+ "/appUserMarketingTgSum/getTgRecord",
                         data: {
                             token: that.token,
                             limit: 10,
@@ -413,7 +413,7 @@
                     that.nowIndex = index;
                     this.$http({
                         method: "post",
-                        url: "/appUserMarketingTgSum/getTgRecord",
+                        url: web+"/appUserMarketingTgSum/getTgRecord",
                         data: {
                             token: that.token,
                             limit: 10,
@@ -455,6 +455,41 @@
                         data: {
                             token: this.token,
                             backFeeNotGet: bgtnum,
+                            id: id,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        this.type = 1;
+                        if (data.data.code == 0) {
+                            layer.msg(data.data.message);
+                            if (this.num == 1) {
+                                this.pageSize = 1;
+                                this.tabClick1(1);
+                            } else if (this.num == 2) {
+                                this.pageSize1 = 1;
+                                this.tabClick2(2);
+                            }
+                            this.isDisable = false;
+                        }else{
+                            layer.msg(data.data.message);
+                            this.isDisable = false;
+                        }
+                    }, function (error) {
+                        console.log(error);
+                        layer.msg(data.data.message);
+                        this.isDisable = false;
+                    })
+                },
+                getTgSun:function(bgtnum, id, buyerType) {
+                    this.isDisable = true;
+                    this.$http({
+                        method: "post",
+                        url: web + "/appUserMarketingTgSum/getTgSun",
+                        data: {
+                            token: this.token,
+                            backSunNotGet: bgtnum,
                             id: id,
                             platform: 'H5'
                         },

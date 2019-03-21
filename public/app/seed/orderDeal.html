@@ -44,15 +44,23 @@
                             <div class="cell-right">农场树苗</div>
                         </div>
                         <div class="cell-item">
-                            <div class="cell-left">出售总数</div>
+                            <div class="cell-left" v-if="publishType==10">出售总数</div>
+                            <div class="cell-left" v-if="publishType==20">收购总数</div>
                             <div class="cell-right">
-                                <input type="number" pattern="[0-9]*" v-model="dealnum" style="text-align:right" class="cell-input" placeholder="请输入出售总量" autocomplete="off" />
+                                <input type="number"  v-if="publishType==10" pattern="[0-9]*" v-model="dealnum" style="text-align:right" class="cell-input" placeholder="请输入出售总量" autocomplete="off" />
+                                <input type="number"  v-if="publishType==20" pattern="[0-9]*" v-model="dealnum" style="text-align:right" class="cell-input" placeholder="请输入收购总量" autocomplete="off" />
                             </div>
                         </div>
                         <div class="cell-item">
                             <div class="cell-left"></div>
                             <div class="cell-right">
-                                我的树苗总量{{allnum}}  <span class="bluetext marl10" @click="allsale">全部出售</span>
+                                <section v-if="publishType==10">
+                                    我的树苗总量{{saplingNum | numSlicefour}}  <span class="bluetext marl10" @click="allsale">全部出售</span>
+                                </section>
+                                <section v-if="publishType==20">
+                                    当前BGT总量{{balance | numSlicefour}}
+                                </section>
+                                
                             </div>
                         </div>
                     </div>
@@ -68,12 +76,20 @@
 
                 </div>
                 <button type="button" class="btn-block rechargeaffirmbtn" @click="enterbuy">确定出售</button>
-                <section class="guadanrules">
+                <section class="guadanrules" v-if="publishType==10">
                     <h1>挂单出售规则：</h1>
                     <ul>
                         <li>1、出售总数不得超过您的持有总量 </li>
                         <li>2、出售中的树苗不再产生阳光收益 </li>
                         <li>3、系统将收取1%的佣金作为交易手续费</li>
+                    </ul>
+                </section>
+                <section class="guadanrules" v-if="publishType==20">
+                    <h1>挂单购买规则：</h1>
+                    <ul>
+                        <li>1、确认收购后，将从账户暂时扣除相应的BGT保证金 </li>
+                        <li>2、有订单成交后，将自动扣除保证金给出售用户</li>
+                        <li>3、每个用户树苗持有量不能超过7000棵</li>
                     </ul>
                 </section>
             </div>
@@ -115,15 +131,16 @@
         new Vue({
             el: '#htmlWap',
             data: {
-                token:GetQueryString('token'),                         //头部获取token
-                allnum:GetQueryString('saplingBalance'),              //头部全部树苗总量
+                token:GetQueryString('token'),       //头部获取token
+                saplingNum:'',                      //我的树苗总量
+                balance:'',                         //我的BGT总量
                 userphoto:"../../images/notuserphoto.png",
                 tabactive: true,
                 tabactive2: false,
                 dialogshow: false,
-                publishType:10,            //挂单交易状态10为出售 20为购买
-                dealnum:'',             //交易数量
-                dealprice:'',           //交易单价
+                publishType:10,                     //挂单交易状态10为出售 20为购买
+                dealnum:'',                         //交易数量
+                dealprice:'',                       //交易单价
             },
         methods:{
             saletab:function(type){
@@ -142,7 +159,7 @@
                 }
             },
             allsale:function(){
-                this.dealnum=this.allnum;
+                this.dealnum=this.saplingNum;
             },
             enterbuy:function(){
                 if(!this.dealnum){
@@ -159,6 +176,35 @@
             },
             hide:function(){
                 this.dialogshow=false;
+            },
+            getUserWalletV2:function(){
+                this.$http({
+                        method: "post",
+                        url: fund+"/appFundUserWallet/getUserWalletV2",
+                        data: {
+                            token:this.token,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if(data.data.code==0){
+                            this.saplingNum= data.data.data.saplingNum;
+                            for(var i in data.data.data.walletInfo){
+                                var item =data.data.data.walletInfo;
+                                if(data.data.data.walletInfo[i].wallteType==30){
+                                    this.balance=data.data.data.walletInfo[i].balance;
+                                }
+                            }
+                            // this.balance=data.data.data.walletInfo.balance;
+                            console.log(data.data.data.walletInfo);
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                      
+                    }, function (error) {
+                        console.log(error);
+                    });
             },
             orderentrer:function(token,publishType,num,price){
                 this.dialogshow=false;
@@ -177,6 +223,7 @@
                         console.log(data);
                         layer.msg(data.data.message);
                         if(data.data.code==0){
+                            layer.msg(data.data.message);
                             window.location.href="treeDeal.html?token="+token
                         }else{
                             layer.msg(data.data.message);
@@ -184,17 +231,24 @@
                         // setTimeout(function(){
                         //     window.location.href="treeDeal.html?token="+token
                         // },1000);
-                      
                     }, function (error) {
                         console.log(error);
                     });
                 // window.location.href="dealRecord.html?token="+token
             },
-            goback:function(){
-                window.location.href="orderDetail.html?token="+this.token
-            }
+            // goback:function(){
+            //     window.location.href="orderDetail.html?token="+this.token
+            // }
         },
+        filters: {
+                numSlicefour: function (val) {
+                    if (val) {
+                       return parseFloat(val.toFixed(4));
+                    }
+                },
+            },
         mounted:function(){
+            this.getUserWalletV2();
         }
     })
     });

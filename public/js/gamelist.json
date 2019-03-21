@@ -1,0 +1,86 @@
+{
+  "gameinfo": [
+    {
+      "gameicon": "http://img.m3guo.com/group3/M00/00/C8/wKgMHFtpFPyAaK03AAYGKpuEALw205.gif",
+      "gamename": "决战沙城",
+      "infoversion": "传奇类，218.7万人在玩",
+      "startf": "十年兄弟，再战沙城！",
+      "gid": "1247433539",
+      "li":"1",
+      "jing":"1"
+    },
+    {
+      "gameicon": "http://img.m3guo.com/group2/M00/00/CE/wKgMHFuaKW2AYOFPAAQ6tsKW5do314.gif",
+      "gamename": "怼怼三国",
+      "infoversion": "策略，190.7万人在玩",
+      "startf": "90秒、轻策略、卡牌对战",
+      "gid": "1145326931",
+      "shf":"1"
+    },
+    {
+      "gameicon": "http://img.m3guo.com/group4/M00/00/18/wKgMHFtVqMuAd-WxAAZStFD138g796.png",
+      "gamename": "屠龙破晓",
+      "infoversion": "传奇类，60万人在玩",
+      "startf": "沙城野战 野外PK",
+      "gid": "2022222027",
+      "li":"1",
+      "jing":"1"
+    },
+    {
+      "gameicon": "https://open.shandw.com/uploads/fb7671817f97cb13ef227c8cb7a09886.png",
+      "gamename": "凡人飞仙传",
+      "infoversion": "角色扮演，88.88万在玩",
+      "startf": "一起来玩浮空战斗手游",
+      "gid": "2072357068",
+      "li":"1",
+      "shf":"1"
+    },
+    {
+      "gameicon": "http://img.m3guo.com/group2/M00/00/D2/wKgMHFvFVrOASCoIAAFaITcGDCY274.png",
+      "gamename": "大圣轮回H5",
+      "infoversion": "角色扮演，26.8万人在玩",
+      "startf": "六小龄童倾情代言西游",
+      "gid": "2005641418",
+      "li":"1",
+      "shf":"1"
+    },
+    {
+      "gameicon": "https://www.shandw.com/h5/h5gameimg/MDHW04-2.gif",
+      "gamename": "梦道",
+      "infoversion": "回合制，91.9万人在玩",
+      "startf": "浪漫回合，尽在梦道！",
+      "gid": "1296320599",
+      "hot":"1",
+      "li":"1"
+    },
+    {
+      "gameicon": "http://img.m3guo.com/group3/M00/00/CC/wKgMHFuFOxqAQxR0AAcsx7aI1ck080.png",
+      "gamename": "魔域来了之魔域神曲",
+      "infoversion": "角色扮演，73.7万",
+      "startf": "正版授权，延续经典！",
+      "gid": "2089003210",
+      "li":"1"
+    },
+    {
+    "gameicon": "https://open.shandw.com/uploads/2b02db0eecabd8ccc954ae65c8c34378.png",
+    "gamename": "小粉龙跳跃",
+    "infoversion": "休闲小游戏，93.3万",
+    "startf": "9小时",
+    "gid": "1247104336"
+    },
+    {
+      "gameicon": "https://www.shandw.com/h5/h5gameimg/ccd04.png",
+      "gamename": "闪电塔层层叠",
+      "infoversion": "休闲小游戏，120.3万",
+      "startf": "4小时",
+      "gid": "1413567553"
+    },
+    {
+      "gameicon": "https://www.shandw.com/h5/h5gameimg/cnzw02.png",
+      "gamename": "注意过弯！",
+      "infoversion": "休闲小游戏，33.7万",
+      "startf": "魔性小游戏",
+      "gid": "1196377935"
+    }
+  ]
+}

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>我的</title>
+    <link rel="icon" href="../../favicon2018921.ico"  type="image/x-icon" />
+    <script src="../../js/appcommon.js"></script>
+    <style>
+        body{ background:#2d236c;}
+        .swiper_con{width: 90%; margin:10px auto}
+        .m-grids-4{ background: none;}
+        .swiper-wrapper .text-gray .grids-txt{color:#76F4FE;font-size: .28rem;}
+    </style>
+</head>
+<body>
+<div id="htmlWap" v-cloak>
+    <div class="myroomdata">
+        <h6>我是房主</h6>
+        <div class="mygamecheats" id="mygamecheats">
+            <section class="autoxscroll">
+                <section class="tabcard" v-for="item in roomList">
+                    <section v-show="item.gameType==10">
+                        <img src="../../images/puke/bg-daxiao.png" />
+                    </section>
+                    <section v-show="item.gameType==20">
+                        <img src="../../images/puke/bg-shuzi.png" />
+                    </section>
+                    <section v-show="item.gameType==30">
+                        <img src="../../images/puke/bg-huase.png" />
+                    </section>
+                    <div class="roominfos">
+                        <span class="leftinfosphoto"><img :src="item.userPhoto" /></span>
+                        <span class="rightinfos">
+                            <h1>{{item.roomName}}<span class="numfryellow">局数:{{item.gamesNum}}/{{item.gamesTotalNum}}</span></h1>
+                            <p>房间号：{{item.roomCode}}</p>
+                            <p>房间类型：{{item.gameName}}</p>
+                            <p>开始时间：{{item.createTime}}</p>
+                            <p>当前奖池：{{item.jackpotCurrentValue}}BGT</p>
+                            <p>当前盈利：{{item.jackpotCurrentValue - item.jackpotAmount  | numSlicetwo}}BGT</p>
+                            <p v-show="item.roomPwd">房间密码：{{item.roomPwd}}</p>
+                            <p v-show="!item.roomPwd">房间密码：/</p>
+                        </span>
+                    </div>
+                </section>
+                <!--<section v-if="!roomList">-->
+                    <section class="tabcard" v-show="shuzitab">
+                        <img src="../../images/puke/bg-daxiao.png" />
+                        <div class="roominfos">
+                            <span class="leftinfosphoto"><img src="../../images/notuserphoto.png" /></span>
+                            <span class="rightinfos">
+                                <h1>当前无房间<span class="numfryellow">局数:0/0</span></h1>
+                                <p>房间号：/</p>
+                                <p>房间类型：猜数字</p>
+                                <p>开始时间：/</p>
+                                <p>当前奖池：/BGT</p>
+                                <p>当前盈利：/BGT</p>
+                                <p>房间密码：/</p>
+                            </span>
+                        </div>
+                    </section>
+                    <section class="tabcard" v-show="dxtab">
+                        <img src="../../images/puke/bg-shuzi.png" />
+                        <div class="roominfos">
+                            <span class="leftinfosphoto"><img src="../../images/notuserphoto.png" /></span>
+                            <span class="rightinfos">
+                                <h1>当前无房间<span class="numfryellow" style="color: #76F4FE">局数:0/0</span></h1>
+                                <p>房间号：/</p>
+                                <p>房间类型：猜大小</p>
+                                <p>开始时间：/</p>
+                                <p>当前奖池：/BGT</p>
+                                <p>当前盈利：/BGT</p>
+                                <p>房间密码：/</p>
+                            </span>
+                        </div>
+                    </section>
+                    <section class="tabcard" v-show="hstab">
+                        <img src="../../images/puke/bg-huase.png" />
+                        <div class="roominfos">
+                            <span class="leftinfosphoto"><img src="../../images/notuserphoto.png" /></span>
+                            <span class="rightinfos">
+                                <h1>当前无房间<span class="numfryellow" style="color: #FB8AFF">局数:0/0</span></h1>
+                                <p>房间号：/</p>
+                                <p>房间类型：猜花色</p>
+                                <p>开始时间：/</p>
+                                <p>当前奖池：/BGT</p>
+                                <p>当前盈利：/BGT</p>
+                                <p>房间密码：/</p>
+                            </span>
+                        </div>
+                    </section>
+                </section>
+            <!--</section>-->
+        </div>
+    </div>
+    <div class="myroomdata">
+        <h6>我是玩家</h6>
+        <section class="m-tabbar tabthree" style="background:none">
+            <a href="#" class="tabbar-item">
+                <img style="margin-left:0" src="../../images/puke/bg-yingkui.png" />
+                <section class="tabinfotop">
+                    <h3>
+                        盈亏<span class="righticon"><img src="../../images/puke/icon-yingkui.png" /></span>
+                    </h3>
+                    <h6 style="font-size: .2rem"><span class="fz4"><span v-if="profit>=1">+</span><span v-else="profit<0"></span>{{profit}}</span> BGT</h6>
+                    <h2>持有 {{bgt | numSlicetwo}}BGT</h2>
+                </section>
+            </a>
+            <a href="#" class="tabbar-item">
+                <img style="margin-left:0.5%" src="../../images/puke/bg-yingkui.png" />
+                <section class="tabinfotop">
+                    <h3>
+                        胜率<span class="righticon"><img src="../../images/puke/icon-shenglv.png" /></span>
+                    </h3>
+                    <h6><span class="fz4">{{winRate}}%</span></h6>
+                    <h2>({{win}}/{{total}})</h2>
+                </section>
+            </a>
+            <a href="#" class="tabbar-item">
+                <img src="../../images/puke/bg-yingkui.png" />
+                <section class="tabinfotop">
+                    <h3>
+                        最大投注<span class="righticon"><img src="../../images/puke/icon-touzhu.png" /></span>
+                    </h3>
+                    <h6 style="font-size: .2rem"><span class="fz4">{{maxBet}}</span> BGT</h6>
+                    <h2>时间 {{pourTime}}</h2>
+                </section>
+            </a>
+        </section>
+    </div>
+    <div class="myroomdata">
+        <h6>下注明细</h6>
+        <div id="J_Tab" class="m-tab">
+            <div class="swiper-container roomdatawkbg roomdata" style="width: 100%; margin-top: 0">
+                <div class="swiper-wrapper">
+                    <div class="m-grids-4 text-gray">
+                        <a href="javascript:;" class="grids-item">
+                            <div class="grids-txt"><span>房间名称</span></div>
+                        </a>
+                        <a href="javascript:;" class="grids-item" style="width:15%">
+                            <div class="grids-txt"><span>金额</span></div>
+                        </a>
+                        <a href="javascript:;" class="grids-item"  style="width:35%">
+                            <div class="grids-txt"><span>下注</span></div>
+                        </a>
+                        <a href="javascript:;" class="grids-item">
+                            <div class="grids-txt"><span>结果</span></div>
+                        </a>
+                    </div>
+                    <div class="m-grids-4 roombg" v-for="item in getdatalist">
+                        <section>
+                            <a href="javascript:;" class="grids-item">
+                                <div class="grids-txt"><span>{{item.roomName}}</span></div>
+                            </a>
+                            <a href="javascript:;" class="grids-item" style="width:15%">
+                                <div class="grids-txt"><span>{{item.pourMoney | numSlicetwo}}</span></div>
+                            </a>
+                            <a href="javascript:;" class="grids-item"  style="width:35%">
+                                <div class="grids-txt">
+                                    <span v-if="item.gameType !=30">{{item.pourValue}}</span>
+                                    <span v-if="item.gameType ==30">
+                                        <section v-for="item in item.pourlist" class="flowerfloat">
+                                                <img v-if="item" :src="'../../images/puke/'+item+'.png'" width="18" />
+                                        </section>
+                                    </span>
+                                </div>
+                            </a>
+                            <a href="javascript:;" class="grids-item btn-notsmallget">
+                                <div class="grids-txt" style="display: flex; justify-content: flex-end;align-items: center;">
+                                    <span v-if="item.gameType !=30">{{item.resultValue}}</span>
+                                    <span v-if="item.gameType ==30">
+                                        <img :src="'../../images/puke/'+item.resultValue+'.png'" width="18" />
+                                    </span>
+                                    <span class="color_green mar_l5" v-if="item.resultMoney>0">+{{item.resultMoney | numSlicetwo}}</span>
+                                    <span class="color_red mar_l5" v-if="item.resultMoney==0">-{{item.pourMoney | numSlicetwo}}</span>
+                                </div>
+                            </a>
+                        </section>
+
+                    </div>
+                    <p class="nodata" v-show="getdatalist.length==0">暂无数据</p>
+                    <div class="nodata downtext" @click="getRedPacket()" v-show="loadMore">加载更多</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function() {
+        var apphtml =  new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                appType:GetQueryString("appType"),      //来源
+                getType:10,                             //获取类型
+                limit:15,                              //每页数据条数
+                offset:1,                              //第几页
+                getdatalist: [],
+                loadMore:false,
+                loadpic:true,
+                roomList:[],                            //房间列表
+                profit:'',                              //盈亏
+                winRate:'',                             //胜率
+                maxBet:'',                              //最大下注
+                pourTime:'',                            //下注时间
+                bgt:0,                                 //当前持有bgt
+                total:'',                               //总场数
+                win:'',                                 //获胜场次
+                shuzitab:true,
+                dxtab:true,
+                hstab:true,
+                pourlist:[],                            //下注明细里的下注结果
+            },
+            methods: {
+                getUserGameInfo:function(){
+                    this.$http({
+                        method: "post",
+                        url: snatch+"/appGameUserRoom/getUserGameInfo",
+                        data: {
+                            token:this.token,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        var resultdata =data.data.data;
+                        this.roomList=resultdata.roomList;
+                        if(this.roomList){
+                            for(var i=0; i<this.roomList.length; i++){
+                               var showtab = this.roomList[i].gameType;
+                               if(!this.roomList[i].userPhoto){
+                                   this.roomList[i].userPhoto='../../images/notuserphoto.png';
+                               }
+                               if(showtab ==10){
+                                   this.shuzitab=false;
+                               }else if(showtab ==20){
+                                   this.dxtab=false;
+                               }else if(showtab ==30){
+                                   this.hstab=false;
+                               }
+                            }
+                        }
+
+                        this.maxBet=resultdata.maxBet;
+                        this.pourTime=resultdata.pourTime;
+                        this.winRate=resultdata.winRate;
+                        this.profit =resultdata.profit;
+                        this.total=resultdata.total;
+                        this.win =resultdata.win;
+                        this.bgt=resultdata.bgt;
+                    }, function (error) {
+                        layer.msg('接口出错');
+                    });
+                },
+                getRedPacket:function(){
+                    this.$http({
+                        method: "post",
+                        url: snatch+"/appGameUserRoom/getGameList",
+                        data: {
+                            token:this.token,
+                            getType:this.getType,
+                            limit:this.limit,
+                            offset:this.offset++,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        this.loadpic=false;
+                        if(data.data.code==0){
+                            if (this.getType==10 && data.data.data.dataList) {
+                                if(data.data.data.dataType==10) {
+                                    this.loadpic=false;
+                                    for (var i  in data.data.data.dataList) {
+                                        var item = data.data.data.dataList[i];
+                                        this.getdatalist.push(item);
+                                        if (!data.data.data.dataList[i].userNickname) {
+                                            data.data.data.dataList[i].userNickname = data.data.data.dataList[i].userAccount;
+                                        }
+                                        //创建一个下注的空数组
+                                        item.pourlist=[];
+                                        if (data.data.data.dataList[i].gameType == 30){
+                                            //将下注字段分割成map；
+                                            var list = data.data.data.dataList[i].pourValue.split(",");
+                                            // console.log(list);
+                                            for(var i=0;i<list.length;i++){
+                                                item.pourlist.push(list[i]);
+                                            }
+                                            // console.log(item.pourlist);
+                                        }
+                                        if(data.data.data.dataList[i].gameType==20){
+                                                //替换下注
+                                                if (data.data.data.dataList[i].pourValue == 'A') {
+                                                    data.data.data.dataList[i].pourValue = 1;
+                                                } else if (data.data.data.dataList[i].pourValue == 'J') {
+                                                    data.data.data.dataList[i].pourValue = 11;
+                                                } else if (data.data.data.dataList[i].pourValue == 'Q') {
+                                                    data.data.data.dataList[i].pourValue = 12;
+                                                } else if (data.data.data.dataList[i].pourValue == 'K') {
+                                                    data.data.data.dataList[i].pourValue = 13;
+                                                }
+                                                if (parseInt(data.data.data.dataList[i].pourValue) < 7) {
+                                                    data.data.data.dataList[i].pourValue = '小';
+                                                } else if (parseInt(data.data.data.dataList[i].pourValue) == 7) {
+                                                    data.data.data.dataList[i].pourValue = '中';
+                                                } else {
+                                                    data.data.data.dataList[i].pourValue = '大';
+                                                }
+                                                //替换结果
+                                                if (data.data.data.dataList[i].resultValue == 'A') {
+                                                    data.data.data.dataList[i].resultValue = 1;
+                                                } else if (data.data.data.dataList[i].resultValue == 'J') {
+                                                    data.data.data.dataList[i].resultValue = 11;
+                                                } else if (data.data.data.dataList[i].resultValue == 'Q') {
+                                                    data.data.data.dataList[i].resultValue = 12;
+                                                } else if (data.data.data.dataList[i].resultValue == 'K') {
+                                                    data.data.data.dataList[i].resultValue = 13;
+                                                }
+                                                if (parseInt(data.data.data.dataList[i].resultValue) < 7) {
+                                                    data.data.data.dataList[i].resultValue = '小';
+                                                } else if (parseInt(data.data.data.dataList[i].resultValue) == 7) {
+                                                    data.data.data.dataList[i].resultValue = '中';
+                                                } else {
+                                                    data.data.data.dataList[i].resultValue = '大';
+                                                }
+                                            }
+                                        }
+                                }else{
+                                    return;
+                                }
+                                if (data.data.data.dataList.length >= this.limit) {
+                                    this.loadMore = true;
+                                }else {
+                                    this.loadMore = false;
+                                }
+                            }else{
+                                this.loadMore = false;
+                            }
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        layer.msg('接口出错');
+                    });
+                },
+            },
+            filters: {
+                numSlicetwo: function (val) {
+                        if (val) {
+                            return parseFloat(val.toFixed(2));
+                        }else if(val==0){
+                            return parseFloat(val.toFixed(2));
+                        }
+                },
+            },
+            mounted: function () {
+                this.getUserGameInfo();
+                this.getRedPacket(0);
+            },
+            beforeCreate: function (){
+                //加载层
+                this.$nextTick(function () {
+                    var that=this;
+                    setTimeout(function () {
+                        that.loadpic=false;
+                    },1000)
+                })
+            }
+        });
+
+
+        setTimeout(function () {
+            //横向滚动
+            // $("#mygamecheats").scroll(function(){
+            //     var scrollLeft =$("#mygamecheats").scrollLeft();
+            //     if(scrollLeft>=150){
+            //         $("#mygamecheats").animate({scrollLeft:'380px'},500);
+            //     }
+            // });
+
+            //纵向滚动漂浮固定
+            var nav=$(".text-gray"); //得到导航对象
+            var win=$(window); //得到窗口对象
+            var sc=$(document);//得到document文档对象。
+            win.scroll(function() {
+                if (sc.scrollTop() >= 460) {
+                    nav.addClass("fixednav");
+                    $(".navTmp").fadeIn();
+                } else {
+                    nav.removeClass("fixednav");
+                    $(".navTmp").fadeOut();
+                }
+            });
+        },100)
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

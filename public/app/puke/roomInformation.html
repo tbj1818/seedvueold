@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>房间数据</title>
+    <link rel="icon" href="../../favicon2018921.ico"  type="image/x-icon" />
+    <script src="../../js/appcommon.js"></script>
+    <style>
+        body{ background:#271B50;}
+        .swiper_con{width: 90%; margin:10px auto}
+        .m-grids-4{ background: none;}
+        .swiper-wrapper .text-gray .grids-txt{color:#76F4FE;font-size: .28rem;}
+    </style>
+</head>
+<body>
+<div id="htmlWap" v-cloak>
+    <div id="J_Tab" class="m-tab">
+
+        <div class="swiper-container roomdatawkbg roomdata">
+            <div class="swiper-wrapper" v-show="nowIndex===0">
+                <div class="m-grids-4 text-gray">
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>用户</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item" style="width:15%">
+                        <div class="grids-txt"><span>金额</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item" style="width:35%">
+                        <div class="grids-txt"><span>下注</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>结果</span></div>
+                    </a>
+                </div>
+                <div class="m-grids-4 roombg" v-for="item in getdatalist">
+                    <section v-show="item.resultValueTmp!=item.pourValue">
+                        <a href="javascript:;" class="grids-item">
+                            <div class="grids-txt"><span>{{item.userNickname}}</span></div>
+                        </a>
+                        <a href="javascript:;" class="grids-item" style="width:15%">
+                            <div class="grids-txt"><span>{{item.pourMoney | numSlicetwo}}</span></div>
+                        </a>
+                        <a href="javascript:;" class="grids-item" style="width:35%">
+                            <!--<div class="grids-txt"><span>{{item.pourValue}}</span></div>-->
+                            <div class="grids-txt">
+                                <span v-if="item.gameType !=30">{{item.pourValue}}</span>
+                                <span v-if="item.gameType ==30">
+                                        <section v-for="item in item.pourlist" class="flowerfloat">
+                                                <img v-if="item" :src="'../../images/puke/'+item+'.png'" width="18" />
+                                        </section>
+                                    </span>
+                            </div>
+                        </a>
+                        <a href="javascript:;" class="grids-item btn-notsmallget">
+                            <!--<div class="grids-txt"><span>{{item.resultValue}}</span></div>-->
+                            <div class="grids-txt" style="display: flex; justify-content: flex-end;align-items: center;">
+                                <span v-if="item.gameType !=30">{{item.resultValue}}</span>
+                                <span v-if="item.gameType ==30">
+                                        <img :src="'../../images/puke/'+item.resultValue+'.png'" width="18" />
+                                    </span>
+                                <span class="color_green mar_l5" v-if="item.resultMoney>0">+{{item.resultMoney | numSlicetwo}}</span>
+                                <span class="color_red mar_l5" v-if="item.resultMoney==0">-{{item.pourMoney | numSlicetwo}}</span>
+                            </div>
+                        </a>
+                    </section>
+                </div>
+                <p class="nodata" v-show="getdatalist.length==0">暂无数据</p>
+                <div class="nodata downtext" @click="getRedPacket()" v-show="loadMore">加载更多</div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function() {
+        var apphtml =  new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                appType:GetQueryString("appType"),      //来源
+                roomId:GetQueryString("roomId"),      //房间ID
+                limit:15,                              //每页数据条数
+                offset:1,                              //第几页
+                getdatalist: [],
+                loadMore:false,
+                tabsParam:['房间数据','房间管理'],
+                nowIndex:0,                            //默认第一个tab为激活状态
+                loadpic:true,
+            },
+            methods: {
+                toggleTabs: function(index){
+                    this.nowIndex=index;
+                },
+                getRedPacket: function(){
+                    this.$http({
+                        method: "post",
+                        url: snatch+"/appGamePourRecord/list",
+                        data: {
+                            token:this.token,
+                            roomId:this.roomId,
+                            limit:this.limit,
+                            offset:this.offset++,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if(data.data.code==0){
+                            if (data.data.data.data) {
+                                // console.log(this.offset);
+                                // this.getdatalist = data.data.data.roomList;
+                                for (var i  in data.data.data.data) {
+                                    var item = data.data.data.data[i];
+                                    this.getdatalist.push(item);
+
+                                    if(!data.data.data.data[i].userNickname){
+                                        data.data.data.data[i].userNickname=data.data.data.data[i].userAccount;
+                                    }
+                                    //创建一个下注的空数组
+                                    item.pourlist=[];
+                                    if (data.data.data.data[i].gameType == 30){
+                                        //将下注字段分割成map；
+                                        var list = data.data.data.data[i].pourValue.split(",");
+                                        // console.log(list);
+                                        for(var i=0;i<list.length;i++){
+                                            item.pourlist.push(list[i]);
+                                        }
+                                        // console.log(item.pourlist);
+                                    }else if(data.data.data.data[i].gameType == 20){
+                                        //替换下注
+                                        if (data.data.data.data[i].pourValue == 'A') {
+                                            data.data.data.data[i].pourValue = 1;
+                                        } else if (data.data.data.data[i].pourValue == 'J') {
+                                            data.data.data.data[i].pourValue = 11;
+                                        } else if (data.data.data.data[i].pourValue == 'Q') {
+                                            data.data.data.data[i].pourValue = 12;
+                                        } else if (data.data.data.data[i].pourValue == 'K') {
+                                            data.data.data.data[i].pourValue = 13;
+                                        }
+                                        if (parseInt(data.data.data.data[i].pourValue) < 7) {
+                                            data.data.data.data[i].pourValue = '小';
+                                        } else if (parseInt(data.data.data.data[i].pourValue) == 7) {
+                                            data.data.data.data[i].pourValue = '中';
+                                        } else {
+                                            data.data.data.data[i].pourValue = '大';
+                                        }
+                                        //替换结果
+                                        if (data.data.data.data[i].resultValue == 'A') {
+                                            data.data.data.data[i].resultValue = 1;
+                                        } else if (data.data.data.data[i].resultValue == 'J') {
+                                            data.data.data.data[i].resultValue = 11;
+                                        } else if (data.data.data.data[i].resultValue == 'Q') {
+                                            data.data.data.data[i].resultValue = 12;
+                                        } else if (data.data.data.data[i].resultValue == 'K') {
+                                            data.data.data.data[i].resultValue = 13;
+                                        }
+                                        if (parseInt(data.data.data.data[i].resultValue) < 7) {
+                                            data.data.data.data[i].resultValue = '小';
+                                        } else if (parseInt(data.data.data.data[i].resultValue) == 7) {
+                                            data.data.data.data[i].resultValue = '中';
+                                        } else {
+                                            data.data.data.data[i].resultValue = '大';
+                                        }
+                                    }
+                                }
+                                if (data.data.data.data.length >= this.limit) {
+                                    this.loadMore = true;
+                                }else {
+                                    this.loadMore = false;
+                                    if(this.offset>2){
+                                        layer.msg('数据已经加载完了')
+                                    }
+                                }
+                            }else{
+                                this.loadMore = false;
+                                // console.log(this.offset);
+                                if(this.offset>2){
+                                    layer.msg('数据已经加载完了')
+                                }
+                            }
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        layer.msg('接口出错');
+                    });
+                },
+            },
+            filters: {
+                numSlicetwo: function (val) {
+                    if (val) {
+                            return parseFloat(val.toFixed(2));
+                    }
+                },
+            },
+            mounted: function () {
+                    this.getRedPacket();
+            },
+            beforeCreate: function(){
+                //加载层
+                this.$nextTick(function () {
+                    var that=this;
+                    setTimeout(function () {
+                        that.loadpic=false;
+                    },1000)
+                })
+            }
+        });
+        setTimeout(function () {
+            //纵向滚动漂浮固定
+            var nav=$(".text-gray"); //得到导航对象
+            var win=$(window); //得到窗口对象
+            var sc=$(document);//得到document文档对象。
+            win.scroll(function() {
+                if (sc.scrollTop() >= 60) {
+                    nav.addClass("fixednav");
+                    $(".navTmp").fadeIn();
+                }else {
+                    nav.removeClass("fixednav");
+                    $(".navTmp").fadeOut();
+                }
+            });
+        },300);
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

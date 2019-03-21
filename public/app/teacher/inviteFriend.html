@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>邀请好友</title>
+    <link rel="icon" href="../../favicon2018921.ico" type="image/x-icon"/>
+    <script src="../../js/appcommon.js"></script>
+    <style>
+        .tabbar-txt {
+            font-size: .26rem
+        }
+        button {
+            border: 0
+        }
+
+        .m-grids-4 {
+            width: 95%;
+            margin: 0 auto;
+        }
+
+        .text-gray {
+            width: 100%
+        }
+        .swiper-wrapper .grids-item{ line-height:auto !important;}
+    </style>
+</head>
+<body>
+<div id="htmlWap" v-cloak>
+    <div class="invitesharefriendbg">
+        <div class="invpictopbanner">
+            <img src="../../images/teacher/teachersharebanner.png"/>
+        </div>
+        <div class="invitetextnew">邀请好友为您带来三份奖励</div>
+        <div class="mycodebg">
+            <div class="titgz"><img src="../../images/teacher/inviterules.png" /></div>
+            <p><span class="tagnum"><img src="../../images/teacher/treeicon.png" /></span>每邀请一个用户赠送20算力，仅限前10名用户。</p>
+            <p><span class="tagnum"><img src="../../images/teacher/treeicon.png" /></span>一级好友每次在场景中领取BGT，您将获得10%的BGT返利，二级好友领取BGT，您将获得2%的BG
+                T返利，每个好友返利上限为20BGT。</p>
+            <p><span class="tagnum"><img src="../../images/teacher/treeicon.png" /></span>一级好友每次在农场中获得阳光，您将获得5%的返利，二级好友为您带来1%的返利，不设上限。</p>
+
+        </div>
+        <div class="mycodebg">
+            <div class="titgz"><img src="../../images/teacher/invitetype.png" /></div>
+            <div class="mycodebgpic">
+                <img src="../../images/teacher/invitecodebg.png"/>
+                <h3>您的邀请码</h3>
+                <h1>{{inviteCode}}</h1>
+            </div>
+
+            <footer class="m-tabbar" style="background: none;z-index: 0">
+                <a href="javascript:;" class="tabbar-item copylinkbtn" @click="copyBtnText()">
+                        <span class="tabbar-icon">
+                            <img src="../../images/teacher/linkicon.png"/>
+                        </span>
+                    <span class="tabbar-txt">复制链接</span>
+                </a>
+                <a href="javascript:;" class="tabbar-item"
+                   onclick="sharelink('/view/h5/freeregister.html?code=',inviteCode)">
+                        <span class="tabbar-icon">
+                           <img src="../../images/teacher/wechaticon.png"/>
+                        </span>
+                    <span class="tabbar-txt">微信邀请</span>
+                </a>
+                <button href="javascript:;" class="tabbar-item" :disabled="isDisablebook" @click="addressshare(appType)">
+                        <span class="tabbar-icon">
+                           <img src="../../images/teacher/txlicon.png"/>
+                        </span>
+                    <span class="tabbar-txt">通讯录邀请</span>
+                </button>
+            </footer>
+
+        </div>
+
+        <div class="mycodebg">
+            <div class="titgz"><img src="../../images/teacher/myfriend.png" />
+               <div><img src="../../images/teacher/goldpic.png" style="right:-20px; top:-60px;left:auto;width:90px" /></div>
+            </div>
+            <div class="sharefriendtwo">
+                <img src="../../images/teacher/myshareicon.png"/>
+                <div class="sharenum">{{invitenum}}</div>
+            </div>
+            <div class="sharefriendtwo">
+                <img src="../../images/teacher/invitefriend.png"/>
+                <div class="sharenum">{{invitebgtnum}}</div>
+            </div>
+        </div>
+        <!--<div class="teampic"><img src="../../images/teacher/teamaward.png"/></div>-->
+        <!--<div class="mycodebg" style="padding: 0 0 30px 0">-->
+            <!--<div class="progressstate">-->
+                <!--<div class="linecenter">-->
+                    <!--<div class="focusline" style="width:0%"></div>-->
+                <!--</div>-->
+                <!--<div class="m-grids-5">-->
+                    <!--<a href="javascript:;" class="grids-item">-->
+                        <!--<div v-show="inviteReveiveGrade==0" class="grids-txt"><span>10人</span><img-->
+                                <!--src="../../images/teacher/invitestateicon2.png"/><span>10BGT</span></div>-->
+                        <!--<div v-show="inviteReveiveGrade>=1" class="grids-txt"><span>10人</span><img-->
+                                <!--src="../../images/teacher/invitestateicon.png"/><span>10BGT</span></div>-->
+                    <!--</a>-->
+                    <!--<a href="javascript:;" class="grids-item">-->
+                        <!--<div v-show="inviteReveiveGrade<2" class="grids-txt"><span>50人</span><img-->
+                                <!--src="../../images/teacher/invitestateicon2.png"/><span>50BGT</span></div>-->
+                        <!--<div v-show="inviteReveiveGrade>=2" class="grids-txt"><span>50人</span><img-->
+                                <!--src="../../images/teacher/invitestateicon.png"/><span>50BGT</span></div>-->
+                    <!--</a>-->
+                    <!--<a href="javascript:;" class="grids-item">-->
+                        <!--<div v-show="inviteReveiveGrade<3" class="grids-txt"><span>100人</span><img-->
+                                <!--src="../../images/teacher/invitestateicon2.png"/><span>100BGT</span></div>-->
+                        <!--<div v-show="inviteReveiveGrade>=3" class="grids-txt"><span>100人</span><img-->
+                                <!--src="../../images/teacher/invitestateicon.png"/><span>100BGT</span></div>-->
+                    <!--</a>-->
+                    <!--<a href="javascript:;" class="grids-item">-->
+                        <!--<div v-show="inviteReveiveGrade<4" class="grids-txt"><span>500人</span><img-->
+                                <!--src="../../images/teacher/invitestateicon2.png"/><span>500BGT</span></div>-->
+                        <!--<div v-show="inviteReveiveGrade>=4" class="grids-txt"><span>500人</span><img-->
+                                <!--src="../../images/teacher/invitestateicon.png"/><span>500BGT</span></div>-->
+                    <!--</a>-->
+                    <!--<a href="javascript:;" class="grids-item">-->
+                        <!--<div v-show="inviteReveiveGrade<5" class="grids-txt"><span>1000人</span><img-->
+                                <!--src="../../images/teacher/invitestateicon2.png"/><span>1000BGT</span></div>-->
+                        <!--<div v-show="inviteReveiveGrade>=5" class="grids-txt"><span>1000人</span><img-->
+                                <!--src="../../images/teacher/invitestateicon.png"/><span>1000BGT</span></div>-->
+                    <!--</a>-->
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="teamnumwk">-->
+                <!--<h3>当前团队共{{totalLevelNum}}人，<span v-show="totalLevelNum<10">尚未达到标准</span><span v-show="totalLevelNum>=10 && inviteReachGrade !=inviteReveiveGrade">可领取奖励</span><span v-show="totalLevelNum>=10 && inviteReachGrade ==inviteReveiveGrade">奖励已领取完</span></h3>-->
+                <!--<button type="button" class="btn-block btn-getawardbtn disabled" v-show="inviteReachGrade ==inviteReveiveGrade">领取奖励</button>-->
+                <!--<button type="button" class="btn-block btn-getawardbtn" v-show="inviteReachGrade !=inviteReveiveGrade"-->
+                        <!--@click="getTgTeamBgt(inviteReveiveGrade,inviteReachGrade)">领取奖励-->
+                <!--</button>-->
+            <!--</div>-->
+        <!--</div>-->
+
+        <div class="mycodebg" style="padding: 0">
+            <div class="navlist">
+                <ul>
+                    <li class="navli" :class="{'activeT':nowIndex===1}" @click="tabClick1(1)"><i>一级好友</i>
+                    </li>
+                    <li class="navli" :class="{'activeT':nowIndex===2}" @click="tabClick2(2)"><i>二级好友</i>
+                    </li>
+                </ul>
+            </div>
+            <div class="swiper-container swiper_con">
+                <div class="swiper-wrapper">
+                    <div class="m-grids-4 text-gray">
+                        <a href="javascript:;" class="grids-item" style="width: 12%">
+                            <div class="grids-txt"><span>好友</span></div>
+                        </a>
+                        <a href="javascript:;" class="grids-item"  style="width:38%">
+                            <div class="grids-txt"><span></span></div>
+                        </a>
+                        <a href="javascript:;" class="grids-item">
+                            <div class="grids-txt"><span></span></div>
+                        </a>
+                        <a href="javascript:;" class="grids-item">
+                            <div class="grids-txt"><span>奖励</span></div>
+                        </a>
+                    </div>
+                    <div class="m-grids-4" v-for="item in dataList">
+                        <a href="javascript:;" class="grids-item" style="width: 12%">
+                            <div class="grids-txt" v-if="item.userphoto"><span>{{item.userphoto}}</span></div>
+                            <div class="grids-txt" v-if="!item.userphoto"><img style="width: 100%;" src="../../images/notuserphoto.png" /></div>
+                        </a>
+                        <a href="javascript:;" class="grids-item" style="width:38%;">
+                            <div class="grids-txt" style="text-align: left;padding-left: 5px; line-height:30px;" v-if="item.buyerNickname"><p class="fontbold">{{item.buyerNickname}}</p>树苗 1</div>
+                            <div class="grids-txt" style="text-align: left;padding-left: 5px; line-height:30px;" v-if="!item.buyerNickname"><p class="fontbold">{{item.buyerAccount}}</p>树苗 1</div>
+                        </a>
+
+                        <a href="javascript:;" v-if="item.backFeeNotGet ==0" class="grids-item btn-notsmallget">
+                            <p class="bgticon"><img src="../../images/teacher/icon-bgt-d@2x.png" /></p>
+                            <span>0.45658BGT</span>
+                        </a>
+                        <button href="javascript:;" v-if="item.backFeeNotGet >0" class="grids-item" :disabled="isDisable" @click="getBgt(item.backFeeNotGet,item.rowId,item.buyerType,$event)">
+                            <p class="bgticon"><img src="../../images/teacher/icon-bgt@2x.png" /></p>
+                            <span>0.45658BGT</span>
+                        </button>
+                        <a href="javascript:;" v-if="item.backFeeNotGet ==0" class="grids-item btn-notsmallget">
+                            <p class="bgticon"><img src="../../images/teacher/icon-taiyang-d@2x.png" /></p>
+                            <span>0.45658BGT</span>
+                        </a>
+                        <button href="javascript:;" v-if="item.backFeeNotGet >0" class="grids-item" :disabled="isDisable" @click="getBgt(item.backFeeNotGet,item.rowId,item.buyerType,$event)">
+                            <p class="bgticon"><img src="../../images/teacher/icon-taiyang@2x.png" /></p>
+                            <span>0.45658BGT</span>
+                        </button>
+                    </div>
+                    <div class="m-grids-4" v-for="item in dataList2">
+                        <a href="javascript:;" class="grids-item" style="width: 12%">
+                            <div class="grids-txt" v-if="item.userphoto"><span>{{item.userphoto}}</span></div>
+                            <div class="grids-txt" v-if="!item.userphoto"><img style="width: 100%;" src="../../images/notuserphoto.png" /></div>
+                        </a>
+                        <a href="javascript:;" class="grids-item" style="width:38%;">
+                            <div class="grids-txt" style="text-align: left;padding-left: 5px; line-height:30px;" v-if="item.buyerNickname"><p class="fontbold">{{item.buyerNickname}}</p>树苗 1</div>
+                            <div class="grids-txt" style="text-align: left;padding-left: 5px; line-height:30px;" v-if="!item.buyerNickname"><p class="fontbold">{{item.buyerAccount}}</p>树苗 1</div>
+                        </a>
+
+                        <a href="javascript:;" v-if="item.backFeeNotGet ==0" class="grids-item btn-notsmallget">
+                            <p class="bgticon"><img src="../../images/teacher/icon-bgt-d@2x.png" /></p>
+                            <span>0.45658BGT</span>
+                        </a>
+                        <button href="javascript:;" v-if="item.backFeeNotGet >0" class="grids-item" :disabled="isDisable" @click="getBgt(item.backFeeNotGet,item.rowId,item.buyerType,$event)">
+                            <p class="bgticon"><img src="../../images/teacher/icon-bgt@2x.png" /></p>
+                            <span>0.45658BGT</span>
+                        </button>
+                        <a href="javascript:;" v-if="item.backFeeNotGet ==0" class="grids-item btn-notsmallget">
+                            <p class="bgticon"><img src="../../images/teacher/icon-taiyang-d@2x.png" /></p>
+                            <span>0.45658BGT</span>
+                        </a>
+                        <button href="javascript:;" v-if="item.backFeeNotGet >0" class="grids-item" :disabled="isDisable" @click="getBgt(item.backFeeNotGet,item.rowId,item.buyerType,$event)">
+                            <p class="bgticon"><img src="../../images/teacher/icon-taiyang@2x.png" /></p>
+                            <span>0.45658BGT</span>
+                        </button>
+                    </div>
+                    <p v-if="dataList.length==0 && dataList2.length==0" class="nodata">暂无数据</p>
+                    <div class="nodata downtext" @click="loadmore()" v-show="loadMore">加载更多</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="copylink" style="width: 50%; overflow: hidden">
+        {{web}}/view/h5/freeregister.html?code={{inviteCode}}&userName={{wechatname}}
+    </div>
+    <button type="button" class="invitesharefriendBtn" @click="saveConfig()">邀请好友
+    </button>
+</div>
+
+</body>
+<script src="../../js/jquery.qrcode.min.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var appType = GetQueryString('appType');
+    var inviteCode;
+    $(function () {
+        new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                appType: GetQueryString('appType'),
+                dataList: [],
+                dataList2: [],
+                userRole: '',
+                invitenum: 0,
+                pageSize: 1,
+                pageSize1: 1,
+                invitebgtnum: 0,
+                inviteslnum: 0,
+                wechatphoto: 'https://pic1.zhimg.com/v2-561c465709dd4e610d8b4904b5ac9a7c_s.jpeg',
+                wechatname: '布谷',
+                inviteCode: '',  //邀请码
+                nodata: false,
+                loadMore: false,
+                isDisable: false,
+                isDisablebook:false,
+                web: '',
+                type: 0,
+                num: 1,
+                nowIndex: 0,
+                totalLevelNum: 0,
+                inviteReveiveGrade: 0,   //已经领取的等级
+                inviteReachGrade: 0,   // 最高等级 [inviteReachGrade>inviteReveiveGrade 可以点击 相等不能点击]
+            },
+            methods: {
+                getInvitelog: function () {
+                    var that = this;
+                    this.$http({
+                        method: "post",
+                        url: web + "/appUser/getTgDetail",
+                        data: {
+                            token: that.token,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        if (data.data.code == 0) {
+                            if (data.data) {
+                                this.tabClick1(1);
+                                that.invitenum = data.data.data.oneLevelNum;
+                                that.inviteCode = data.data.data.inviteCode.toUpperCase();
+                                that.invitebgtnum = data.data.data.twoLevelNum;
+                                that.userRole = data.data.data.userRole;
+                                that.wechatname = encodeURIComponent(data.data.data.nickname);
+                                that.inviteReachGrade = data.data.data.inviteReachGrade;
+                                that.inviteReveiveGrade = data.data.data.inviteReveiveGrade;
+                                that.totalLevelNum = data.data.data.totalLevelNum;
+                                // console.log(that.inviteReachGrade);
+                                $('.focusline').width(that.inviteReveiveGrade *20 + "%");
+                                var inviteCode = that.inviteCode;
+                                localStorage.setItem("inviteCode", that.inviteCode);
+                                localStorage.setItem("wechatname", that.wechatname);
+                            } else {
+                                that.loadMore = false;
+                                layer.msg('加载失败,请稍后重试');
+                            }
+                        } else {
+                            that.loadMore = false;
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                copyBtnText: function () {
+                    //复制文案
+                    var clipboard = new Clipboard('.copylinkbtn', {
+                        target: function () {
+                            return document.querySelector('.copylink');
+                        }
+                    });
+                    clipboard.on('success', function (e) {
+                        layer.msg('复制成功')
+                    });
+                    clipboard.on('error', function (e) {
+                        layer.msg('复制失败')
+                    });
+                },
+                saveConfig: function () {
+                    // console.log(that.appType);
+                    //邀请好友保存图片方法
+                    // if(this.appType == 'ios'){
+                    //     //调用IOS原生方法
+                    //     window.webkit.messageHandlers.savePic.postMessage('savePic');
+                    // }else{
+                    window.location.href = '../../qrcodeDownload.html?Invitation=' + this.inviteCode + '&appType=' + this.appType + '&userRole=' + this.userRole + "&userName=" + this.wechatname;
+                    // }
+                },
+                addressshare:function(appType) {
+                    // layer.msg('敬请期待');
+                    var that =this;
+                    this.isDisablebook=true;
+                   // 跳转通讯录邀请方法
+                    if(appType == 'ios'){
+                        // layer.msg('敬请期待');
+                        //调用IOS原生方法
+                        window.webkit.messageHandlers.addressbook.postMessage('');
+                        setTimeout(function () {
+                            that.isDisablebook=false;
+                        },1500)
+                        return;
+                    } else if (appType == 'android') {
+                        window.android.addressbook();
+                        setTimeout(function () {
+                            that.isDisablebook=false;
+                        },1500);
+                        return;
+                    } else {
+                        layer.msg('请在手机端操作');
+                        setTimeout(function () {
+                            that.isDisablebook=false;
+                        },1500);
+                        return;
+                    }
+                },
+                tabClick1:function(index) {
+                    // console.log(index);
+                    if (this.type == 1) {
+                        this.dataList = [];
+                    }
+                    this.dataList2 = [];
+                    var that = this;
+                    that.pageSize1 = 1;
+                    this.num = 1;
+                    that.nowIndex = index;
+                    this.$http({
+                        method: "post",
+                        url: "/appUserMarketingTgSum/getTgRecord",
+                        data: {
+                            token: that.token,
+                            limit: 10,
+                            offset: that.pageSize++,
+                            order: 'desc',
+                            sort: 'regTime',
+                            buyerType: index,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        for (var i  in data.data.data.list) {
+                            var item = data.data.data.list[i]
+                            that.dataList.push(item);
+                            // console.log(data.data.data.list[i].backFeeNotGet);
+                        }
+                        if (data.data.data.list.length >= 10) {
+                            that.loadMore = true;
+                        } else {
+                            that.loadMore = false;
+                        }
+
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                tabClick2:function(index) {
+                    console.log(index);
+                    var that = this;
+                    if (this.type == 1) {
+                        this.dataList2 = [];
+                    }
+                    this.dataList = [];
+                    that.pageSize = 1;
+                    this.num = 2;
+                    that.nowIndex = index;
+                    this.$http({
+                        method: "post",
+                        url: "/appUserMarketingTgSum/getTgRecord",
+                        data: {
+                            token: that.token,
+                            limit: 10,
+                            offset: that.pageSize1++,
+                            order: 'desc',
+                            sort: 'regTime',
+                            buyerType: index,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        for (var i  in data.data.data.list) {
+                            var item = data.data.data.list[i]
+                            that.dataList2.push(item)
+                        }
+                        if (data.data.data.list.length >= 10) {
+                            that.loadMore = true;
+                        } else {
+                            that.loadMore = false;
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                loadmore:function() {
+                    this.type = 0;
+                    if (this.num == 1) {
+                        this.tabClick1(1);
+                    } else if (this.num == 2) {
+                        this.tabClick2(2);
+                    }
+                },
+                getBgt:function(bgtnum, id, buyerType) {
+                    this.isDisable = true;
+                    this.$http({
+                        method: "post",
+                        url: web + "/appUserMarketingTgSum/getTgBgt",
+                        data: {
+                            token: this.token,
+                            backFeeNotGet: bgtnum,
+                            id: id,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        this.type = 1;
+                        if (data.data.code == 0) {
+                            layer.msg(data.data.message);
+                            if (this.num == 1) {
+                                this.pageSize = 1;
+                                this.tabClick1(1);
+                            } else if (this.num == 2) {
+                                this.pageSize1 = 1;
+                                this.tabClick2(2);
+                            }
+                            this.isDisable = false;
+                        }else{
+                            layer.msg(data.data.message);
+                            this.isDisable = false;
+                        }
+                    }, function (error) {
+                        console.log(error);
+                        layer.msg(data.data.message);
+                        this.isDisable = false;
+                    })
+                },
+                getTgTeamBgt:function(getnum,ReachGrade){
+                    this.$http({
+                        method: "post",
+                        url: web + "/appUserMarketingTgSum/getTgTeamBgt",
+                        data: {
+                            token: this.token,
+                            inviteReveiveGrade: getnum+1,
+                            inviteReachGrade: ReachGrade,
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if(data.data.code==0){
+                            layer.msg('领取团队BGT成功');
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+
+                        this.inviteReveiveGrade =data.data.data.inviteReveiveGrade;
+                        this.inviteReachGrade = data.data.data.inviteReachGrade;
+                        $('.focusline').width(this.inviteReveiveGrade *20 + "%");
+                    }, function (error) {
+                        console.log(error);
+                        this.isDisable = false;
+                    })
+                }
+            },
+            mounted: function () {
+                this.getInvitelog();
+                this.web = web;
+            }
+        });
+    });
+    var inviteCode = localStorage.getItem("inviteCode");
+    var wechatname = localStorage.getItem("wechatname");
+
+    //分享按钮调取原生分享方法
+    function sharelink(link) {
+        //邀请好友保存图片方法
+        if (appType == 'ios') {
+            //调用IOS原生方法
+            window.webkit.messageHandlers.shareUrl.postMessage(link + inviteCode + '&userName=' + encodeURI(wechatname));
+            return;
+        } else if (appType == 'android') {
+            console.log(link + inviteCode);
+            window.android.shareUrl(link + inviteCode + '&userName=' + encodeURI(wechatname));
+            return;
+        } else {
+            console.log(link + inviteCode + '&userName=' + encodeURI(wechatname));
+            layer.msg('请在手机端操作')
+            return;
+        }
+    }
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

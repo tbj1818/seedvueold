@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>挂单记录</title>
+    <link rel="icon" href="../../favicon2018921.ico" type="image/x-icon"/>
+    <script src="../../js/appcommon.js"></script>
+</head>
+<style>
+</style>
+<body>
+<div id="htmlWap" v-cloak>
+        <header class="m-navbar">
+                <a href="javascript:;" @click="goback" class="navbar-item">
+                    <i class="back-ico"></i>
+                </a>
+                <div class="navbar-center">
+                    <span class="navbar-title">挂单记录</span>
+                </div>
+                <a href="javascript:;" @click="goorderdeal(token)" class="navbar-item">
+                    我要挂单
+                </a>
+        </header>
+    <div class="seedcontain seedbg">
+            
+            <div class="tab-panel-item">
+                <div class="m-cell seedWbg">
+                    <section class="cellLR bottborl">
+                        <span class="left_cell" style="flex:1"><span class="sellIcon margr10"><img
+                                src="../../images/seed/icon-chushou@2x.png"/></span>出售树苗</span>
+
+                        <span class="right_cell" style="flex:1">2019-02-08 18:06:32</span>
+                    </section>
+                    <section class="cellLR ">
+                        <span class="left_cell" style="flex:1">单价</span>
+                        <span class="right_cell" style="flex:1">10BGt/棵</span>
+                    </section>
+                    <section class="cellLR ">
+                        <span class="left_cell" style="flex:1">出售总量</span>
+                        <span class="right_cell" style="flex:1">100</span>
+                    </section>
+                    <section class="cellLR bottborl">
+                        <span class="left_cell" style="flex:1">已出售量</span>
+                        <span class="right_cell" style="flex:1">23</span>
+                    </section>
+                    <section class="cellLR ">
+                        <span class="left_cell" style="flex:1"></span>
+                        <span class="right_cell bluetext" style="flex:1"><strong
+                                @click="cancelorder">撤销挂单</strong></span>
+                    </section>
+                    <section class="backout"><img src="../../images/seed/img-wancheng@2x.png"/></section>
+                </div>
+                <div class="m-cell seedWbg">
+                    <section class="cellLR bottborl">
+                        <span class="left_cell" style="flex:1"><span class="sellIcon margr10"><img
+                                src="../../images/seed/icon-goumai@2x.png"/></span>购买树苗</span>
+                        <span class="right_cell" style="flex:1">2019-02-08 18:06:32</span>
+                    </section>
+                    <section class="cellLR ">
+                        <span class="left_cell" style="flex:1">单价</span>
+                        <span class="right_cell" style="flex:1">10BGt/棵</span>
+                    </section>
+                    <section class="cellLR ">
+                        <span class="left_cell" style="flex:1">购买总量</span>
+                        <span class="right_cell" style="flex:1">100</span>
+                    </section>
+                    <section class="cellLR ">
+                        <span class="left_cell" style="flex:1">已购买量</span>
+                        <span class="right_cell" style="flex:1">23</span>
+                    </section>
+                    <section class="cellLR">
+                        <span class="left_cell" style="flex:1">初始保证金</span>
+                        <span class="right_cell" style="flex:1">100</span>
+                    </section>
+                    <section class="cellLR bottborl">
+                        <span class="left_cell" style="flex:1">当前保证金</span>
+                        <span class="right_cell" style="flex:1">100</span>
+                    </section>
+                    <section class="cellLR ">
+                        <span class="left_cell" style="flex:1"></span>
+                        <span class="right_cell bluetext" style="flex:1"><strong>撤销挂单</strong></span>
+                    </section>
+                    <section class="backout"><img src="../../images/seed/img-chexiao@2x.png"/></section>
+                </div>
+            </div>
+        </div>
+
+    <div class="mask-black-dialog" id="YDUI_CONFRIM"  v-show="dialogshow">
+        <div class="m-confirm">
+            <div class="confirm-hd"><strong class="confirm-title">撤销挂单</strong></div>
+            <div class="confirm-bd">确定撤销挂单？</div>
+            <div class="confirm-ft">
+                <a href="javascript:;" class="confirm-btn default">取消</a>
+                <a href="javascript:;"  @click="orderentrer(token)" class="confirm-btn primary">确定</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function () {
+        new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),//头部获取。,
+                buystate: GetQueryString('buystate'),       //订单状态0为出售，1位购买
+                dialogshow:false,
+
+            },
+            methods: {
+                cancelorder: function () {
+                    this.dialogshow=true;
+                },
+                orderentrer:function () {
+                    this.dialogshow=false;
+                },
+                goorderdeal:function(token){
+                    window.location.href="orderDeal.html?token="+token
+                },
+                goback:function(){
+                    window.location.href="orderDeal.html?token="+this.token
+                }
+            },
+            mounted: function () {
+            }
+        })
+    });
+</script>
+</html>

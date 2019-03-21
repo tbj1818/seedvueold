@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>充值</title>
+    <link rel="icon" href="../../favicon2018921.ico"  type="image/x-icon" />
+    <script src="../../js/appcommon.js"></script>
+    <script src="../../js/jquery.qrcode.min.js"></script>
+    <style>
+        #htmlWap{ overflow: hidden; padding-bottom:80px;}
+        .relative{position: relative}
+        .rightName{ position: absolute; right: 15px; top:15px; font-size: .32rem; z-index: 999}
+    </style>
+</head>
+<body>
+    <div id="htmlWap" v-cloak>
+            <div class="blackbottombg"></div>
+            <div class="rechargecontent">
+                    <!--实际充值金额-->
+                    <h3>充值额度</h3>
+                    <div class="relative">
+                        <input type="number" class="cell-input rechareinput"  readonly="readonly"  v-model="rechargenum" placeholder="请输入金额" autocomplete="off" />
+                        <span class="rightName">{{chargeCoinName}}</span>
+                    </div>
+                    <!--充值ETH地址-->
+                    <h3>充值地址  <span class="examineqrcode" @click="showqrcode">查看二维码</span></h3>
+                    <div class="cell-input rechareinput iheightauto" >{{ethaddress}}</div>
+                <div class="rechargetext">请在有效时间内向上方地址转账，转账完成后30分钟内充值到账，如遇未到账情况，请联系客服。</div>
+            </div>
+            <div class="rechargecontent">
+                    <div class="qrcodecharge">
+                        <div class="left">
+                            <h2>扫描右方二维码</h2><p>或添加客服微信<span class="rechargecopylink">{{wechatAccount}}</span></p>
+                            <button type="button" class="btn-block rechargecopyBtn" @click="copyBtnText">复制客服微信</button>
+                        </div>
+                        <div class="right"><img :src="kfqrcode"  /></div>
+                    </div>
+            </div>
+            <div class="rechargetext">请在有效时间内完成转账，逾期后充值将为无效。</div>
+            <div class="bottomtime">{{counttime}}</div>
+
+        <div class="ethqrcode" v-if="qrcodeshow" @click="closeqrcode">
+            <div class="imgcode"><div id="qrcode"></div><img class="qrcodeimg"  src="../../images/gzhhqrcode.jpg" /></div>
+            <i class="icon-error"></i>
+        </div>
+    </div>
+
+</body>
+<script src="../../js/md5.js"></script>
+<script src="../../js/base64.min.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var ethaddress = GetQueryString('receiptWallet');
+    // getInviteCode(token,rechargenum);
+    $(function() {
+        var apphtml =  new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                dataList: [],
+                rechargenum: GetQueryString('rechargenum'),
+                ethaddress:GetQueryString('receiptWallet'),
+                kfqrcode:'../../images/serversqrcode.jpg',
+                qrcodeshow: false,
+                createTime:GetQueryString('createTime'),
+                counttime: "",
+                overTime:'',
+                wechatAccount:decodeURI(GetQueryString('wechatAccount')),
+                chargeCoinName:GetQueryString('chargeCoinName'),
+                orderState:GetQueryString('orderState') //订单状态
+            },
+            methods: {
+                copyBtnText: function () {
+                    //复制文案
+                    var clipboard = new Clipboard('.rechargecopyBtn', {
+                        target: function () {
+                            return document.querySelector('.rechargecopylink');
+                        }
+                    });
+                    clipboard.on('success', function (e) {
+                        layer.msg('复制成功')
+                    });
+                    clipboard.on('error', function (e) {
+                        layer.msg('复制失败')
+                    });
+                },
+                showqrcode: function () {
+                    this.qrcodeshow = true;
+                },
+                closeqrcode: function () {
+                    this.qrcodeshow = false;
+                },
+                djsh:function(){
+                    var that =this;
+                    // console.log(that.createTime);
+                    that.overTime =parseInt(that.createTime)+3600000;
+                    // console.log(that.overTime);
+                    var nowTime =new Date().getTime();
+                    // console.log(nowTime);
+                    var count = (that.overTime - nowTime);
+                    // console.log(count);
+                    var time = parseInt(count)/1000;
+                    // console.log(time);
+                    this.counttime = "倒计时计算中…";
+                    var num = time;
+                    var time = setInterval(function () {
+                        if (num > 1) {
+                            num--;
+                            var secondTime =num;
+                            var minuteTime = 0;
+                            if (secondTime > 60) {
+                                minuteTime = parseInt(secondTime / 60);
+                                secondTime = parseInt(secondTime % 60);
+                            }
+                            var result = "" + parseInt(secondTime) + "秒";
+
+                            if (minuteTime > 0) {
+                                result = "" + parseInt(minuteTime) + "分" + result
+                            }
+                            that.counttime = "有效时间仅剩:" + result;
+
+                        } else {
+                            if(that.orderState ==10){
+                                that.counttime = '已失效';
+                            }else if(that.orderState ==20){
+                                that.counttime = '充值成功';
+                            }else if(that.orderState ==30){
+                                that.counttime = '充值失败';
+                            }else if(that.orderState ==40){
+                                that.counttime = '充值失效';
+                            }
+                            that.counttime = '已失效';
+                            clearInterval(time)
+                        }
+                    }, 1000);
+                },
+            },
+            mounted: function () {
+                var that =this;
+                this.kfqrcode=GetQueryString('kfQrcode');
+                if(that.orderState ==10){
+                        that.djsh();
+                }else if(that.orderState ==20){
+                    that.counttime = '充值成功';
+                }else if(that.orderState ==30){
+                    that.counttime = '充值失败';
+                }else if(that.orderState ==40){
+                    that.counttime = '充值失效';
+                }
+            },
+        });
+    });
+
+    //二维码生成
+    var qrcode = $('#qrcode').qrcode({
+        render: "canvas", //也可以替换为table
+        width: 120,
+        height: 120,
+        foreground: "#000",
+        background: "#FFF",
+        text:ethaddress
+    }).hide();
+    //将生成的二维码转换成图片格式
+    var canvas = qrcode.find('canvas').get(0);
+    $('.qrcodeimg').attr('src', canvas.toDataURL('image/jpg'));
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

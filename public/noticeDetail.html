@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title>
+    <link rel="stylesheet" href="css/ydui.css">
+    <link rel="stylesheet" href="css/bb.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/vue-resource.js"></script>
+    <script src="js/layer/layer.js"></script>
+    <script src="js/ydui.flexible.js"></script>
+    <style>
+        body{padding-bottom:0}
+    </style>
+</head>
+
+<body>
+<div id="htmlWap" v-cloak >
+    <header class="m-navbar">
+        <a href="javascript:history.back();" class="navbar-item">
+            <i class="back-ico"></i>
+        </a>
+        <div class="navbar-center">
+            <span class="navbar-title">详情</span>
+        </div>
+    </header>
+
+    <section class="noticeContent">
+        <h3>{{detaildata.title}}</h3>
+        <h6>时间:{{detaildata.createTime}}</h6>
+        <h6 v-if="detaildata.sourceType==20"> 来源:{{detaildata.sourceName}}</h6>
+
+        <div class="articleContent" v-html="content">
+        </div>
+    </section>
+</div>
+<!-- 返回顶部 -->
+<a href="javascript:;" class="top-btn" data-reactid="189"><i class="icon-download"></i></a>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+
+    var rowId = GetQueryString('rowId');
+    var source = GetQueryString('source');
+    $(function() {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                source:'',
+                detaildata:{},
+                content:'',
+            },
+                methods: {
+                loadData:function(){
+                    this.$http({
+                        method: "post",
+                        url: "/baseCoinAffiche/getAfficheDetail",
+                        data: {
+                            rowId:rowId,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                       console.log(data);
+                        this.detaildata = data.data;
+                        if(this.detaildata.content.length <= 11){
+                            this.content = this.detaildata.title;
+                        }else{
+                            this.content = this.detaildata.content;
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+            },
+            mounted: function () {
+                this.source = source;
+                this.loadData();
+                $(function(){
+                    //首先将#indexToTop隐藏
+                    $(".top-btn").hide();
+                    //当滚动条的位置处于距顶部100像素以下时，跳转链接出现，否则消失
+                    $(window).scroll(function(){
+                        if ($(window).scrollTop()>150){
+                            $(".top-btn").fadeIn(500);
+                        }
+                        else{
+                            $(".top-btn").fadeOut(500);
+                        }
+                    });
+                    //当点击跳转链接后，回到页面顶部位置
+                    $(".top-btn").click(function(){
+                        $('body,html').animate({scrollTop:0},1000);
+                        return false;
+                    });
+                });
+            }
+        })
+    })
+</script>
+
+</html>

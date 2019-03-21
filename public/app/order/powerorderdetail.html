@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>算力详情</title>
+    <link rel="icon" href="../../favicon2018921.ico"  type="image/x-icon" />
+    <script src="../../js/appcommon.js"></script>
+</head>
+<body>
+    <div id="htmlWap"  v-cloak style="overflow: hidden">
+        <div class="blackbottombg" style="height:120px"></div>
+        <div class="rechargecontent powersl">
+                    <section v-show="orderState ==20">
+                        <h2><img src="../../images/snatchactive/correctblue.png" />下单成功</h2>
+                        <h6>恭喜您下单成功</h6>
+                    </section>
+                    <section v-show="orderState ==30">
+                        <h2><img src="../../images/snatchactive/errorblue.png" />下单失败</h2>
+                        <h6>订单异常</h6>
+                    </section>
+                    <div class="partingLine"><span class="lineGray"></span></div>
+                    <div class="m-cell">
+                        <div class="cell-item">
+                            <div class="cell-left">订单状态</div>
+                            <div class="cell-right">{{winStatus}}</div>
+                        </div>
+                        <div class="cell-item">
+                            <div class="cell-left">订单编号</div>
+                            <div class="cell-right">{{orderNo}}</div>
+                        </div>
+                        <div class="cell-item borderBLine">
+                            <div class="cell-left">订单时间</div>
+                            <div class="cell-right">{{createTime}}</div>
+                        </div>
+                        <div class="cell-item">
+                            <div class="cell-left">魔法算力值</div>
+                            <div class="cell-right">+{{powerNum}}</div>
+                        </div>
+                        <div class="cell-item borderBLine">
+                            <div class="cell-left">有效期至</div>
+                            <div class="cell-right">{{powerTime}}</div>
+                        </div>
+                        <div class="cell-item">
+                            <div class="cell-left">送BGT</div>
+                            <div class="cell-right">+{{giveBgtNum}}</div>
+                        </div>
+                        <div class="cell-item">
+                            <div class="cell-left">首充赠送</div>
+                            <div class="cell-right">{{firstGiveBgtNum}}</div>
+                        </div>
+                    </div>
+        </div>
+        <div class="m-cell powersl" style="padding: 0 20px">
+            <div class="cell-item">
+                <div class="cell-left">订单价格</div>
+                <div class="cell-right"><span class="rednum">{{orderMoney}}ETH</span></div>
+            </div>
+        </div>
+        <h6 class="questionwechat">如有疑问请尽快联系客服</h6>
+    </div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function() {
+        var apphtml =  new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                goodsId:GetQueryString('goodsId'),
+                orderNo:GetQueryString('orderNo'),
+                createTime:GetQueryString('createTime').replace('%20',' '),
+                powerNum:GetQueryString('powerNum'),
+                firstGiveBgtNum:GetQueryString('firstGiveBgtNum'),
+                giveBgtNum:GetQueryString('giveBgtNum'),
+                orderMoney:GetQueryString('orderMoney'),
+                orderState:GetQueryString('orderState'),
+                powerTime:'',
+                validTime:GetQueryString('validTime'),
+                winStatus:''
+            },
+            methods:{
+            },
+            mounted(){
+                if(this.orderState ==20){
+                    this.winStatus ='成功'
+                }else if(this.orderState ==30){
+                    this.winStatus ='失败'
+                }
+                var timeresult = new Date((this.createTime).replace(/-/g, "/")).getTime();
+                var powerTime= timeresult+this.validTime*24*60*60*1000;
+                console.log(powerTime);
+                var date = new Date(powerTime);
+                Y = date.getFullYear() + '-';
+                M = (date.getMonth()+1 < 10 ? '0'+(date.getMonth()+1) : date.getMonth()+1) + '-';
+                D = date.getDate() + ' ';
+                h = date.getHours() + ':';
+                m = date.getMinutes() + ':';
+                s = date.getSeconds();
+                console.log(Y+M+D+h+m+s);
+                this.powerTime =Y+M+D+h+m+s;
+            }
+        });
+    });
+</script>
+</html>

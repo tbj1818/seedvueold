@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>充值</title>
+    <link rel="icon" href="../../favicon2018921.ico"  type="image/x-icon" />
+    <script src="../../js/appcommon.js"></script>
+    <style>
+        #htmlWap{ overflow: hidden; text-align:center}
+        .photopic{width:35px; margin-right: 5px}
+        .photopic img{width: 100%;}
+        .bluetext{color: #5856D0}
+    </style>
+</head>
+<body>
+    <div id="htmlWap" v-cloak>
+            <div class="blackbottombg"></div>
+            <div class="rechargecontent">
+                    <!--实际充值金额-->
+                    <h3>充值额度</h3>
+                    <input type="number" class="cell-input rechareinput" placeholder="请输入充值额度" v-model="rechargenum" @blur.prevent="changeCount()" autocomplete="off" />
+                    <div class="rechargetext">
+                        充值额度最小为0.001ETH
+                    </div>
+                    <!--充值说明-->
+                    <h3>充值说明</h3>
+                    <ul class="explainlist">
+                        <li>1 为了确认您的充值唯一性，确认订单后我们发送给您一个唯一的充值地址。</li>
+                        <li>2 确认订单后，请在有效时间内充值，否则会出现无法到账的情况。</li>
+                        <li>3 每个用户每日的充值次数上限为10次。</li>
+                        <li>4 其他问题请联系客服{{wechatAccount}}。</li>
+                    </ul>
+                    <h3>渠道代充</h3>
+                    <div class="m-cell" style="margin-top: 20px">
+                        <div class="cell-item" v-for="item in listinfo">
+                            <div class="cell-left"><span class="photopic"><img :src="item.photo" /></span>{{item.nickname}}
+                                <span class="text-gray copylink">({{item.account}})</span>
+                            </div>
+                            <div class="cell-right bluetext copylinkbtn"  style="width: 20%" @click="copyTextwechat(item.account)">复制微信号</div>
+                        </div>
+                    </div>
+            </div>
+            <button type="button" class="btn-block rechargeaffirmbtn" @click="submitrechargenum()">确认</button>
+    </div>
+
+</body>
+<script src="../../js/md5.js"></script>
+<script src="../../js/base64.min.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var appType = GetQueryString('appType');
+    var inviteCode;
+    $(function() {
+        new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                listinfo:[],
+                wechatAccount:decodeURI(GetQueryString('wechatAccount')),
+                photopic:'../../images/mylogo.png',
+                rechargenum:''   //充值金额
+            },
+            methods: {
+                changeCount:function(){
+                    if(this.rechargenum =="" || this.rechargenum<0.001){
+                        layer.msg("充值额度最小为0.001ETH");
+                        return;
+                    }
+                    var result = ((this.rechargenum).toString()).indexOf(".");
+                    if(result != -1) {
+                        var str = (this.rechargenum).split(".");
+                        if (str[1].length > 4)//小数部分大于4
+                        {
+                            layer.msg("小数部分不能超过4位");
+                            return;
+                        }
+                    }
+                },
+                getInfo:function(){
+                    this.$http({
+                        method: "post",
+                        url: "/appPropsConfig/getInfo",
+                        data: {
+                            key:'OFFICIAL_CHANGE_WECHAT_ACCOUNT',
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+
+                       this.listinfo= JSON.parse(data.data.data);
+                        console.log( this.listinfo);
+                    }, function(error) {
+                        console.log(error);
+                    })
+                },
+                submitrechargenum:function(){
+                    if(this.rechargenum =="" || this.rechargenum<0.001){
+                        layer.msg("充值额度最小为0.001ETH");
+                        return;
+                    }
+                    var result = ((this.rechargenum).toString()).indexOf(".");
+                    if(result != -1) {
+                        var str = (this.rechargenum).split(".");
+                        if (str[1].length > 4)//小数部分大于4
+                        {
+                            layer.msg("小数部分不能超过4位");
+                            return;
+                        }
+                    }
+                    var senddata = "platform=H5" +"&rechargeValue=" + this.rechargenum + "&token=" + this.token;
+                    var sign = $.md5(senddata + key);
+                    var mbencode = Base64.encode(sign);
+                    this.$http({
+                        method: "post",
+                        url: fund +"/appCoinRechargeOrder/coinRecharge",
+                        data: {
+                            token:this.token,
+                            rechargeValue:this.rechargenum,
+                            platform: "H5",
+                            sign: mbencode
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        if(data.data.data){
+                            var kfQrcode =data.data.data.kfQrcode;
+                            var receiptWallet =data.data.data.receiptWallet;
+                            var chargeCoinName =data.data.data.chargeCoinName;
+                            var createTime =new Date((data.data.data.createTime).replace(/-/g, "/")).getTime();
+                            console.log(createTime);
+                            window.location.href="recharge.html?token=" +this.token+"&rechargenum=" +this.rechargenum +"&kfQrcode=" +kfQrcode + "&receiptWallet=" + receiptWallet + "&createTime=" + createTime +"&orderState=10"+"&chargeCoinName="+chargeCoinName+"&wechatAccount="+encodeURI(this.wechatAccount);
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function(error) {
+                        console.log(error);
+                    })
+                },
+                copyTextwechat:function(name){
+                    //复制文案
+                    var clipboard = new Clipboard('.copylinkbtn', { // 参数2 也可以为固定文本
+                        text: function() {
+                            return name;
+                        }
+                    });
+                    clipboard.on('success', function (e) {
+                        layer.msg('复制成功')
+                    });
+                    clipboard.on('error', function (e) {
+                        layer.msg('复制失败')
+                    });
+                }
+            },
+            mounted: function () {
+                this.getInfo();
+            }
+        });
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

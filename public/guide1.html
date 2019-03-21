@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title>
+    <link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <script src="js/ydui.flexible.js"></script>
+    <link rel="stylesheet" href="css/ydui.css?time=20180817">
+    <link rel="stylesheet" href="css/bb.css?time=20180817">
+    <style>
+        body{padding: 0;}
+        .m-grids-3{background: none}
+        .m-grids-3:before{border:0}
+    </style>
+</head>
+<body>
+<div id="htmlWap" style="height: 100%" v-cloak>
+    <header class="m-navbar">
+        <div class="navbar-center">
+            <span class="navbar-title">1/3</span>
+        </div>
+    </header>
+    <div class="guideBg">
+        <h3 class="guideH3">添加自选</h3>
+        <h6 class="guideH6">请选择您喜欢的交易所</h6>
+        <div class="guijx">
+                <img src="images/ydBgLogo.png" />
+            <a href="guide2.html?id=3" class="round1">
+                    <img src="images/huobiround.png" />
+            </a>
+            <a href="guide2.html?id=20" class="round2">
+                <img src="images/zbround.png" />
+            </a>
+            <a href="guide2.html?id=19" class="round3">
+                <img src="images/okexround.png" />
+            </a>
+            <a href="guide2.html?id=5" class="round4">
+                <img src="images/baround.png" />
+            </a>
+            <a href="guide2.html?id=21" class="round5">
+                <img src="images/bitround.png" />
+            </a>
+        </div>
+    </div>
+    <div class="ProgressBar"><div class="one"></div> </div>
+</div>
+</body>
+<script src="js/jquery.min.js"></script>
+<script src="js/vue.min.js"></script>
+<script src="js/vue-resource.js"></script>
+<script src="js/layer/layer.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var token = GetQueryString('token');
+    $(function() {
+    var htmlWap = new Vue({
+        el: '#htmlWap',
+        data: {
+            userToken: '',
+        },
+        methods: {
+            loadCoinList: function () {
+                //获取币种
+                this.$http({
+                    method: "post",
+                    url: "/baseType/select",
+                    data: {
+                        parentId: '1',
+                        token: this.userToken,
+                        platform:'H5'
+                    },
+                    emulateJSON: true
+                }).then(function (data) {
+                       // console.log(data);
+                    if (data.data) {
+                        this.tabList = data.data;
+                        this.navNum = this.tabList[0].value;
+                        //配置宽度
+                        var wn = $(window).width();
+                        var n = this.tabList.length;
+                        var w = 90 * n;
+                        if (w < wn) {
+                            $(".tab-nav").width(100 + '%');
+                        } else {
+                            $(".tab-nav").width(w + 'px');
+                        }
+                    } else {
+                        layer.msg('加载失败,请稍后重试');
+                    }
+                }, function (error) {
+                    console.log(error);
+                })
+            },
+        },
+            mounted: function () {
+                //获取token
+                if(token != undefined && token.length > 0){
+                    this.userToken = token;
+                }else{
+                    this.userToken = localStorage.getItem("userToken");
+                }
+                localStorage.setItem("userToken", this.userToken);
+                console.log('token='+this.userToken);
+                //获取平台
+                this.loadCoinList();
+            }
+        })
+    })
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?23a7df0a4f6dd37bf6e346d0a4279fac";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

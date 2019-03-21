@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title><link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <link rel="stylesheet" href="css/ydui.css">
+    <link rel="stylesheet" href="css/bb.css?time=2018092771">
+
+    <style>
+        body{padding: 0}
+        html{height: auto}
+        table {border-collapse: initial; border-spacing: unset;}
+        .tablecheats{ margin-top: 10px}
+    </style>
+</head>
+
+<body class="farmbg">
+<section id="htmlWap" v-cloak>
+    <h1>什么是布谷？</h1>
+    <div class="bgtinfo">
+        布谷是区块链与大数据融合的载体，基于区块链的可信任性、安全、不可篡改的特性，收集存储并开放、共享区块链企业信息数据，帮助用户更好的了解区块链世界。布谷基于区块链ERC20标准发行数字代币BGT（Bugu Token，简称BGT），用户对布谷生态建设产生贡献则获得BGT，BGT在布谷生态内进行商业价值的交换及流通。
+    </div>
+
+    <div class="shouce_sl">
+        <li>
+            <h2 v-if="this.yesterdaynum ==0">{{yesterdaynum}}</h2>
+            <h2 v-if="this.yesterdaynum >0">{{yesterdaynum | numSlicefive}}</h2>
+            <p>昨日BGT产出</p>
+        </li>
+        <li class="right">
+            <h2>{{bgtnum | numSlicefive}}</h2>
+            <p>剩余BGT数</p>
+        </li>
+    </div>
+    <h1>探索布谷？</h1>
+    <div class="bgtinfo">
+        布谷用户可以在探索-初始场景中每日根据算力值的比例领取BGT，此外布谷还为用户提供了三个全新的获取BGT场景，分别为；农场、牧场、码头，根据场景的开启难度，每个场景获取BGT的比例也会越来越高。
+    </div>
+    <h1>什么是BGT ？</h1>
+    <div class="bgtinfo">
+        BGT是布谷生态内价值流通凭证，用户可在布谷收取BGT。并可以使用BGT在布谷中内购买商品或参与其他活动等...
+    </div>
+    <h1>什么是算力 ？</h1>
+    <div class="bgtinfo">
+        算力即获取BGT的能量，是用户在布谷行为活跃度的体现。系统根据用户算力的持有量，按比例分配BGT。算力也分为永久算力及魔法算力。在不同场景中算力也对应不同的角色。<br>
+        <span class="bluenum" style="font-size: .24rem">(前10000名入驻农场的用户为创世农场主，可获得额外算力奖励。同一时间段内，算力值越高，BGT获取越多。)</span>
+    </div>
+</section>
+</body>
+<script src="js/jquery.min.js"></script>
+<script src="js/vue.min.js"></script>
+<script src="js/vue-resource.js"></script>
+<script src="js/layer/layer.js"></script>
+<script src="js/ydui.flexible.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function () {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                userToken: GetQueryString('token'),
+                yesterdaynum:0,
+                bgtnum:0
+            },
+            methods: {
+                getBgtnum:function () {
+                    this.$http({
+                        method: "post",
+                        url: "/appGrant/getResidueNum",
+                        data: {
+                            token: this.userToken,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        if (data.data.data) {
+                            if(data.data.data.grantNum>0){
+                                this.yesterdaynum = data.data.data.grantNum;
+                            }
+                            this.bgtnum = data.data.data.residueNum;
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                }
+            },
+            filters: {
+                numSlicefive: function (val) {
+                    if (val) {
+                        return parseFloat(val.toFixed(5));
+                    }
+                }
+            },
+            mounted: function () {
+                // this.userToken = localStorage.getItem("userToken");
+                this.getBgtnum()
+            }
+        });
+    });
+</script>
+
+</html>

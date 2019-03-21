@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>抢购详情</title>
+    <link rel="icon" href="../../favicon2018921.ico" type="image/x-icon"/>
+    <script src="../../js/appcommon.js"></script>
+    <style> body {
+        background: #F5F5F5
+    }
+    ::-webkit-scrollbar{display:block !important; width: 8px !important;}
+    .m-grids-3 {
+        width: 95%;
+        background: none;
+        margin: 80px auto 0 5%;
+        min-height: 100px
+    }</style>
+</head>
+<body>
+<div id="htmlWap" v-cloak>
+    <div class="piccont">
+            <img :src="goodsImg"/>
+    </div>
+    <section v-show="type!='pk'">
+    <div class="qgfence" v-show="periodstatus==20">
+        <span class="leftfsh"><strong>{{goodsPrice}}</strong>BGT/份</span><span class="rightfsh"><p class="onefsh">(共{{goodsNum}}份)</p><p
+            class="twofsh">已抢{{boughtNum}}份</p></span>
+        <div class="qgcountdown">
+            <div class="lefttext">
+                <p>正在抢购 抢完为止</p>
+                <div class="progressbarcont">
+                    <span class="rushtext"> 已抢{{percentum | numSlice}}%</span>
+                    <div class="progressbar"></div>
+                </div>
+            </div>
+            <i class="lightningicon"><img src="../../images/snatchactive/lightning.png"/></i>
+        </div>
+    </div>
+    <!-- 抢购倒计时 -->
+    <div class="qgfence" style="background:#5D5BFF" v-if="periodstatus==10">
+        <span class="leftfsh"><strong>{{goodsPrice}}</strong>BGT/份</span><span class="rightfsh"><p
+            class="onefsh">&nbsp;</p><p class="twofsh">总计{{goodsNum}}份</p></span>
+        <div class="qgcountdown">
+            <div class="lefttext">
+                <p>抢购倒计时:{{counttime}}</p>
+                <div class="progressbarcont" style=" background: #4342D9">
+                    <!--<span class="rushtext"> 已抢{{percentum}}%</span>-->
+                    <div class="progressbar" style="width:0%;"></div>
+                </div>
+            </div>
+            <i class="lightningicon"><img src="../../images/snatchactive/lightning.png"/></i>
+        </div>
+    </div>
+    <!-- 已结束 中奖号码 -->
+    <div class="qgfence" v-if=" periodstatus==30">
+        <div class="platepicenter">
+            <p class="platenum" style="width: 100%; float: none">{{counttime}}</p>
+            <p class="platetextnum" style="width: 100%; float: none">开奖倒计时</p>
+        </div>
+    </div>
+    <!-- 已结束 中奖号码 -->
+    <div class="qgfence" v-if="periodstatus==40">
+        <div class="platepicenter">
+            <i class="platepic"><img src="../../images/snatchactive/plate.png"/></i>
+            <p class="platenum">{{luckyCode}}</p>
+            <p class="platetextnum">中奖号码</p>
+        </div>
+    </div>
+    </section>
+    <!--双人pk-->
+    <section v-show="type=='pk'">
+        <div class="qgfence"  v-show="periodstatus==10 ||periodstatus==20">
+            <div class="wechatphoto">
+                <img class="pic" :src="wechatphotoleft" />
+                <div class="wechatname">
+                    <img :src="wechatnameleft" />
+                </div>
+            </div>
+            <div class="twopk">
+                <img src="../../images/snatchactive/xq-pk.png" />
+                <div class="progressbarcont">
+                    <span class="rushtext"> 已抢{{percentum | numSlice}}%</span>
+                    <div class="progressbar"></div>
+                </div>
+            </div>
+            <div class="wechatphoto">
+                <img class="pic" :src="wechatphotoright" />
+                <div class="wechatname leftp">
+                    <img :src="wechatnameright" />
+                </div>
+            </div>
+        </div>
+        <!-- 抢购倒计时 -->
+        <div class="qgfence" v-if=" periodstatus==30">
+            <div class="platepicenter">
+                <p class="platenum" style="width: 100%; float: none">{{counttime}}</p>
+                <p class="platetextnum" style="width: 100%; float: none">开奖倒计时</p>
+            </div>
+        </div>
+
+        <!-- 已结束 中奖号码 -->
+        <div class="qgfence" v-if="periodstatus==40">
+            <div class="platepicenter">
+                <i class="platepic"><img src="../../images/snatchactive/plate.png"/></i>
+                <p class="platenum">{{luckyCode}}</p>
+                <p class="platetextnum">中奖号码</p>
+            </div>
+        </div>
+    </section>
+    <!-- 抢购记录 -->
+    <div class="ordercontainer" v-show="type!='pk'" style="padding:10px 10px 10px 0; background: #FFD863">
+        <div class="activeguizepic"><img src="../../images/snatchactive/guize.png"/></div>
+        <div class="activerule">
+            <h3>本期抢购规则：</h3>
+            <p>1、用户使用BGT抢购夺宝份数，每一份对应一个幸运号码，可同时抢购多份。</p>
+            <p>2、抢购完成2分钟后公布中奖号码，持有与中奖号码相同的幸运号码用户获奖。
+            </p>
+            <hr>
+            <h3>本期开奖规则：</h3>
+            <p>1、中奖号码计算方式：中奖号码 = [（数值A / 商品总份数 ] 取余数 + 100001。数值A =
+                商品的最后一个号码分配完毕时间点前购买本商品的最后100个参与时间之和（包含商品的最后一人次参与时间），计算数值A时的参与时间取到毫秒。若商品总份数不足100份，则按照全部份数的购买时间点来计算。
+            </p>
+            <p>例如：商品总份数为5000，最后100份的抢购时间总和为579000005，除以5000取余数为5，加上100001得到100006，则中奖号码为100006。
+            </p>
+            <p>
+                2、如出现刷奖行为将立即进行封号处理。
+            </p>
+            <h6>以上活动最终解释权归布谷APP所有</h6>
+        </div>
+    </div>
+    <!--双人PK规则-->
+    <div class="ordercontainer" v-show="type=='pk'" style="padding:10px 10px 10px 0; background: #FFD863">
+        <div class="activeguizepic"><img src="../../images/snatchactive/guize.png"/></div>
+        <div class="activerule">
+            <h3>双人PK抢购规则：</h3>
+            <p>1、每份价格为1BGT，且每期活动仅限两人参与，每人抢购总份数的50%</p>
+            <p>2、一个用户不可以购买同一个商品两次。</p>
+            <p>3、每期奖品，在首个用户抢购后，开始倒计时，60分钟后如果没有其他用户参与此奖品的PK，那么将释放此订单。返还第一个用户的抢购的BGT。</p>
+            <hr>
+            <h3>本期开奖规则：</h3>
+            <p>1、中奖号码计算方式：中奖号码 = [（数值A / 商品总份数 ] 取余数 + 100001。<br>
+                数值A =商品的最后一个号码分配完毕时间点前购买本商品的最后100个参与时间之和（包含商品的最后一人次参与时间），计算数值A时的参与时间取到毫秒。<br>
+                若商品总份数不足100份，则按照全部份数的购买时间点来计算。
+            </p>
+            <p class="redtext">例如：商品总份数为5000，最后100份的抢购时间总和为579000005，除以5000取余数为5，加上100001得到100006，则中奖号码为100006。
+            </p>
+            <p>
+                2、如出现刷奖行为将立即进行封号处理。
+            </p>
+            <h6>以上活动最终解释权归布谷APP所有</h6>
+        </div>
+    </div>
+    <div class="ordercontainer" style="padding:10px 10px 10px 0; background: #FFD863; margin: 20px auto 30px">
+        <div class="activeguizepic"><img src="../../images/snatchactive/qianggou.png"/></div>
+        <div class="m-grids-3">
+            <a href="#" class="grids-item">
+                <div class="grids-txt">
+                    <span>抢购人</span>
+                </div>
+            </a>
+            <a href="#" class="grids-item" style="width:48%">
+                <div class="grids-txt">
+                    <span>抢购时间</span>
+                </div>
+            </a>
+            <a href="#" class="grids-item" style="width:15%">
+                <div class="grids-txt">
+                    <span>份数</span>
+                </div>
+            </a>
+            <div class="tab">
+                <div class="table_textnr" v-for="item in purchaselist">
+                    <a class="grids-item">
+                        <div class="grids-txt"><span>{{item.userAccount}}</span></div>
+                    </a>
+                    <a class="grids-item" style="width:48%">
+                        <div class="grids-txt"><span>{{item.buyTime | removeyear}}</span></div>
+                    </a>
+                    <a class="grids-item" style="width:15%">
+                        <div class="grids-txt"><span>{{item.buyNum}}</span></div>
+                    </a>
+                </div>
+                <div class="nodata downtext"  @click="getOrderRecord()" v-show="loadMore">加载更多</div>
+                <p v-if="purchaselist.length==0" class="nodata">暂无数据</p>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</body>
+<script src="../../js/md5.js"></script>
+<script src="../../js/base64.min.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var appType = GetQueryString("appType");
+    $(function () {
+        var percentum;
+        var apphtml = new Vue({
+            el: "#htmlWap",
+            data: {
+                token: GetQueryString("token"),
+                purchaselist: [],
+                currentPage: 1,
+                nodata: false,
+                loadMore: false,
+                periodNo: "",
+                goodsId: GetQueryString("goodsId"),
+                periodId: GetQueryString("periodId"),
+                status: GetQueryString("status"),
+                type: GetQueryString("type"),
+                wechatphoto:GetQueryString("wechatphoto"),
+                wechatphotoleft:"../../images/pkbuguLogo.png",
+                wechatphotoright:"../../images/pkbuguLogo.png",
+                periodstatus: "",
+                wechatnameleft:"../../images/snatchactive/Position.png",
+                wechatnameright:"../../images/snatchactive/Position.png",
+                luckyCode: "",
+                minBuyNum: "",
+                classNum: "",
+                goodsName: "",
+                goodsNum: "",
+                goodsPrice: "",
+                goodsCode: "",
+                boughtNum: "",
+                percentum: 0,
+                currentTime: "",
+                startTime: "",
+                counttime: "02:00",
+                goodsImg:""     //商品图片
+            },
+            methods: {
+                getSnatchPeriod: function () {
+                    var that = this;
+                    var senddata = "periodId=" + this.periodId + "&platform=H5" + "&status=" + this.status + "&token=" +
+                        this.token;
+                    var sign = $.md5(senddata + key);
+                    var mbencode = Base64.encode(sign);
+                    this.$http({
+                        method: "post",
+                        url: snatch + "/appPeriodData/getPeriodDataInfo",
+                        data: {
+                            token: this.token,
+                            periodId: this.periodId,
+                            status: this.status,
+                            platform: "H5",
+                            sign: mbencode
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        var datanew = data.data.data.data;
+                        this.goodsName = datanew.goodsName;
+                        this.periodstatus = datanew.status;
+                        this.goodsPrice = datanew.goodsPrice;
+                        this.goodsNum = datanew.goodsNum;
+                        this.boughtNum = datanew.boughtNum;
+                        this.luckyCode = datanew.luckyCode;
+                        this.goodsImg = datanew.goodsImg;
+                        if(this.type =='pk'){
+                            if(this.wechatphoto !='null'){
+                                console.log( this.wechatphoto);
+                                var wechatphotopic= this.wechatphoto.split(",");
+                                if(wechatphotopic[0]) {
+                                    this.wechatphotoleft = wechatphotopic[0];
+                                    if(this.wechatphotoleft =='default'){
+                                        this.wechatphotoleft="../../images/pkbuguLogo.png";
+                                    }
+                                    this.wechatnameleft='../../images/snatchactive/purchase.png';
+                                    this.percentum = 50;
+                                    $(".progressbar").width(this.percentum + "%");
+                                }
+                                if(wechatphotopic[1]){
+                                    this.wechatphotoright =wechatphotopic[1];
+                                    if(this.wechatphotoright =='default'){
+                                        this.wechatphotoright="../../images/pkbuguLogo.png";
+                                    }
+                                    this.wechatnameright='../../images/snatchactive/purchase.png';
+                                    this.percentum = 100;
+                                    $(".progressbar").width(this.percentum + "%");
+                                }
+                            }
+                        }else if(this.type !='pk'){
+                            this.percentum = (this.boughtNum / this.goodsNum) * 100;
+                            $(".progressbar").width(this.percentum + "%");
+                        }
+                        this.periodNo = datanew.periodNo;
+                        if (this.periodstatus == 30) {
+                            this.startTime = new Date((datanew.resultTime).replace(/-/g, "/"));
+                            this.currentTime = new Date((datanew.currentTime).replace(/-/g, "/"));
+                            var count = (this.startTime - this.currentTime);
+                            var time = parseFloat(count) / 1000;
+                            var num = time;
+                            var time = setInterval(function () {
+                                if (num > 1) {
+                                    num--;
+                                    that.counttime = "仅剩" + num + "秒";
+                                    var secondTime = parseInt(num);
+                                    var minuteTime = 0;
+                                    if (secondTime > 60) {
+                                        minuteTime = parseInt(secondTime / 60);
+                                        secondTime = parseInt(secondTime % 60);
+                                        if (minuteTime > 60) {
+                                            hourTime = parseInt(minuteTime / 60);
+                                            minuteTime = parseInt(minuteTime % 60)
+                                        }
+                                    }
+                                    var result = "" + parseInt(secondTime) + "秒";
+                                    if (minuteTime > 0) {
+                                        result = "" + parseInt(minuteTime) + "分" + result
+                                    }
+                                    that.counttime = "仅剩" + result;
+                                    if (parseInt(minuteTime) == 0 && parseInt(secondTime) == 1) {
+                                        setTimeout(function () {
+                                            window.location.reload()
+                                        }, 3000)
+                                    }
+                                } else {
+                                    that.counttime = data.data.data.data.resultTime;
+                                    clearInterval(time)
+                                }
+                            }, 1000)
+                        }
+                        this.getOrderRecord();
+                        if (appType == "ios") {
+                            window.webkit.messageHandlers.getSnatchStatus.postMessage(this.periodstatus);
+                            return
+                        } else {
+                            if (appType == "android") {
+                                window.android.getSnatchStatus(this.periodstatus);
+                                return
+                            }
+                        }
+                    }, function (error) {
+                        console.log(error)
+                    })
+                },
+                getOrderRecord: function () {
+                    var that =this;
+                    var senddata = "periodNo=" + this.periodNo + "&platform=H5" + "&token=" + this.token;
+                    var sign = $.md5(senddata + key);
+                    var mbencode = Base64.encode(sign);
+                    this.$http({
+                        method: "post",
+                        url:snatch +"/appOrder/getOrderRecord",
+                        data: {
+                            token: this.token,
+                            periodNo: this.periodNo,
+                            platform: "H5",
+                            offset:this.currentPage++,
+                            sign: mbencode
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        that.total=data.data.data.total;
+                        if (data.data.data.data.length > 0) {
+                            // this.purchaselist = data.data.data;
+                            for (var i  in data.data.data.data) {
+                                var item = data.data.data.data[i];
+                                this.purchaselist.push(item)
+                            }
+                            if (data.data.data.data.length < that.total) {
+                                that.loadMore = true;
+                            } else {
+                                that.loadMore = false;
+                            }
+                        }else if(data.data.data.data.length ==0){
+                            $(".downtext").text('已加载完数据');
+                        }
+                    }, function (error) {
+                        console.log(error)
+                    })
+                },
+            },
+            filters: {
+                numSlice: function (val) {
+                    if (val != undefined) {
+                        return parseFloat(val.toFixed(2))
+                    }
+                },
+                removeyear: function (val) {
+                    if (val) {
+                        return val.substring(5)
+                    }
+                }
+            },
+            mounted: function () {
+                this.getSnatchPeriod();
+                window.getSnatchPeriod = this.getSnatchPeriod.bind(this)
+            },
+        })
+    });
+    function reloadpage() {
+        getSnatchPeriod()
+    };
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s)
+    })();
+</script>
+</html>

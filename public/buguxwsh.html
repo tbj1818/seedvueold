@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>享物说</title><link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <script src="js/common.js"></script>
+</head>
+<body class="farmbgcheats">
+<section  id="htmlWap" v-cloak>
+    <section class="gzhgzhhwk alipaycontent">
+             <p>截屏下图，打开微信“扫一扫”，右上角“相册”选择刚刚截的图。</p>
+            <div class="picauto">
+                <img style="float: none;width:100%; margin: 0 auto;" src="images/xwshpic.jpg" />
+            </div>
+    </section>
+</section>
+</body>
+<script src="js/jquery.qrcode.min.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function () {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                code:'',
+            },
+            methods: {
+                aliPayTask:function () {
+                       this.$http({
+                           method: "post",
+                           url: "/appTeamLog/aliPayTask",
+                           data: {
+                               token:this.token,
+                               platform:'H5'
+                           },
+                           emulateJSON: true
+                       }).then(function (data) {
+                           console.log(data);
+
+                       }, function(error) {
+                           console.log(error);
+                       })
+                },
+
+                copyBtnText: function () {
+                    //复制文案
+                    var clipboard = new Clipboard('.alipaycopyBtn', {
+                        target: function () {
+                            return document.querySelector('.rechargecopylink');
+                        }
+                    });
+                    clipboard.on('success', function (e) {
+                        layer.msg('复制成功')
+                    });
+                    clipboard.on('error', function (e) {
+                        layer.msg('复制失败')
+                    });
+                }
+            },
+            mounted: function () {
+                var that =this;
+                setTimeout(function () {
+                    that.aliPayTask()
+                },30000)
+            }
+        });
+    });
+</script>
+</html>

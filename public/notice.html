@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title>
+    <link rel="stylesheet" href="css/ydui.css">
+    <link rel="stylesheet" href="css/bb.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/vue-resource.js"></script>
+    <script src="js/layer/layer.js"></script>
+    <script src="js/ydui.flexible.js"></script>
+</head>
+
+<body>
+<div id="htmlWap" v-cloak >
+    <header class="m-navbar">
+        <div class="navbar-center">
+            <span class="navbar-title">布谷资讯</span>
+        </div>
+    </header>
+    <section>
+        <div id="J_Tab" class="m-tab">
+            <ul class="tab-nav">
+                <li :class="navNum == 10?'tab-nav-item tab-active':'tab-nav-item'" @click="changeNav('10')"><a href="javaScript:;" @click="changeSelect('10')">快讯</a></li>
+                <li :class="navNum == 20?'tab-nav-item tab-active':'tab-nav-item'" @click="changeNav('20')"><a href="javaScript:;" @click="changeSelect('20')">公告</a></li>
+            </ul>
+            <div class="tab-panel">
+                <div class="tab-panel-item tab-active" >
+                    <ul class="aui-list aui-media-list" v-for="item in dataList">
+                        <li class="aui-list-item" @click="msgDeatil(item.rowId)">
+                            <div class="aui-media-list-item-inner">
+                                <div class="aui-list-item-inner" >
+                                    <div class="aui-list-item-text">
+                                        <div class="aui-list-item-time">{{item.createTime}}</div>
+                                    </div>
+                                    <div class="aui-list-item-text">
+                                        <div class="aui-list-item-title">{{item.title}}</div>
+                                    </div>
+                                    <!--<div class="aui-list-item-text aui-ellipsis-2" v-if="navNum==10" v-html="item.content">-->
+                                    <!--</div>-->
+                                    <div class="aui-list-item-text" v-if="item.sourceType==20">
+                                        来源:{{item.sourceName}}
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div class="datamore" @click="loadMoreData()" v-show="loadMore">点此查看更多</div>
+                </div>
+            </div>
+        </div>
+        <!-- 返回顶部 -->
+        <a href="javascript:;" class="top-btn" data-reactid="189"><i class="icon-download"></i></a>
+    </section>
+
+    <!-- 底部导航 -->
+    <footer class="m-tabbar tabbar-fixed">
+        <a href="index.html" class="tabbar-item">
+            <span class="tabbar-icon">
+                    <i class="icon-home-hq"></i>
+                </span>
+            <span class="tabbar-txt">行情</span>
+        </a>
+        <a href="notice.html" class="tabbar-item  tabbar-active">
+            <span class="tabbar-icon">
+                    <i class="icon-feedback"></i>
+                </span>
+            <span class="tabbar-txt">资讯</span>
+        </a>
+        <a href="warning.html" class="tabbar-item">
+            <span class="tabbar-icon">
+                    <i class="icon-setting"></i>
+                </span>
+            <span class="tabbar-txt">预警</span>
+        </a>
+    </footer>
+</div>
+</body>
+<script>
+    ! function($) {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                navNum:'10',
+                dataList:[],
+                loadMore:false,
+                currentPage:1
+            },
+            methods: {
+                changeNav:function(selectType){
+                    this.navNum = selectType;
+                },
+                loadData:function(){
+                    this.$http({
+                        method: "post",
+                        url: "/baseCoinAffiche/afficheList",
+                        data: {
+                            token:this.userToken,
+                            type:this.navNum,
+                            offset:1,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                       console.log(data);
+                        if(data.data.code == 0){
+                            this.dataList = data.data.data;
+                            if(this.dataList.length < 50){
+                                this.loadMore = false;
+                            }else{
+                                this.loadMore = true;
+                            }
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                changeSelect:function(type){
+                    this.navNum = type;
+                    this.loadData();
+                },
+                msgDeatil:function (rowId) {
+                    console.log(rowId);
+                    window.location.href = 'noticeDetail.html?rowId='+rowId +'&source='+this.navNum;
+                },
+                loadMoreData:function () {
+                    this.currentPage++;
+                    this.$http({
+                        method: "post",
+                        url: "/baseCoinAffiche/afficheList",
+                        data:{
+                            token:this.userToken,
+                            type:this.navNum,
+                            offset:this.currentPage,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data.data.data);
+                        var res = data.data.data;
+                        if (res.length == 0 ) {
+                            layer.msg('暂无更多数据');
+                            this.loadMore = false;
+                        }else{
+                            for(var i in res){
+                                this.dataList.push(res[i]);
+                            }
+                        }
+                    }, function (error) { // 访问失败执行
+                        console.log(error);
+                    })
+                }
+            },
+            mounted: function () {
+                this.loadData();
+                $(function(){
+                    //首先将#indexToTop隐藏
+                    $(".top-btn").hide();
+                    //当滚动条的位置处于距顶部100像素以下时，跳转链接出现，否则消失
+
+                    $(window).scroll(function(){
+                        if ($(window).scrollTop()>150){
+                            $(".top-btn").fadeIn(500);
+                        }
+                        else{
+                            $(".top-btn").fadeOut(500);
+                        }
+                    });
+                    //当点击跳转链接后，回到页面顶部位置
+                    $(".top-btn").click(function(){
+                        $('body,html').animate({scrollTop:0},1000);
+                        return false;
+                    });
+                });
+            }
+        })
+    }(jQuery);
+</script>
+
+</html>

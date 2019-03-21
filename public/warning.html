@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title>
+    <link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <link rel="stylesheet" href="css/ydui.css">
+    <link rel="stylesheet" href="css/bb.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/vue-resource.js"></script>
+    <script src="js/layer/layer.js"></script>
+    <script src="js/ydui.flexible.js"></script>
+    <style>
+        .tab-nav {
+            display: inline-block;
+            background: #fafafa;
+            height: 1rem;
+            position: relative;
+            z-index: 0
+        }
+        .tab-nav:after {
+            position: absolute;
+            z-index: 3;
+            bottom: 0;
+            left: 0;
+            height: 1px;
+            border-bottom: 1px solid #B2B2B2;
+            -webkit-transform: scaleY(.5);
+            transform: scaleY(.5);
+            -webkit-transform-origin: 0 100%;
+            transform-origin: 0 100%
+        }
+        .tab-nav-item.tab-active:active {
+            background-color: #3193ec;
+        }
+
+        .tab-nav-item {
+            width: 120px;
+            float: left;
+            position: relative;
+            text-align: center;
+            color: #585858;
+            font-size: .28rem;
+            line-height: 1rem;
+            display: block
+        }
+
+        .tab-nav-item.tab-active:active {
+            background-color: #fff
+        }
+
+        .tab-nav-item:active {
+            background-color: #f7f7f7
+        }
+
+        .tab-nav-item a {
+            display: inherit;
+            color: #666;
+            font-weight: bold;
+            font-size: .28rem
+        }
+
+        .tab-panel .tab-panel-item {
+            padding: 0
+        }
+        .cell-right{flex: inherit;}
+    </style>
+</head>
+
+<body>
+<div id="htmlWap" v-cloak>
+    <header class="m-navbar">
+        <div class="navbar-center">
+            <span class="navbar-title">币报预警</span>
+        </div>
+    </header>
+    <section>
+        <div class="m-tab" data-ydui-tab>
+            <!-- 这里添加data-ydui-tab就可以啦 -->
+            <div class="m-tabsw">
+                <ul class="tab-nav">
+                    <template v-for="item in tabList">
+                        <li :class="navCoinNum == item.coinId && navPlatNum == item.platformId?'tab-nav-item tab-active':'tab-nav-item'" @click="changeNav(item)"><a href="javaScript:;">{{item.platformName}}-{{item.coinName}}</a></li>
+                    </template>
+                </ul>
+            </div>
+
+            <div class="tab-panel" v-if="isShow">
+                <div class="tab-panel-item tab-active">
+                    <div class="m-celltitle m-celltitleBg">提醒设置</div>
+                    <div class="m-celltitle">当前价格(USDT)
+                        <strong>{{nowMoney}}</strong></div>
+                    <div class="m-cell">
+                        <div class="cell-item">
+                            <div class="cell-left">上涨到：</div>
+                            <div class="cell-right" style="padding: 0">
+                                <input type="number" class="cell-input" placeholder="请输入价格" autocomplete="off" v-model="upInput" @blur="rateFun('up')"/>
+                                <div class="cell-left">涨幅：</div>
+                                <div class="cell-right" style="padding: 0;width:60px;">
+                                    <input type="text" style="width:60px;" class="cell-input"  placeholder="涨幅"  autocomplete="off" readonly v-model="upRate"/></div>
+                            </div>
+                        </div>
+                        <div class="cell-item">
+                            <div class="cell-left">下跌到：</div>
+                            <div class="cell-right" style="padding: 0"><input type="number" class="cell-input" placeholder="请输入价格" autocomplete="off"  v-model="downInput" @blur="rateFun('down')"/>
+                                <div class="cell-left">跌幅：</div>
+                                <div class="cell-right" style="padding: 0;width: 60px;"><input type="text" style="width:60px;"  class="cell-input"  placeholder="跌幅"  autocomplete="off" readonly v-model="downRate"/></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="m-celltitle m-celltitleBg">提醒设置</div>
+                    <div class="m-cell">
+                        <label class="cell-item">
+                            <span class="cell-left">微信推送</span>
+                            <label class="cell-right">
+                                <input type="checkbox" class="m-switch" checked="" v-model="wxPush">
+                            </label>
+                        </label>
+                        <label class="cell-item">
+                            <span class="cell-left">短信推送</span>
+                            <label class="cell-right">
+                                <input type="checkbox" class="m-switch" checked="" v-model="msgPush">
+                            </label>
+                        </label>
+                        <label class="cell-item">
+                            <span class="cell-left">电话推送</span>
+                            <label class="cell-right">
+                                <input type="checkbox" class="m-switch" checked="" v-model="telPush">
+                            </label>
+                        </label>
+                        <p class="cell-right"><a href="WarningWay.html">预警方式说明</a></p>
+                    </div>
+                    <div class="demo">
+                        <button type="button" id="saveBtn" class="btn-block btn-primary btnBlack" @click="saveConfig()">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 暂无自选 -->
+    <section class="addzxBtn" >
+        <a href="add.html" class="aBloack" v-if="!isShow">
+            <div class="btnk"></div>
+            <div class="textBtn">暂无自选，点此添加</div>
+        </a>
+    </section>
+
+    <!-- 底部导航 -->
+    <footer class="m-tabbar tabbar-fixed">
+        <a href="index.html" class="tabbar-item">
+            <span class="tabbar-icon">
+                    <i class="icon-home-hq"></i>
+                </span>
+            <span class="tabbar-txt">行情</span>
+        </a>
+        <a href="notice.html" class="tabbar-item">
+            <span class="tabbar-icon">
+                    <i class="icon-feedback"></i>
+                </span>
+            <span class="tabbar-txt">资讯</span>
+        </a>
+        <a href="#" class="tabbar-item tabbar-active">
+            <span class="tabbar-icon">
+                    <i class="icon-setting"></i>
+                </span>
+            <span class="tabbar-txt">预警</span>
+        </a>
+    </footer>
+</div>
+</body>
+<script>
+    $(function () {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                isShow:false,
+                wxPush:false,
+                msgPush:false,
+                telPush:false,
+                phoneStatus: '0',
+                navCoinNum:'',
+                navPlatNum:'',
+                nowMoney:'',
+                tabList:[],
+                upInput:'',
+                downInput:'',
+                upRate:'',
+                downRate:''
+            },
+            methods: {
+                changeNav:function(item){
+                    this.navCoinNum = item.coinId;
+                    this.navPlatNum = item.platformId;
+                    this.nowMoney = item.priceUsdt;
+                    //重置 数据
+                    this.wxPush = false;
+                    this.msgPush = false;
+                    this.telPush = false;
+                    this.upInput = '';
+                    this.downInput = '';
+                    this.upRate = '';
+                    this.downRate = '';
+                    //加载详情数据
+                    this.loadDetailData();
+                },
+                loadUserInfo: function () {
+                    this.$http({
+                        method: "post",
+                        url: "/appLogin/loadUserPhone",
+                        data: {
+                            token: this.userToken,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+//                        console.log(data);
+                        if (data.data.code == 0) {
+                            this.phoneStatus = data.data.data;
+                            if (this.phoneStatus == '0') {
+                                window.location.href = 'bindingPhone.html';
+                            }
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                loadPersonData:function(){
+                    this.$http({
+                        method: "post",
+                        url: "/appFocusConfig/indexDataList",
+                        data: {
+                            token: this.userToken,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+//                        console.log(data);
+                        if(data.data.code == 0){
+                            this.tabList = data.data.data;
+                            if(this.tabList.length == 0){
+                                this.isShow = false;
+                            }else{
+                                this.isShow = true;
+                                this.navCoinNum = this.tabList[0].coinId;
+                                this.navPlatNum = this.tabList[0].platformId;
+                                this.nowMoney = this.tabList[0].priceUsdt;
+                                //配置宽度
+                                var wn = $(window).width();
+                                var n = this.tabList.length;
+                                var w = 120 * n;
+                                if (w < wn) {
+                                    $(".tab-nav").width(100 + '%');
+                                }else {
+                                    $(".tab-nav").width(w + 'px');
+                                }
+                                //加载详情数据
+                                this.loadDetailData();
+                            }
+                        }else{
+                            layer.msg(
+                                data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                loadDetailData:function () {
+                    this.$http({
+                        method: "post",
+                        url: "/appWarnConfig/getWarnConfigDetail",
+                        data: {
+                            token: this.userToken,
+                            platformId:this.navPlatNum,
+                            coinId:this.navCoinNum,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        var item,way;
+                        for(var i =0;i<data.data.data.length;i++){
+                            item = data.data.data[i];
+                            if(item.configTypeId == 10){
+                                //上涨
+                                this.upInput = item.configValue;
+                                this.rateFun('up');
+                            }else{
+                                //下跌
+                                this.downInput = item.configValue;
+                                this.rateFun('down');
+                            }
+                                way = item.remindWay.split(',');
+                                for (var j = 0; j < way.length; j++) {
+                                    if (way[i] == 10) {
+                                        this.wxPush = true;
+                                    } else if (way[i] == 20) {
+                                        this.msgPush = true;
+                                    }else if (way[i] == 30) {
+                                        this.telPush = true;
+                                    }
+                                }
+
+
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                rateFun:function (type) {
+                    var num = 0;
+                    var regu = /^[0-9]+\.?[0-9]*$/;
+                    if(type == 'up'){
+                        //上涨
+                        if(!regu.test(this.upInput)) {
+                            layer.msg('请输入数字类型');
+                            this.upInput='';
+                            return;
+                        }
+                        // if (this.upInput < this.nowMoney) {
+                        //     layer.msg('上涨价格须大于当前价格');
+                        //     return;
+                        // }
+                        num = (((this.upInput - this.nowMoney)/this.nowMoney)*100).toFixed(2);
+                        console.log(this.nowMoney);
+                        if(this.nowMoney==undefined){
+                            layer.msg('没有查询到当前价格');
+                            return;
+                        }else{
+                            this.upRate = num + '%';
+                        }
+
+                    }else{
+                        if(!regu.test(this.downInput)) {
+                            layer.msg('请输入数字类型');
+                            this.downInput='';
+                            return;
+                        }
+                        // if(this.downInput > this.nowMoney){
+                        //     layer.msg('下跌价格须小于当前价格');
+                        //     return;
+                        // }
+                        num = (((this.nowMoney - this.downInput)/this.nowMoney)*100).toFixed(2);
+                        if(this.nowMoney==undefined){
+                            layer.msg('没有查询到当前价格');
+                            return;
+                        }else {
+                            this.downRate = num + '%';
+                        }
+                    }
+                },
+                saveConfig:function () {
+                    if(this.upRate.length <= 0 ){
+                        layer.msg('请输入涨幅');
+                        return;
+                    }
+                    if( this.downRate.length <= 0){
+                        layer.msg('请输入跌幅');
+                        return;
+                    }
+                    if(this.upInput.length <= 0 ){
+                        layer.msg('请输入上涨价格');
+                        return;
+                    }
+                    if(this.downInput.length <= 0){
+                        layer.msg('请输入下跌价格');
+                        return;
+                    }
+                    // if(!this.wxPush && !this.msgPush){
+                    //     layer.msg('请选择提醒方式');
+                    //     return;
+                    // }
+                    var configValue = '',configTypeId = '',remindWay='';
+                    if(this.upRate.length > 0){
+                        configValue += this.upInput + ',';
+                        configTypeId += '10,';
+                    }
+                    if(this.downInput.length > 0){
+                        configValue += this.downInput + ',';
+                        configTypeId += '20,';
+                    }
+                    if(this.wxPush){
+                        remindWay += '10,';
+                    }
+                    if(this.msgPush){
+                        remindWay += '20,';
+                    }
+                    if(this.telPush){
+                        remindWay += '30,';
+                    }
+                    this.$http({
+                        method: "post",
+                        url: "/appWarnConfig/setWarnConfig",
+                        data: {
+                            token: this.userToken,
+                            platformId:this.navPlatNum,
+                            coinId:this.navCoinNum,
+                            configValue:configValue,
+                            remindWay:remindWay,
+                            configTypeId:configTypeId,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+//                        console.log(data);
+                        if (data.data.code == 0) {
+                            layer.msg(data.data.message);
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                }
+            },
+            mounted: function () {
+                this.userToken = localStorage.getItem("userToken");
+                //加载用户是否手机验证
+                this.loadUserInfo();
+                this.loadPersonData();
+            }
+        })
+    })
+</script>
+
+</html>

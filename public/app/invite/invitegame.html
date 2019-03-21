@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>邀请赛</title>
+    <link rel="icon" href="../../favicon2018921.ico" type="image/x-icon"/>
+    <script src="../../js/appcommon.js"></script>
+</head>
+<style>
+    .m-grids-4:before{border: 0}
+    .f26{ font-size: .26rem; margin-left: 10px}
+    .kemp{width: 25px;display: inline-block;}
+    .gamelist{width: 100%; display: inline-block}
+    .marl20{margin-left:20px}
+</style>
+<body>
+<div id="htmlWap" v-cloak>
+    <section class="appinvitebg">
+        <div class="appstartime">
+            开始时间:{{activeTime}}  <span class="marl20">每日0点更新排行榜</span>
+        </div>
+        <div class="invitebanner">
+            <img src="../../images/invite/banner-img.png" />
+        </div>
+        <div class="apprules">
+            <a href="invitegamerules.html">规则<br>说明</a>
+        </div>
+        <!-- share start -->
+        <footer class="m-tabbar invitecontain">
+            <a href="javascript:;" class="tabbar-item copylinkbtn" @click="copyBtnText()">
+                <span class="tabbar-icon">
+                    <img src="../../images/teacher/linkicon.png"></span>
+                <span class="tabbar-txt">复制链接</span></a>
+            <a href="javascript:;" @click="sharelink('/view/h5/freeregister.html?code=',appType,inviteCode,wechatName)"
+               class="tabbar-item">
+                    <span class="tabbar-icon">
+                        <img src="../../images/teacher/wechaticon.png"></span>
+                <span class="tabbar-txt">微信邀请</span></a>
+            <button href="javascript:;" class="tabbar-item"  :disabled="isDisablebook" @click="addressshare(appType)">
+                <span class="tabbar-icon"><img src="../../images/teacher/txlicon.png"></span>
+                <span class="tabbar-txt">通讯录邀请</span>
+            </button>
+        </footer>
+        <!-- tablist -->
+        <div class="invitecontain">
+            <div class="m-grids-4 text-gray">
+                <a href="javascript:;" class="grids-item" style="width:15%">
+                    <div class="grids-txt"><span>排名</span></div>
+                </a>
+                <a href="javascript:;" class="grids-item" style="width:35%">
+                    <div class="grids-txt"><span>用户</span></div>
+                </a>
+                <a href="javascript:;" class="grids-item">
+                    <div class="grids-txt"><span>成功邀请数量</span></div>
+                </a>
+                <a href="javascript:;" class="grids-item">
+                    <div class="grids-txt"><span>奖品</span></div>
+                </a>
+            </div>
+            <div class="roombg invitegametable">
+                <section class="gamelist" v-for="(item,index) in dataList">
+                    <a href="javascript:;" class="grids-item" style="width:15%">
+                        <div class="grids-txt" v-if="item.ranking==1">
+                            <span class="kemp"><img src="../../images/invite/icon-one.png" /></span>
+                        </div>
+                        <div class="grids-txt" v-else-if="item.ranking==2">
+                            <span class="kemp"><img src="../../images/invite/icon-two.png" /></span>
+                        </div>
+                        <div class="grids-txt" v-else-if="item.ranking==3">
+                            <span class="kemp"><img src="../../images/invite/icon-three.png" /></span>
+                        </div>
+                        <div class="grids-txt" v-else>
+                            <span class="kemp">{{item.ranking}}</span>
+                        </div>
+                    </a>
+                    <a href="javascript:;" class="grids-item" style="width:35%">
+                        <div class="grids-txt"><span>{{item.userNickname}}</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt">
+                            <span >{{item.inviteNumSum}}</span>
+                        </div>
+                    </a>
+                    <a href="javascript:;" class="grids-item btn-notsmallget">
+                        <div class="grids-txt" style="display: flex; justify-content: flex-end;align-items: center;">
+                            <span>{{item.rankingAward}}</span>
+                        </div>
+                    </a>
+                </section>
+                <p class="nodata" v-if="dataList.length==0">暂无数据</p>
+                <div class="nodata downtext" v-show="loadMore" @click="getInvitelog()">加载更多</div>
+            </div>
+
+        </div>
+    </section>
+    <div class="copylink" style="width: 50%; overflow: hidden">
+        {{web}}/view/h5/freeregister.html?code={{inviteCode}}&userName={{wechatName}}
+    </div>
+    <div class="footeruser">
+        <span class="photoshop"><img :src="userPhoto"/></span>
+        <div class="m-cell" style="flex: 1;">
+        <div class="cell-item">
+            <div class="cell-left f26">我成功邀请的数量：<span class="bluenum">{{invitNum}}人</span></div>
+            <div class="cell-right">排名：<span class="bluenum">{{ranking}}</span></div>
+        </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var appType = GetQueryString('appType');
+    var inviteCode;
+    $(function () {
+        new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                appType: GetQueryString('appType'),
+                inviteCode:GetQueryString('code'),        //邀请码
+                wechatName:decodeURI(GetQueryString('wechatName')),     //用户微信昵称
+                dataList: [],
+                limit:100,                              //每页数据条数
+                offset:1,                              //第几页
+                loadMore:false,
+                isDisablebook:false,                //通讯录重复点击
+                userPhoto:'../../images/notuserphoto.png',                       //用户头像
+                invitNum:'0',                        //邀请人数
+                ranking:'100+',                         //排名
+                activeTime:'',                          //活动时间
+            },
+            methods: {
+                getInvitelog: function (getPeriodNo) {
+                    this.$http({
+                        method: "post",
+                        url: web + "/appInviteGameRecord/inviteRecord",
+                        data: {
+                            token: this.token,
+                            periodId:getPeriodNo,
+                            offset:this.offset++,
+                            limit:this.limit,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        this.dataList=[];
+                        if (data.data.code == 0) {
+                            if(data.data.data){
+                                // this.dataList=data.data.data.data;
+                                for (var i  in data.data.data.data) {
+                                    var item = data.data.data.data[i];
+                                    this.dataList.push(item);
+                                }
+                                this.userPhoto=data.data.data.photo;
+                                this.invitNum=data.data.data.invitNumSum;
+                                this.ranking=data.data.data.ranking;
+                                this.periodNo=data.data.data.periodNo;
+                                $('title').text('第'+this.periodNo+'期');
+                                this.activeTime=(data.data.data.startTime).substring(0,10);
+                                if(!data.data.data.photo){
+                                    this.userPhoto='../../images/notuserphoto.png';
+                                }
+                                if(!data.data.data.invitNumSum){
+                                    this.invitNum='0';
+                                }
+                                if(!data.data.data.ranking){
+                                    this.ranking='100+';
+                                }
+                                if (data.data.data.data.length >= this.limit) {
+                                    this.loadMore = true;
+                                }else {
+                                    this.loadMore = false;
+                                }
+
+                            }
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                copyBtnText: function () {
+                    //复制文案
+                    var clipboard = new Clipboard('.copylinkbtn', {
+                        target: function () {
+                            return document.querySelector('.copylink');
+                        }
+                    });
+                    clipboard.on('success', function (e) {
+                        layer.msg('复制成功')
+                    });
+                    clipboard.on('error', function (e) {
+                        layer.msg('复制失败')
+                    });
+                },
+                addressshare:function(appType) {
+                    // layer.msg('敬请期待');
+                    var that =this;
+                    this.isDisablebook=true;
+                   // 跳转通讯录邀请方法
+                    if(appType == 'ios'){
+                        // layer.msg('敬请期待');
+                        //调用IOS原生方法
+                        window.webkit.messageHandlers.addressbook.postMessage('');
+                        setTimeout(function () {
+                            that.isDisablebook=false;
+                        },1500)
+                        return;
+                    } else if (appType == 'android') {
+                        window.android.addressbook();
+                        setTimeout(function () {
+                            that.isDisablebook=false;
+                        },1500);
+                        return;
+                    } else {
+                        layer.msg('请在手机端操作');
+                        setTimeout(function () {
+                            that.isDisablebook=false;
+                        },1500);
+                        return;
+                    }
+                },
+                getPeriodNo:function(getPeriodNo){
+                    this.getPeriodNo=getPeriodNo;
+                    this.getInvitelog(getPeriodNo);
+                },
+                //分享按钮调取原生分享方法
+             sharelink:function(link,appType,inviteCode,wechatName) {
+                    if (appType == 'ios') {
+                        //调用IOS原生方法
+                        window.webkit.messageHandlers.shareUrl.postMessage(link + inviteCode + '&userName=' + encodeURI(wechatName));
+                        return;
+                    } else if (appType == 'android') {
+                        console.log(link + inviteCode+wechatName);
+                        window.android.shareUrl(link + inviteCode + '&userName=' + encodeURI(wechatName));
+                        return;
+                    } else {
+                        console.log(link + inviteCode + '&userName=' + encodeURI(wechatName));
+                        layer.msg('请在手机端操作')
+                        return;
+                    }
+             }
+            },
+            mounted: function () {
+                this.getInvitelog();
+                this.web = web;
+                window.getPeriodNo=this.getPeriodNo;
+            },
+        });
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

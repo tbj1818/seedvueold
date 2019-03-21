@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>创建房间</title>
+    <link rel="icon" href="../../favicon2018921.ico" type="image/x-icon"/>
+    <script src="../../js/appcommon.js"></script>
+    <style>
+        body {
+            background: #271B52;
+            font-family: -apple-system, BlinkMacSystemFont, Helvetica Neue, Helvetica, Arial, PingFang SC, Hiragino Sans GB, Heiti SC, Microsoft YaHei, WenQuanYi Micro Hei, sans-serif;
+        }
+        .confirm-btn {
+            line-height: .9rem
+        }
+        .rommresultbg .cell-item {
+            line-height: 35px !important;
+        }
+        .rommresultbg .cell-item .cell-left {
+            color: #76F4FE !important;
+        }
+    </style>
+</head>
+
+<body>
+<div id="htmlWap" v-cloak>
+    <div class="foundroom">
+        <div class="foundcont">
+            <div class="cell">
+                <div class="label">房间名称</div>
+                <div class="cell-input">
+                    <input type="text" maxlength="10" v-model="roomname" class="cell-input" placeholder="请输入房间名称"
+                           autocomplete="off"/>
+                </div>
+            </div>
+            <div class="cell">
+                <div class="label">游戏类型</div>
+                <div class="cell-input">
+                    <ul class="gametype">
+                        <li @click="gamenum(10)">猜数字</li>
+                        <li @click="gamenum(20)">猜大小</li>
+                        <li @click="gamenum(30)">猜花色</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="cell">
+                <div class="label">房间奖池</div>
+                <div class="cell-input">
+                        <span class="m-spinner">
+                            <!-- 添加data-ydui-spinner属性并添加参数即可 -->
+                            <a href="javascript:;" class="J_Del" @click="minus()"></a>
+                            <input type="number" oninput="if(value.length>9)value=value.slice(0,9)" class="J_Input"
+                                   @input="inputFun" v-model="roomjackpot" placeholder=""/>
+                            <a href="javascript:;" class="J_Add" @click="plus()"></a>
+                        </span>
+                </div>
+                <p class="textline">钱包余额：<strong>{{bgtnum}}BGT</strong><span
+                        class="fright">初始奖池不得少于<strong>20BGT</strong>
+                        </span></p>
+            </div>
+            <div class="cell">
+                <div class="label">局数设置</div>
+                <div class="cell-input">
+                        <span class="m-spinner">
+                            <!-- 添加data-ydui-spinner属性并添加参数即可 -->
+                            <a href="javascript:;" class="J_Del" @click="roomgamenumminus()"></a>
+                            <input type="number" oninput="if(value.length>3)value=value.slice(0,3)" class="J_Input"
+                                   @input="inputFun" v-model="roomgamenum" placeholder=""/>
+                            <a href="javascript:;" class="J_Add" @click="roomgamenumplus()"></a>
+                        </span>
+                </div>
+                <p class="textline"><span class="fright">局数到达后，房间将自动关闭</span></p>
+            </div>
+            <div class="cell">
+                <div class="label">下注金额 (不填写将默认最小为1，最大不限制)</div>
+                <div class="cell-input" style="display:flex">
+                    <input type="number" oninput="if(value.length>9)value=value.slice(0,9)"
+                           class="cell-input centerauto" placeholder="1" v-model="pourmin" @input="inputFun"
+                           autocomplete="off"/>
+                    <input type="number" oninput="if(value.length>9)value=value.slice(0,9)"
+                           class="cell-input centerauto" placeholder="不限" v-model="pourmax" @input="inputFun"
+                           autocomplete="off"/>
+                </div>
+                <div class="cell" style="display:flex">
+                    <div class="cell-input twocenter">
+                        <span class="cell-text centerauto">最小下注金额</span>
+                        <span class="cell-text centerauto">最大下注金额</span>
+                    </div>
+                </div>
+            </div>
+            <div class="cell">
+                <div class="label">房间密码</div>
+                <div class="mpassword">
+                    <div class="m-cell">
+                        <label class="cell-item">
+                                <span class="cell-left">
+                                    <label class="cell-right" style="margin-left:10px">
+                                        <input type="radio" name="roomstate" value="10" @input="inputFun"
+                                               v-model='roomstate'/>
+                                        <i class="cell-checkbox-icon"></i>
+                                    </label>公开房间</span>
+                        </label>
+                        <label class="cell-item">
+                                <span class="cell-left">
+                                    <label class="cell-right" style="margin-left:10px">
+                                        <input type="radio" name="roomstate" value="20" @input="inputFun"
+                                               v-model='roomstate'/>
+                                        <i class="cell-checkbox-icon"></i>
+                                    </label>房间密码</span>
+                            <label v-show="roomstate==20" class="cell-right" @click="openroompassword()">
+                                设置房间密码
+                            </label>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="cell">
+                <div class="label">止盈止损(当房间奖池达到一定数量时自动关闭)</div>
+                <div class="mpassword">
+                    <div class="m-cell">
+                        <label class="cell-item">
+                            <span class="cell-left">
+                                <label class="cell-right" style="margin-left:10px">
+                                    <input type="radio" name="roomset" value="1"
+                                           v-model='stopProfitLossFalg'/>
+                                    <i class="cell-checkbox-icon"></i>
+                                </label>设置
+                            </span>
+                            <span class="cell-left">
+                                <label class="cell-right" style="margin-left:10px">
+                                    <input type="radio" name="roomset" value="0"
+                                           v-model='stopProfitLossFalg'/>
+                                    <i class="cell-checkbox-icon"></i>
+                                </label>不设置
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div v-show="stopProfitLossFalg==1" class="cell" style="margin-top: 10px">
+                <p class="textline h60">奖池容量少于 <input type="number" oninput="if(value.length>8)value=value.slice(0,8)" class="smallinput" placeholder="0" v-model="stopLossValue" autocomplete="off"/>时，自动关闭。</p>
+                <p class="textline">奖池容量大于 <input type="number" oninput="if(value.length>8)value=value.slice(0,8)" class="smallinput" placeholder="0" v-model="stopProfitValue" autocomplete="off"/>时，自动关闭。
+                </p>
+            </div>
+            <button type="button" v-if="btnrepetitionclick" class="btn-block foundroombtn" @click='submitnext()'>下一步</button>
+            <button type="button" v-if="btnrepetitionclickno" class="btn-block foundroombtn">下一步</button>
+        </div>
+    </div>
+    <!--创建成功结果展示窗口-->
+    <div class="foundroom" v-show="resultstate">
+        <div class="foundcont mask-black-dialog" style="display:initial;width: 100%; background: rgba(0,0,0,0.6)">
+            <div class="rommresultbg">
+                <div class="cell">
+                    <div class="cell-item" style="border: 0">
+                        <div class="cell-left">房间号码：{{roomCode}}</div>
+                    </div>
+                    <div class="cell-item" style="border: 0">
+                        <div class="cell-left">房间奖池金额：{{jackpotCurrentValue}}</div>
+                    </div>
+                    <div class="cell-item" style="border: 0">
+                        <div class="cell-left">房间类型：
+                            <span v-show="roomType==10">公开房间</span>
+                            <span v-show="roomType==20">密码房间({{roomPwd}})</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="cell">
+                    <div class="label">开奖结果信息展示：<span class="yellowText">点击下方结果可自定义</span></div>
+                    <div class="cell-input" style="height: auto">
+                        <ul class="gamesResultlist">
+                            <li v-for="item in gamesResult">
+                                <span v-if="gameType !=30" @click="resultsettype(gameType,item)" style="padding:5px">
+                                    {{item.result}}
+                                </span>
+                                <span v-if="gameType==30" @click="resultsettype(gameType,item)">
+                                        <img :src="'../../images/puke/'+item.result+'.png'" />
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                    <button type="button" class="btn-block randombtn" @click='randomresult(roomgamenum)'>随机一组</button>
+                </div>
+                <button type="button" class="btn-block foundroombtn" @click='enterroomresult(appType)'>确定</button>
+            </div>
+        </div>
+    </div>
+    <!--设置猜数字房间结果弹窗-->
+    <div class="foundroom" v-show="numresultset">
+        <div class="foundcont mask-black-dialog" style="display:initial;width: 100%; background: rgba(0,0,0,0.6)">
+            <div class="rommresultbg resultnumtype">
+                <h3>请选择本局开奖结果</h3>
+                <ul class="gametype">
+                    <li @click="gamenumresult('A',resultindex,gameType)" class="smallresult" style="margin-left: 0">
+                        <section v-show="numresultactive!='A'">
+                            <img src="../../images/puke/one-def.png" />
+                        </section>
+                        <section class="mart-25" v-show="numresultactive=='A'">
+                            <img src="../../images/puke/one-pit.png" />
+                        </section>
+                    </li>
+                    <li @click="gamenumresult(2,resultindex,gameType)" class="smallresult marl-20">
+                        <section v-show="numresultactive!=2">
+                            <img src="../../images/puke/two-def.png" />
+                        </section>
+                        <section class="mart-25" v-show="numresultactive==2">
+                            <img src="../../images/puke/two-pit.png" />
+                        </section>
+                    </li>
+                    <li @click="gamenumresult(3,resultindex,gameType)" class="smallresult marl-20">
+                        <section v-show="numresultactive!=3">
+                            <img src="../../images/puke/three-def.png" />
+                        </section>
+                        <section class="mart-25" v-show="numresultactive==3">
+                            <img src="../../images/puke/three-pit.png" />
+                        </section>
+                    </li>
+                    <li @click="gamenumresult(4,resultindex,gameType)" class="smallresult marl-20">
+                        <section v-show="numresultactive!=4">
+                            <img src="../../images/puke/four-def.png" />
+                        </section>
+                        <section class="mart-25" v-show="numresultactive==4">
+                            <img src="../../images/puke/four-pit.png" />
+                        </section>
+                    </li>
+                    <li @click="gamenumresult(5,resultindex,gameType)" class="smallresult marl-20">
+                        <section v-show="numresultactive!=5">
+                            <img src="../../images/puke/five-def.png" />
+                        </section>
+                        <section class="mart-25" v-show="numresultactive==5">
+                            <img src="../../images/puke/five-pit.png" />
+                        </section>
+                    </li>
+                    <li @click="gamenumresult(6,resultindex,gameType)" class="smallresult marl-20">
+                        <section v-show="numresultactive!=6">
+                            <img src="../../images/puke/six-def.png" />
+                        </section>
+                        <section class="mart-25" v-show="numresultactive==6">
+                            <img src="../../images/puke/six-pit.png" />
+                        </section>
+                    </li>
+                    <li @click="gamenumresult(7,resultindex,gameType)" class="smallresult marl-20">
+                        <section v-show="numresultactive!=7">
+                            <img src="../../images/puke/seven-def.png" />
+                        </section>
+                        <section class="mart-25" v-show="numresultactive==7">
+                            <img src="../../images/puke/seven-pit.png" />
+                        </section>
+                    </li>
+                    <li @click="gamenumresult(8,resultindex,gameType)" class="smallresult marl-20">
+                        <section v-show="numresultactive!=8">
+                            <img src="../../images/puke/eight-def.png" />
+                        </section>
+                        <section class="mart-25" v-show="numresultactive==8">
+                            <img src="../../images/puke/eight-pit.png" />
+                        </section>
+                    </li>
+                    <li @click="gamenumresult(9,resultindex,gameType)" class="smallresult marl-20">
+                        <section v-show="numresultactive!=9">
+                            <img src="../../images/puke/nine-def.png" />
+                        </section>
+                        <section class="mart-25" v-show="numresultactive==9">
+                            <img src="../../images/puke/nine-pit.png" />
+                        </section>
+                    </li>
+                    <li @click="gamenumresult(10,resultindex,gameType)" class="smallresult marl-20">
+                        <section v-show="numresultactive!=10">
+                            <img src="../../images/puke/ten-def.png" />
+                        </section>
+                        <section class="mart-25" v-show="numresultactive==10">
+                            <img src="../../images/puke/ten-pit.png" />
+                        </section>
+                    </li>
+                    <li @click="gamenumresult('J',resultindex,gameType)" class="smallresult marl-20">
+                        <section v-show="numresultactive!='J'">
+                            <img src="../../images/puke/eleven-def.png" />
+                        </section>
+                        <section class="mart-25" v-show="numresultactive=='J'">
+                            <img src="../../images/puke/eleven-pit.png" />
+                        </section>
+                    </li>
+                    <li @click="gamenumresult('Q',resultindex,gameType)" class="smallresult marl-20">
+                        <section v-show="numresultactive!='Q'">
+                            <img src="../../images/puke/twelve-def.png" />
+                        </section>
+                        <section class="mart-25" v-show="numresultactive=='Q'">
+                            <img src="../../images/puke/tweleve-pit.png" />
+                        </section>
+                    </li>
+                    <li @click="gamenumresult('K',resultindex,gameType)" class="smallresult marl-20">
+                        <section v-show="numresultactive!='K'">
+                            <img src="../../images/puke/thirteen-def.png" />
+                        </section>
+                        <section class="mart-25" v-show="numresultactive=='K'">
+                            <img src="../../images/puke/thirteen-pit.png" />
+                        </section>
+                    </li>
+
+                </ul>
+                <button type="button" class="btn-block foundroombtn" @click='resultnumenter(resultactive,gameType)'>确定</button>
+            </div>
+        </div>
+    </div>
+    <!--设置猜大小房间结果弹窗-->
+    <div class="foundroom" v-show="resultset">
+        <div class="foundcont mask-black-dialog" style="display:initial;width: 100%; background: rgba(0,0,0,0.6)">
+            <div class="rommresultbg resultnumtype">
+                <h3>请选择本局开奖结果</h3>
+                <ul class="gametype">
+                    <li @click="gamenumresult(6,resultindex,gameType)" class="smallresult">
+                        <section v-show="resultactive!=6">
+                            <img src="../../images/puke/left-def.png" />
+                        </section>
+                        <section v-show="resultactive==6">
+                            <img src="../../images/puke/left-pit.png" />
+                        </section>
+                        <p>小<7</p>
+                    </li>
+                    <li @click="gamenumresult(7,resultindex,gameType)" class="smallresult">
+                        <section v-show="resultactive!=7">
+                            <img src="../../images/puke/centre-def.png" />
+                        </section>
+                        <section v-show="resultactive==7">
+                            <img src="../../images/puke/centre-pit.png" />
+                        </section>
+                        <p>中=7</p>
+                    </li>
+                    <li @click="gamenumresult(8,resultindex,gameType)" class="smallresult">
+                        <section v-show="resultactive!=8">
+                            <img src="../../images/puke/right-def.png" />
+                        </section>
+                        <section v-show="resultactive==8">
+                            <img src="../../images/puke/right-pit.png" />
+                        </section>
+                        <p>大>7</p>
+                    </li>
+                </ul>
+                <button type="button" class="btn-block foundroombtn" @click='resultnumenter(resultactive,gameType)'>确定</button>
+            </div>
+        </div>
+    </div>
+    <!--设置猜花色房间结果弹窗-->
+    <div class="foundroom" v-show="flowerresultset">
+        <div class="foundcont mask-black-dialog" style="display:initial;width: 100%; background: rgba(0,0,0,0.6)">
+            <div class="rommresultbg resultnumtype">
+                <h3>请选择本局开奖结果</h3>
+                <ul class="gametype">
+                    <li @click="gamenumresult('heiTao',resultindex,gameType)" class="flowerresultli">
+                        <section v-show="flowerresultactive!='heiTao'">
+                            <img src="../../images/puke/ht-def.png" />
+                        </section>
+                        <section v-show="flowerresultactive=='heiTao'">
+                            <img src="../../images/puke/ht-pit.png" />
+                        </section>
+                    </li>
+                    <li @click="gamenumresult('fangPian',resultindex,gameType)" class="flowerresultli">
+                        <section v-show="flowerresultactive!='fangPian'">
+                            <img src="../../images/puke/fph-def.png" />
+                        </section>
+                        <section v-show="flowerresultactive=='fangPian'">
+                            <img src="../../images/puke/fph-pit.png" />
+                        </section>
+                    </li>
+                    <li @click="gamenumresult('meiHua',resultindex,gameType)" class="flowerresultli">
+                        <section v-show="flowerresultactive!='meiHua'">
+                            <img src="../../images/puke/mh-def.png" />
+                        </section>
+                        <section v-show="flowerresultactive=='meiHua'">
+                            <img src="../../images/puke/mh-pit.png" />
+                        </section>
+                    </li>
+                    <li @click="gamenumresult('hongTao',resultindex,gameType)" class="flowerresultli">
+                        <section v-show="flowerresultactive!='hongTao'">
+                            <img src="../../images/puke/hx-def.png" />
+                        </section>
+                        <section v-show="flowerresultactive=='hongTao'">
+                            <img src="../../images/puke/hx-pit.png" />
+                        </section>
+                    </li>
+                </ul>
+                <button type="button" class="btn-block foundroombtn" @click='resultnumenter(resultactive,gameType)'>确定</button>
+            </div>
+        </div>
+    </div>
+<!--密码设置弹窗-->
+    <div class="password" v-show="dialogstate">
+        <div class="mask-black-dialog" id="YDUI_CONFRIM">
+            <div class="m-confirm">
+                <div class="confirm-hd"><strong class="confirm-title">请输入房间密码</strong></div>
+                <div class="confirm-bd roompassbg">
+                    <i class="icon-shield-outline"></i>
+                    <input type="number"
+                           onkeyup="if(this.value.length==1){this.value=this.value.replace(/[^0-9]/g,'')}else{this.value=this.value.replace(/\D/g,'')}"
+                           onafterpaste="if(this.value.length==1){this.value=this.value.replace(/[^0-9]/g,'')}else{this.value=this.value.replace(/\D/g,'')}"
+                           pattern="[0-9]*" oninput="if(value.length>4)value=value.slice(0,4)" class="J_Input"
+                           v-model="roompassword" placeholder=""/>
+                </div>
+                <div class="confirm-ft"><a href="javascript:;" class="confirm-btn default" @click="closedialog()">取消</a>
+                    <a href="javascript:;" class="confirm-btn primary" @click="enterroompassword(roompassword)">确定</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--等待图标-->
+    <div class="pukeloading" v-show="loadpic">
+        <img src="../../images/pukeloading.gif"/>
+    </div>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var cszRoomNum=GetQueryString('cszRoomNum');
+    var cdxRoomNum=GetQueryString('cdxRoomNum');
+    var chsRoomNum=GetQueryString('chsRoomNum');
+
+    $(function () {
+        var apphtml = new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                appType: GetQueryString("appType"),      //来源
+                roomname: '',                           //房间名称
+                gameType: '',                            //游戏类型10 猜数字 20猜大小 30 猜花色
+                roomjackpot: 20,                      //房间赌注
+                roomgamenum: 10,                      //局数
+                pourmin: 1,                          //最小下注金额
+                pourmax: '',                          //最大下注金额
+                roompassword: '',                     //房间密码
+                bgtnum: '',                          //bgt余额
+                roomstate: 10,                       //房间加密状态(10为公开房间，20为加密房间)
+                dialogstate: false,                   //房间密码弹窗展示
+                resultstate: false,                  //游戏设置结果展示
+                loadpic: true,
+                roomType: '',                        //创建完成显示房间类型
+                jackpotCurrentValue: '',              //创建完成显示房间奖池
+                roomCode: '',                         //创建完成显示房间号码
+                roomPwd: '',                          //创建完成显示房间密码
+                stopProfitLossFalg:0,                 //游戏止盈止损状态设置(0 未开启, 1 已开启)
+                stopProfitValue:'',                    //止盈值
+                stopLossValue:'',                      //止损值
+                resultset:false,                        //猜大小结果设置弹窗
+                numresultset:false,                      //猜数字结果设置弹窗
+                flowerresultset:false,                     //猜花色弹窗
+                resultactive:7,                         //猜大小结果值
+                numresultactive:'',                     //猜数字结果值
+                flowerresultactive:'',                   //猜花色结果值
+                resultindex:'',                         //第几局弹窗设置结果
+                btnrepetitionclick:true,                //按钮点击
+                btnrepetitionclickno:false,             //按钮不可点击
+                gamesResult: []                        //游戏展示结果
+            },
+            methods: {
+                getUserWalletInfo:function() {
+                    var that = this;
+                    this.$http({
+                        method: "post",
+                        url: fund + "/appRedPacket/getUserWalletInfo",
+                        data: {
+                            token: this.token,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        if (data.data.code == 0) {
+                            this.bgtnum = data.data.data.bgt;
+                            if (data.data.data.inckname && data.data.data.inckname.length <= 5) {
+                                this.roomname = data.data.data.inckname + '的房间';
+                            }
+                            if (data.data.data.inckname && data.data.data.inckname.length > 5) {
+                                this.roomname = data.data.data.inckname;
+                            }
+
+                            // if(data.data.data.inckname && data.data.data.inckname.length<=7){
+                            //     this.roomname=data.data.data.inckname+'的房间';
+                            // }
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        layer.msg('接口出错');
+                    });
+                },
+                minus:function() {
+                    if (this.roomjackpot > 20) {
+                        this.roomjackpot--;
+                    } else {
+                        layer.msg('初始奖池不得小于20')
+                    }
+                },
+                plus:function() {
+                    this.roomjackpot++;
+                },
+                roomgamenumminus:function() {
+                    if (this.roomgamenum > 1) {
+                        this.roomgamenum--;
+                    } else {
+                        layer.msg('初始局数不得小于1')
+                    }
+                },
+                roomgamenumplus:function() {
+                    if (this.roomgamenum < 100) {
+                        this.roomgamenum++;
+                    } else {
+                        layer.msg('局数最大为100')
+                    }
+                },
+                gamenum:function(val,num) {
+                    //游戏类型
+                    this.gameType = val;
+                    if (val == 10) {
+                        if(cszRoomNum !=0){
+                            layer.msg('已有猜数字房间');
+                            setTimeout(function () {
+                                $('.gametype li').removeClass('active');
+                            },100);
+                            this.gameType='';
+                        }
+                    }else if(val == 20){
+                        if(cdxRoomNum !=0){
+                            layer.msg('已有猜大小房间');
+                            setTimeout(function () {
+                                $('.gametype li').removeClass('active');
+                            },100);
+                            this.gameType='';
+                        }
+                    }else{
+                        if(chsRoomNum !=0){
+                            layer.msg('已有猜花色房间');
+                            setTimeout(function () {
+                                $('.gametype li').removeClass('active');
+                            },100);
+                            this.gameType='';
+                        }
+                    }
+                },
+                inputFun:function(e) {
+                    if (this.pourmin < 1) {
+                        layer.msg('最小下注金额必须大于等于1');
+                        return;
+                    }
+                    if (e.target.value < 1) {
+                        layer.msg('输入必须为正数');
+                    }
+                    if (this.roomgamenum > 100) {
+                        layer.msg('房间局数最大为100');
+                        this.roomgamenum = 100;
+                    }
+                },
+                openroompassword:function() {
+                    //房间密码弹层
+                    this.dialogstate = true;
+                },
+                enterroompassword:function(val) {
+                    if (this.roompassword.length < 4) {
+                        layer.msg('密码必须为4为数字');
+                        return;
+                    }
+                    ;
+                    //确认并关闭房间密码弹层
+                    layer.msg('你设置的密码为:' + val);
+                    this.dialogstate = false;
+                    this.roompassword = val;
+                },
+                closedialog() {
+                    //关闭房间密码弹层
+                    this.dialogstate = false;
+                },
+                enterroomresult:function(appType) {
+                    this.resultstate = false;
+                    this.$http({
+                        method: "post",
+                        url: snatch + "/appGameDrawResult/updateDrawResult",
+                        data: {
+                            token: this.token,
+                            roomId: this.roomCode,
+                            gameType: this.gameType,
+                            list:JSON.stringify(this.gamesResult),
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+
+                    }, function (error) {
+                        layer.msg('接口出错');
+                    });
+                    if (appType == "ios") {
+                        window.webkit.messageHandlers.closePage.postMessage('1');
+                        return
+                    } else {
+                        if (appType == "android") {
+                            window.android.closePage();
+                            return
+                        } else {
+                            layer.msg("请在布谷App内打开");
+                            return
+                        }
+                    }
+                },
+                submitnext:function() {
+                    this.btnrepetitionclick=false;
+                    this.btnrepetitionclickno=true;
+                    if (!this.roomname) {
+                        layer.msg('请输入房间名称');
+                        this.btnrepetitionclick=true;
+                        this.btnrepetitionclickno=false;
+                        return;
+                    };
+                    if(!this.gameType){
+                        layer.msg('请选择游戏类型');
+                        this.btnrepetitionclick=true;
+                        this.btnrepetitionclickno=false;
+                        return;
+                    };
+                    if(this.stopProfitLossFalg ==1){
+                        if(!this.stopProfitValue){
+                            layer.msg('请输入止盈值');
+                            this.btnrepetitionclick=true;
+                            this.btnrepetitionclickno=false;
+                            return;
+                        }if(!this.stopLossValue){
+                            layer.msg('请输入止损值');
+                            this.btnrepetitionclick=true;
+                            this.btnrepetitionclickno=false;
+                            return;
+                        }
+
+                    };
+                    if (this.pourmax && parseFloat(this.pourmax) <= parseFloat(this.pourmin)) {
+                        layer.msg('最大下注金额必须大于最小下注金额');
+                        this.btnrepetitionclick=true;
+                        return;
+                    }
+                    if (this.roomname && this.roomjackpot && this.roomgamenum && this.pourmin && this.roomstate && this.gameType) {
+                        this.$http({
+                            method: "post",
+                            url: snatch + "/appGameUserRoom/createRoom",
+                            data: {
+                                token: this.token,
+                                roomName: this.roomname,
+                                jackpotAmount: this.roomjackpot,
+                                gamesTotalNum: this.roomgamenum,
+                                betMinValue: this.pourmin,
+                                betMaxValue: this.pourmax,
+                                roomType: this.roomstate,
+                                gameType: this.gameType,
+                                roomPwd: this.roompassword,
+                                stopProfitLossFalg:this.stopProfitLossFalg,
+                                stopProfitValue:this.stopProfitValue,
+                                stopLossValue:this.stopLossValue,
+                                platform: 'H5'
+                            },
+                            emulateJSON: true
+                        }).then(function (data) {
+                            // console.log(data);
+                            this.btnrepetitionclick=true;
+                            this.btnrepetitionclickno=false;
+                            if (data.data.code == 0) {
+                                // layer.msg(data.data.message);
+                                this.resultstate = true;
+                                // window.location.href="roomResult.html";
+                                this.roomCode = data.data.data.roomCode;
+                                this.jackpotCurrentValue = data.data.data.jackpotAmount;
+                                this.roomType = data.data.data.roomType;
+                                this.roomPwd = data.data.data.roomPwd;
+                                this.gamesResult=[];
+                                // this.gamesResult=data.data.data.gamesResultList;
+                                for (var i  in data.data.data.gamesResultList) {
+                                    var item = data.data.data.gamesResultList[i];
+                                    this.gamesResult.push(item);
+                                    // if(this.gameType==20){
+                                    //     if(data.data.data.gamesResultList[i].result=='A'){
+                                    //         data.data.data.gamesResultList[i].result=1;
+                                    //     }
+                                    //     else if(data.data.data.gamesResultList[i].result=='J'){
+                                    //         data.data.data.gamesResultList[i].result=11;
+                                    //     }else if(data.data.data.gamesResultList[i].result=='Q'){
+                                    //         data.data.data.gamesResultList[i].result=12;
+                                    //     }else if(data.data.data.gamesResultList[i].result=='K'){
+                                    //         data.data.data.gamesResultList[i].result=13;
+                                    //     }
+                                    //     if(data.data.data.gamesResultList[i].result<7){
+                                    //         data.data.data.gamesResultList[i].result='小'
+                                    //     }else if(data.data.data.gamesResultList[i].result>7){
+                                    //         data.data.data.gamesResultList[i].result='大'
+                                    //     }
+                                    // }
+                                    // if(this.gameType==30){
+                                    //     if(data.data.data.gamesResultList[i].result=='heiTao'){
+                                    //         data.data.data.gamesResultList[i].result=0;
+                                    //     }
+                                    //     else if(data.data.data.gamesResultList[i].result=='fangPian'){
+                                    //         data.data.data.gamesResultList[i].result=1;
+                                    //     }else if(data.data.data.gamesResultList[i].result=='meiHua'){
+                                    //         data.data.data.gamesResultList[i].result=2;
+                                    //     }else if(data.data.data.gamesResultList[i].result=='hongTao'){
+                                    //         data.data.data.gamesResultList[i].result=3;
+                                    //     }
+                                    // }
+                                }
+                            } else {
+                                layer.msg(data.data.message);
+                            }
+
+                        }, function (error) {
+                            layer.msg('接口出错');
+                        });
+                    } else {
+                        layer.msg('请设置完所有选项后再点击下一步');
+                        this.btnrepetitionclick=true;
+                        this.btnrepetitionclickno=false;
+                    }
+                },
+                resultsettype:function(gameType,item){
+                    if(gameType==10){
+                        this.numresultset=true;
+                        this.numresultactive=0;
+                    }else if(gameType==20){
+                        this.resultset=true;
+                        this.resultactive=0;
+                    }else{
+                        this.flowerresultset=true;
+                        this.flowerresultactive='';
+                    }
+
+                    this.resultactive=0;
+                    this.resultindex=item.gameNum;
+                },
+                gamenumresult:function(result,resultindex,gameType){
+                    if(gameType==10){
+                        this.numresultactive = result;
+                    }else if(gameType==20) {
+                        this.resultactive = result;
+                        // if (result == 6) {
+                        //     result = '小'
+                        // } else if (result == 8) {
+                        //     result = '大'
+                        // }
+                    }else{
+                        this.flowerresultactive=result;
+                        // console.log(result);
+                        // console.log(this.flowerresultactive);
+
+                    }
+                    Vue.set(this.gamesResult,resultindex-1,{gameNum:resultindex,result:result});
+                    // console.log(this.gamesResult);
+                },
+                randomresult:function(roomgamenum){
+                    //随机一组
+                    //赋值
+                    var pool=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+                    if(this.gameType==30){
+                        var pool=["heiTao", "fangPian", "meiHua", "hongTao"];
+                    }
+                    this.gamesResult = new Array();
+                    for (var i = 1; i <= roomgamenum; i++) {
+                        this.gamesResult.push({gameNum:i,result:pool[Math.floor(Math.random()*pool.length)]});
+                    }
+
+                    console.log(this.gamesResult);
+                },
+                resultnumenter:function(resultactive,gameType){
+                    if(gameType==10) {
+                        this.numresultset=false;
+                    }else if(gameType==20){
+                        this.resultset = false;
+                    }else{
+                        this.flowerresultset = false;
+                    }
+                },
+            },
+            mounted: function () {
+                this.getUserWalletInfo();
+            },
+            beforeCreate: function () {
+                //加载层
+                this.$nextTick(function () {
+                    var that = this;
+                    setTimeout(function () {
+                        that.loadpic = false;
+                    }, 1000)
+                })
+            }
+        });
+        setTimeout(function () {
+            $('.gametype li').click(function () {
+                $(this).addClass('active').siblings().removeClass('active');
+            })
+        },100);
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+</html>

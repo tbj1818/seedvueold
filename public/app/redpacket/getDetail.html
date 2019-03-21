@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>红包详情</title>
+    <link rel="icon" href="../../favicon2018921.ico"  type="image/x-icon" />
+    <script src="../../js/appcommon.js"></script>
+    <link rel='stylesheet' href='../../css/redpackage.css?time="+Math.random()+"'>
+    <style>
+        body{background: #fff;line-height: 1; font-family: -apple-system,BlinkMacSystemFont,Helvetica Neue,Helvetica,Arial,PingFang SC,Hiragino Sans GB,Heiti SC,Microsoft YaHei,WenQuanYi Micro Hei,sans-serif;}
+    </style>
+</head>
+<body>
+<div id="htmlWap" v-cloak>
+    <section data-v-2dd03c99="">
+        <section data-v-2dd03c99="" class="prize-info">
+            <!--<audio data-v-2dd03c99="" preload="metadata" class="musicBox">-->
+                <!--<source data-v-2dd03c99="" src="../../images/redpacket/prizeOpen.3d6cd86.mp3" type="audio/mp3">-->
+            <!--</audio>-->
+            <!---->
+            <div data-v-2dd03c99="" class="prize-info-content">
+                <div data-v-2dd03c99="" class="operate-wrap">
+                    <a data-v-2dd03c99="" href="javascript:;" @click="opensend(token,inviteCode,redPacketId,appType,noteDesc)" class="operate-send"></a>
+                    <button data-v-2dd03c99="" @click="sharebtn(token,lineLink,inviteCode,redPacketId,appType,noteDesc)"  class="prize-share prizeShareText"></button>
+                </div>
+                <div data-v-2dd03c99="" class="user-avatar">
+                    <img data-v-2dd03c99="" :src="wechatphoto">
+                </div>
+                <p data-v-2dd03c99="" class="user-name">{{wechatname}}</p>
+                <p data-v-2dd03c99="" class="prize-note">{{noteDesc}}</p>
+                <div data-v-2dd03c99="" v-show="state==1"  class="prize-num-wrap">
+                    <div data-v-2dd03c99="" class="prize-num">
+                        <p data-v-2dd03c99="" class="number dinMedium">{{bgtnum}}<span data-v-2dd03c99="" class="unit"> BGT</span>
+                        </p>
+                    </div>
+                    <p data-v-2dd03c99="" class="prize-value">人民币约 {{rmbprice | numSlicefive}}元</p>
+                    <div data-v-2dd03c99="" class="operate-goapp">
+                        <p data-v-2dd03c99="" class="text">您的BGT已存入布谷账户
+                            <!--(账号: {{userAccount}})-->
+                        </p>
+                        <a data-v-2dd03c99="" class="btn"  href="javascript:;" @click="show(appType)">点击查看</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section data-v-2dd03c99="" class="receive">
+            <div data-v-2dd03c99="" class="receive-title">
+                <p v-show="qgstate" data-v-2dd03c99="" class="info-text">{{sumNum}} 个红包 <span data-v-2dd03c99="">共{{sumAmount}} BGT</span>, <span>{{overtime}}</span> 被抢光</p>
+                <p v-show="!qgstate || state==3" data-v-2dd03c99="" class="info-text">已领取 {{preceiveNum}}/{{sumNum}}
+                    <span v-show="state==3">{{receiveNum}}个已失效</span>
+                </p>
+
+            </div>
+            <ul data-v-2dd03c99="" infinite-scroll-distance="10" class="receive-list">
+                <li data-v-2dd03c99="" class="receive-item clearfix" v-for="item in getdatalist">
+                    <span v-show="item.newAccountFlag" class="newicon">新</span>
+                    <img data-v-2dd03c99="" :src="item.photo" class="avatar">
+                    <div data-v-2dd03c99="" class="info">
+                        <p data-v-2dd03c99="" class="name text-hidden-one">{{item.getUserNickname}}</p>
+                        <p data-v-2dd03c99="" class="time">{{item.getTime}}</p>
+                    </div>
+                    <div data-v-2dd03c99="" class="value">
+                        <p data-v-2dd03c99="" class="bit-value text-hidden-one dinMedium">{{item.redPacketValue}}<span data-v-2dd03c99="">BGT</span>
+                        </p>
+                        <p data-v-2dd03c99="" class="rmb-value text-hidden-one">≈￥{{item.redPacketValue*rmb | numSlicefive}}</p>
+                        <p v-show="item.optimumFlag" data-v-2dd03c99="" class="lucky"><span data-v-2dd03c99="" class="icon"></span>手气最佳</p>
+                    </div>
+                </li>
+            </ul>
+        </section>
+    </section>
+    <div class="weixin-tip" @click="hide()">
+        <p>
+            <img src="../../images/redpacket/shareicon.png" width="100%" alt="微信打开">
+        </p>
+    </div>
+    <div class="redloading" v-show="loadpic">
+        <img src="../../images/redpacket/redloadding.gif" />
+    </div>
+</div>
+</body>
+<script src="../../js/jweixin-1.4.0.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var token= GetQueryString('token');
+    var redPacketId=GetQueryString("redPacketId");      //红包ID
+    var inviteCode=GetQueryString("inviteCode");      //红包ID
+    var wechatname=decodeURIComponent(GetQueryString('nickname'));
+    var noteDesc=decodeURIComponent(GetQueryString('noteDesc'));
+    var timer = setInterval(function(){
+        if(noteDesc){
+            clearInterval(timer);
+        }
+    }, 1000);
+
+    var appType=GetQueryString("appType");
+    var shareUrl = location.href.split('#')[0].toString();
+    // 调用微信分享接口
+    var imgUrl = web+'/view/h5/images/shareredicon.jpg';
+    var lineLink = web+'/appUserRedPacker/redPacket'+"?inviteCode="+inviteCode+"&redPacketId="+redPacketId; // 分享出去的地址
+    var noteDesc = noteDesc;
+    if(wechatname =='' || wechatname ==undefined || wechatname ==null || wechatname =='undefined'){
+        var wechatname='您的好友';
+    }
+    var shareTitle = '来自"'+ wechatname+'"的红包';
+    $.ajax({
+        type : 'POST',
+        url : web+ "/appLogin/getWxShareParam", //调取后台接口
+        dataType : "json",
+        data:{
+            token:token,
+            url:location.href.split('#')[0],
+            redPacketId:GetQueryString('redPacketId'),
+            inviteCode:GetQueryString('inviteCode'),
+        },
+        success : function(data){
+            console.log(data);
+            if(data.code ==0){
+                var appId = data.data.appid;
+                var timestamp = data.data.timestamp;
+                var nonceStr = data.data.nonceStr;
+                var signature = data.data.sign;
+
+            }else{
+                layer.msg(data.message);
+            }
+
+            wx.config({
+                debug: false,
+                appId: appId,
+                timestamp: timestamp,
+                nonceStr: nonceStr,
+                signature: signature,
+                jsApiList: [
+                    // 'checkJsApi',
+                    'onMenuShareTimeline',
+                    'onMenuShareAppMessage'
+                ]
+            });
+            wx.ready(function() {
+                wx.onMenuShareTimeline({
+                    title: shareTitle, // 分享标题
+                    desc: noteDesc,  //分享内容
+                    link: lineLink, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+                    imgUrl: imgUrl, // 分享图标
+                    success: function () {
+                        // 用户确认分享后执行的回调函数
+                        layer.msg('分享成功');
+                    },
+                    cancel: function () {
+                        // 用户取消分享后执行的回调函数
+                        layer.msg('取消分享');
+                    }
+                });
+                wx.onMenuShareAppMessage({
+                    title: shareTitle, // 分享标题
+                    desc: noteDesc, // 分享描述
+                    link: lineLink, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+                    imgUrl: imgUrl, // 分享图标
+                    type: '', // 分享类型,music、video或link，不填默认为link
+                    dataUrl:'' , // 如果type是music或video，则要提供数据链接，默认为空
+                    success: function () {
+                        // 用户确认分享后执行的回调函数
+
+                    },
+                    cancel: function () {
+                        // 用户取消分享后执行的回调函数
+                    }
+                });
+            });
+        },
+    });
+
+    $(function() {
+        var apphtml =  new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                state: GetQueryString('state'),
+                getdatalist: [],
+                bgtnum:'',                 //当前个人领取了多少bgt
+                noteDesc:decodeURIComponent(GetQueryString('noteDesc')),             //红包祝福语
+                preceiveNum:'',         //个人抢购获得Bgt数量
+                sumNum:'',              //发放的bgt数量
+                overtime:'',            //抢购完毕总用时间
+                wechatphoto:'../../images/mylogo.png',         //微信头像
+                wechatname:'',          //微信昵称
+                rushtime:'',            //个人抢购时间
+                rushnum:'',             //抢购BGT数量
+                rmbprice:'',            //人民币价格
+                sumAmount:'',           //发送的红包个数
+                qgstate:false,           //抢购状态，默认展示抢购数量，结束后显示抢购时间和抢购金额。
+                luckystate:false,        //手气最佳状态
+                newstate:false,           //新人用户图标状态
+                redPacketId:GetQueryString('redPacketId'),      //红包ID
+                rmb:'',             //转人民币汇率
+                receiveNum:'',      // 过期数量
+                userAccount:'',
+                lineLink:web+'/appUserRedPacker/redPacket',
+                inviteCode:GetQueryString("inviteCode"),      //邀请码
+                appType:GetQueryString("appType"),      //来源
+                flag:GetQueryString("flag"),      //是否新人，新人为1
+                loadpic:true,
+
+            },
+            methods: {
+                getInfo:function(){
+                    this.$http({
+                        method: "post",
+                        url: "/appPropsConfig/getInfo",
+                        data: {
+                            token:this.token,
+                            key:'BGT_TO_RMB',
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                            console.log(data);
+                        if(data.data.code==0) {
+                            this.rmb = data.data.data;
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    });
+                },
+                getRedPacket:function(){
+                    this.$http({
+                        method: "post",
+                        url: fund+"/appRedPacket/getRedPacketRecord",
+                        data: {
+                            token:this.token,
+                            redPacketId:this.redPacketId,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if(data.data.code==0){
+
+                            this.getdatalist =data.data.data.recordList;
+                            if(data.data.data.getValue){
+                                this.state=1;
+                            }else{
+                                this.state=2;
+                            };
+                            this.wechatphoto =data.data.data.photo;
+                            this.noteDesc=data.data.data.noteDesc;
+                            noteDesc=this.noteDesc;
+                            if(!this.wechatphoto){
+                                this.wechatphoto='../../images/mylogo.png';
+                            }
+                            this.wechatname=data.data.data.userNickname;
+                            this.sumNum = data.data.data.sumNum;
+                            this.bgtnum=data.data.data.getValue;
+
+                            if(this.bgtnum ==undefined){
+                               $('.prize-num-wrap').hide();
+                            }
+
+                            this.rmbprice =this.bgtnum*this.rmb;
+                            if(this.rmb){
+                                this.rmbprice =this.bgtnum*0.3;
+                            }
+
+                            this.preceiveNum=data.data.data.receiveNum;
+                            this.sumAmount=data.data.data.sumAmount;
+                            this.overtime=data.data.data.getFinishTime;
+                            var secondTime =this.overtime;
+                            var minuteTime; var hourTime;
+                            if (secondTime > 60) {
+                                minuteTime = parseInt(secondTime / 60);
+                                secondTime = parseInt(secondTime % 60);
+                                if (minuteTime > 60) {
+                                    hourTime = parseInt(minuteTime / 60);
+                                    minuteTime = parseInt(minuteTime % 60)
+                                }
+                            }
+                            var result = "" + parseInt(secondTime) + "秒";
+                            if (minuteTime > 0) {
+                                result = "" + parseInt(minuteTime) + "分" + result
+                            }
+                            if (hourTime > 0) {
+                                result = "" + parseInt(hourTime) + "小时" + result
+                            }
+                            this.counttime = result;
+                            // console.log(this.counttime);
+                            this.overtime= this.counttime;
+                            // if(this.overtime>60){
+                            //     this.overtime = parseInt(this.overtime/60)+'分钟';
+                            // }else if(this.overtime<=60){
+                            //     this.overtime = this.overtime/60+'秒';
+                            // }
+                            this.receiveNum=this.sumNum-this.preceiveNum;
+                            this.userAccount=data.data.data.getUserAccount;
+                            if(this.preceiveNum<this.sumNum){
+                                this.qgstate=false
+                            }else if(this.preceiveNum=this.sumNum){
+                                this.qgstate=true
+                            }
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+
+
+                    }, function (error) {
+                        console.log(error);
+                    });
+                },
+                opensend:function(token,inviteCode,redPacketId,appType,noteDesc){
+                    if(this.flag==1){
+                        layer.msg('您的布谷账户待激活，请下载APP激活');
+                    }else{
+                        window.location.href="sendRedPackage.html?token="+token+"&inviteCode="+inviteCode+"&redPacketId="+redPacketId+"&appType="+appType+"&noteDesc="+noteDesc;
+                    }
+                },
+                sharebtn:function(token,lineLink,inviteCode,redPacketId,appType,noteDesc){
+                    if (appType == "ios") {
+                        console.log(noteDesc);
+                        window.webkit.messageHandlers.redPacketShare.postMessage(lineLink+"?inviteCode="+inviteCode+"&redPacketId="+redPacketId+"&noteDesc="+noteDesc);
+                        return
+                    } else {
+                        if (appType == "android") {
+                            console.log(noteDesc);
+                            window.android.redPacketShare(lineLink+"?inviteCode="+inviteCode+"&redPacketId="+redPacketId,noteDesc);
+                            return
+                        } else {
+                            $('.weixin-tip').show();
+                            // layer.msg("请在布谷中分享");
+                            return
+                        }
+                    }
+                },
+                show:function(appType){
+                    if (appType == "ios") {
+                        layer.msg('资产已存入账户，请前往查看。')
+                        return;
+                    } else if(appType == "android") {
+                        layer.msg('资产已存入账户，请前往查看。')
+                        return;
+                    }else{
+                        window.location.href="http://www.bugu.one?Math="+Math.random();
+                    }
+                },
+                hide:function(){
+                    $('.weixin-tip').hide();
+                }
+            },
+            filters: {
+                numSlicefive: function (val) {
+                    if (val) {
+                            return parseFloat(val.toFixed(5));
+                    }
+                },
+            },
+            mounted: function () {
+                var that=this;
+                this.getInfo();
+                setTimeout(function () {
+                    that.getRedPacket();
+                },500);
+                console.log(this.noteDesc);
+                if(this.noteDesc=='undefined'){
+                    this.noteDesc='';
+                }
+            },
+            beforeCreate:function(){
+                //加载层
+                this.$nextTick(function () {
+                    var that=this;
+                    setTimeout(function () {
+                        that.loadpic=false;
+                    },1000)
+                })
+            }
+        });
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

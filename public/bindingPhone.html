@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title><link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <link rel="stylesheet" href="css/ydui.css">
+    <link rel="stylesheet" href="css/bb.css?time=20180914">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/vue-resource.js"></script>
+    <script src="js/layer/layer.js"></script>
+    <script src="js/ydui.flexible.js"></script>
+    <style>
+        .cell-item:not(:last-child):after{margin-left: 0}
+        .icon-shield-outline:before {
+            color: #A6A5A5;
+            font-size: 0.42rem !important;
+            margin-right: .1rem;
+        }
+        .m-cell{margin: 0 10px;}
+        .demo .btn-block{ height: 0.8rem}
+    </style>
+</head>
+
+<body>
+<div id="htmlWap" v-cloak>
+    <header class="m-navbar">
+        <a  href="javascript:history.go(-1);" class="navbar-item">
+            <i class="back-ico"></i>
+        </a>
+        <div class="navbar-center">
+            <span class="navbar-title">绑定手机</span>
+        </div>
+    </header>
+
+    <section class="bindphone">
+        <h3>绑定手机</h3>
+        <div class="m-cell">
+            <div class="cell-item">
+                <div class="cell-left"><i class="cell-icon demo-icons-phone"></i></div>
+                <div class="cell-right">
+                    <input type="number" v-show="saveBtn" pattern="[0-9]*" oninput="if(value.length>11)value=value.slice(0,11)"  class="cell-input" placeholder="请输入手机号码" autocomplete="off" v-model="userPhone">
+                    <input type="text" v-show="!saveBtn"  class="cell-input" placeholder="请输入手机号码" autocomplete="off" v-model="userPhone">
+                </div>
+            </div>
+            <div class="cell-item">
+                <div class="cell-left"><i class="cell-icon icon-shield-outline"></i></div>
+                <div class="cell-right">
+                    <input type="text" v-show="saveBtn" class="cell-input" placeholder="请输入图片验证码" autocomplete="off" v-model="captcha">
+
+                        <img :src="imgUrl" alt="" @click="reloadcode()" />
+
+                </div>
+            </div>
+            <div class="cell-item">
+                <div class="cell-left"><i class="icon-shield-outline"></i></div>
+                <div class="cell-right">
+                    <input type="number" pattern="[0-9]*" class="cell-input" placeholder="请输入验证码" autocomplete="off" v-model="userCode">
+                    <a href="javascript:;" v-show="saveBtn" :class="timec?'btn btn-warning':'btn btn-disabled'" @click="sendMessage()">{{time}}</a>
+                    <a href="javascript:;" v-show="!saveBtn" class="btn btn-disabled" >{{time}}</a>
+                </div>
+            </div>
+            <div class="cell-item">
+                <div class="cell-left"><i class="icon-shield-outline"></i></div>
+                <div class="cell-right">
+                    <input type="text" pattern="[0-9][a-z][A-Z]*" class="cell-input" placeholder="请输入邀请码" autocomplete="off" v-model="inviteCode">
+                </div>
+            </div>
+        </div>
+        <div class="demo">
+            <button type="button" v-show="saveBtn" id="saveBtn" class="btn-block btn-primary btnBlack" @click="savePhone()">保存</button>
+            <button type="button" v-show="!saveBtn" id="saveBtn" class="btn-block btn-disabled">保存</button>
+        </div>
+    </section>
+</div>
+</body>
+<script>
+
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var token = GetQueryString('token');
+
+    $(function() {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                time:'获取验证码',
+                userToken:'',
+                userPhone:'',
+                userCode:'',
+                inviteCode:'',
+                timec:true,
+                saveBtn:true,
+                captcha:'',
+                codetime:'', //图片验证码 时间戳
+                imgUrl:''   //图片验证码
+            },
+            methods: {
+                //请求图片验证码
+                getCaptcha:function () {
+                    this.$http({
+                        method: "post",
+                        url: "/getCaptcha",
+                        data: {},
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        this.imgUrl=data.data.data.image;
+                        this.codetime=data.data.data.time;
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                //刷新验证码
+                reloadcode:function () {
+                    this.getCaptcha();
+                },
+                sendMessage:function(){
+                    var that = this;
+                    if(this.userPhone.length != 11 || !/^1[3456789]\d{9}$/.test(this.userPhone)){
+                       layer.msg('请输入正确手机号!');
+                        return;
+                    }
+                    if(this.captcha == "" || this.captcha == null){
+                      layer.msg("图片验证码不能为空");
+                        return;
+                    }
+                    // console.log(that.timec);
+                    if(that.timec==false){
+                        return;
+                    }
+                    this.$http({
+                        method: "post",
+                        url: "/sms/sendCaptchaSms",
+                        data: {
+                            token:this.userToken,
+                            userPhone:this.userPhone,
+                            modelType:'110',
+                            captcha:this.captcha,
+                            timeFlag:this.codetime,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if(data.data.code == 0 ){
+                            that.timec=false;
+                            var num = 60;
+                           var time =setInterval(function(){
+                                if(num > 1 ){
+                                    num--;
+                                    that.time = num + 's';
+                                }else{
+                                    that.time = '获取验证码';
+                                    clearInterval(time);
+                                    that.timec=true
+                                }
+                            },1000);
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                savePhone:function(){
+                    if(this.userPhone.length != 11 || !/^1[3456789]\d{9}$/.test(this.userPhone)){
+                        layer.msg('请输入正确手机号!');
+                        return;
+                    }
+                    if(!this.userCode.length >0){
+                        layer.msg('请输入验证码!');
+                        return;
+                    }
+                    this.$http({
+                        method: "post",
+                        url: "/appUser/bandingPhone",
+                        data: {
+                            token:this.userToken,
+                            userPhone:this.userPhone,
+                            mobileCaptcha:this.userCode,
+                            inviteCode:this.inviteCode,
+                            captcha:this.captcha,
+                            timeFlag:this.codetime,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if(data.data.code == 0){
+                            layer.msg('保存成功');
+                            setInterval(function(){
+                                history.back();
+                                // window.location.href = 'add.html';
+                            },2000);
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                phoneload:function () {
+                    this.$http({
+                        method: "post",
+                        url: "/appLoginBanding/checkUserIsExist",
+                        data: {
+                            token:this.userToken,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        layer.msg(data.data.message);
+                        if(data.data.code ==0){
+                            console.log(data.data.data);
+                            this.userPhone =data.data.data;
+                            this.saveBtn =false;
+                            this.attentionOA()  //调取接口
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                attentionOA:function () {
+                    this.$http({
+                        method: "post",
+                        url: "/appTaskLog/attentionOA",
+                        data: {
+                            token:this.userToken,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                    }, function (error) {
+                        console.log(error);
+                    })
+                }
+            },
+            mounted: function () {
+                var that =this;
+                //获取token
+                if(token != undefined && token.length > 0){
+                    that.userToken = token;
+                }else{
+                    that.userToken = localStorage.getItem("userToken");
+                }
+                localStorage.setItem("userToken", that.userToken);
+                this.phoneload();
+                //获取图片验证码
+                this.getCaptcha()
+            }
+        })
+    })
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?23a7df0a4f6dd37bf6e346d0a4279fac";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title>
+    <link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/vue-resource.js"></script>
+
+    <script src="js/layer/layer.js"></script>
+    <link rel="stylesheet" href="css/ydui.css?time=20180817">
+    <link rel="stylesheet" href="css/bb.css?time=20180817">
+    <style>
+        .cell-right{flex: inherit; width: 30%;min-height: .8rem;}
+        .m-grids-2{background: none;}
+        .m-grids-2:before{border:0}
+        .m-grids-2 .grids-item{text-align: center;width: 100%}
+        .m-grids-2 .grids-item:not(:nth-child(2n)):before{ border: 0;}
+        .btn-block{width: 80%;height:.9rem;   margin: 0 auto;}
+        .btn-share{ background: #0d6aad; color: #fff}
+        a{color:#FFF !important}
+        .cell-left{ width:100%;margin: 0 0 0 .14rem;font-size: .26rem}
+        .tab-panel .tab-panel-item{padding-left: 0; margin: 0 auto; width: 96%;}
+        .textW{display: inline-block; font-size: .26rem}
+        .m-cell label.cell-item{background: none}
+        .layui-layer-btn .layui-layer-btn0{width: 50%; margin: 0 auto; }
+        .layui-layer-btn{text-align: center !important;}
+    </style>
+</head>
+
+<body>
+<div id="htmlWap" v-cloak>
+    <header class="m-navbar">
+        <a  href="index.html" class="navbar-item">
+            <i class="back-ico"></i>
+        </a>
+        <div class="navbar-center">
+            <span class="navbar-title">{{platformId}}-{{coinName}}/{{relativeTrade}} 预警</span>
+        </div>
+    </header>
+    <section>
+        <div data-ydui-tab>
+            <div class="tab-panel" v-if="isShow">
+                <div class="tab-panel-item tab-active" style="padding-top: 0">
+                    <div class="m-celltitle border_borderR">当前价格({{relativeTrade}})
+                        <strong>{{nowMoney}}</strong>
+                    </div>
+                    <div class="m-celltitle m-celltitleBg">请选择预警类型<a href="WarningType.html"><i class="icon-question"></i></a></div>
+                    <div class="m-cell border_borderR">
+                        <label class="cell-item">
+                            <span class="cell-left"><span class="textW">价格涨跌设置</span></span>
+                            <label class="cell-right">
+                                <input type="checkbox" class="m-switch" checked=""  v-model="amountPush">
+                            </label>
+                        </label>
+                        <!--上次设置价格展示-->
+                        <div class="m-cell showDown" v-if="oldnum" v-show="amountPush">
+                            <div class="cell-item" style="border: 0">
+                                <div class="cell-left"><i class="riseIcon"></i>您设置的上涨提醒价格：<input type="number" style="height:.8rem" v-model="upInputshow" class="cell-input" readonly placeholder="请输入" autocomplete="off" /></div>
+                            </div>
+                            <div class="cell-item" style="border: 0">
+                            <div class="cell-left"><i class="fallIcon"></i>您设置的下跌提醒价格：<input type="number"  style="height:.8rem" v-model="downInputshow" class="cell-input" readonly placeholder="请输入" autocomplete="off" /></div>
+                            </div>
+                            <p class="cell-right" style="min-height:0.6rem;position: absolute;top: .5rem;right: 0"> <i class="icon-refresh" @click="againSetting()"></i></p>
+                        </div>
+                        <section class="showDown" v-if="readynum" v-show="amountPush">
+                        <div class="amount_item">
+                            <div class="cell-left"><i class="riseIcon"></i> 上涨到：</div>
+                            <div class="cell-right" style="padding: 0">
+                                <div class="cell-item">
+                                <input type="number" class="cell-input" placeholder="请输入价格" autocomplete="off" v-model="upInput" @blur="rateFun('up')"/>
+                                </div>
+                                <div class="cell-item">
+                                    <input type="number" style="width:80%" class="cell-input"  placeholder="请输入上涨百分比"  autocomplete="off" v-model="upRate" @blur="amount('up')"/> <em class="symbol"> %</em>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="amount_item">
+                            <div class="cell-left"><i class="fallIcon"></i>下跌到：</div>
+                            <div class="cell-right" style="padding: 0">
+                                <div class="cell-item">
+                                <input type="number" class="cell-input" placeholder="请输入价格" autocomplete="off"  v-model="downInput" @blur="rateFun('down')"/>
+                                </div>
+                                <div class="cell-item">
+                                    <input type="number" style="width:80%"  class="cell-input"  placeholder="请输入下跌百分比"  autocomplete="off"  v-model="downRate"  @blur="amount('down')"/> <em class="symbol"> %</em>
+                                </div>
+                            </div>
+                        </div>
+                        </section>
+                        <!--盘中大涨/盘中大跌-->
+                        <label class="cell-item">
+                            <span class="cell-left"><span class="textW">盘中大涨/盘中大跌</span></span>
+                            <label class="cell-right">
+                                <input type="checkbox" class="m-switch" checked="" v-model="SessionPush">
+                            </label>
+                        </label>
+                        <!--极速拉升/猛烈打压-->
+                        <label class="cell-item">
+                            <span class="cell-left"><span class="textW">极速拉升/猛烈打压</span></span>
+                            <label class="cell-right">
+                                <input type="checkbox" class="m-switch" @click="clickme()" checked="" v-model="topspeedPush">
+                            </label>
+                        </label>
+                        <div class="mouse-follow-nav" v-show="topspeedPush">
+                            <!--<div class="percentage"><span>1%</span><span class="w50">2%</span><span class="w100">3%</span></div>-->
+                            <!--<div class="lineorange"></div>-->
+                            <div class="demo showDown">
+                                <input type="hidden" class="single-slider" :value="jsnumNew" />
+                            </div>
+                        </div>
+                        <!--快速反弹/高台跳水-->
+                        <label class="cell-item">
+                            <span class="cell-left" ><span class="textW">快速反弹/高台跳水</span></span>
+                            <label class="cell-right">
+                                <input type="checkbox" class="m-switch" checked="" v-model="reboundPush">
+                            </label>
+                        </label>
+                    </div>
+                    <div class="m-celltitle m-celltitleBg">请选择提醒方式<a href="WarningWay.html"><i class="icon-question"></i></a></div>
+                    <div class="m-cell border_borderR">
+                        <label class="cell-item">
+                            <span class="cell-left"><span class="textW">微信推送</span><em class="snumsuccess">(永久免费)</em></span>
+                            <label class="cell-right">
+                                <input type="checkbox" class="m-switch" checked="" v-model="wxPush">
+                            </label>
+                        </label>
+                        <label class="cell-item">
+                            <span class="cell-left"><span class="textW">短信推送</span><em class="snumtext">(可用条数{{smsnum}}条)</em></span>
+                            <label class="cell-right">
+                                <input type="checkbox" class="m-switch" @click="bindphone('短信')" checked="" v-model="msgPush">
+                            </label>
+                        </label>
+                        <label class="cell-item">
+                            <span class="cell-left"><span class="textW">电话推送</span><em class="snumtext">(可用条数{{phonenum}}条)</em> </span>
+                            <label class="cell-right">
+                                <input type="checkbox" class="m-switch" @click="bindphone('语音')" checked="" v-model="telPush">
+                            </label>
+                        </label>
+                    </div>
+                    <p class="remind textMinh"><span>提醒电话029-85799095，请注意接听</span><br>建议您将此号码保存为“布谷预警”，以免漏接或被
+                        屏蔽</p>
+                    <div class="m-grids-2">
+                    <a href="javascript:;" class="grids-item">
+                        <button type="button" id="saveBtn" class="btn-block btn-warning" @click="saveConfig()">保存</button>
+                    </a>
+                </div>
+                </div>
+            </div>
+        </div>
+        <div class="qcodeDoalog"><strong>开启{{smsText}}推送失败</strong><br/><em>原因：{{smsText}}推送条数为0</em><img style="margin: 0 auto" src="images/qrcode.jpg" /><p class="warningtext showqcode">识别二维码联系客服充值</p></div>
+    </section>
+</div>
+</body>
+
+<script src="js/ydui.js"></script>
+<script src="js/ydui.flexible.js"></script>
+<script src="js/jquery.range.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var platformId = GetQueryString('platformId');
+    var coinId = GetQueryString('coinId');
+    var coinName =GetQueryString('coinName');
+    var tempUpRatio=0, tempDownRatio=0;
+    var sliderw = $('.demo').width();
+    // var nowMoney =GetQueryString('nowMoney');
+    var relativeTrade =GetQueryString('relativeTrade');
+    $(function () {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                isShow:true,
+                openflag:'1',               //涨跌幅开关
+                wxPush:false,              //微信推送
+                msgPush:false,            //短信推送
+                telPush:false,            //电话推送
+                amountPush:true,         //涨跌幅
+                SessionPush:false,       //盘中大涨
+                topspeedPush:false,      //极速拉升
+                reboundPush:false,      //快速反弹/高台跳水
+                upInputshow:'',         //已设置过的涨幅价格展示
+                downInputshow:'',       //已设置过的跌幅价格展示
+                readynum:true,          //默认隐藏涨跌幅设置
+                oldnum:false,          //默认展示涨跌幅
+                jsnumNew:2,
+                phoneStatus: '0',
+                navCoinNum:'',
+                navPlatNum:'',
+                nowMoney:'获取中…',
+                tabList:[],
+                upInput:'',
+                downInput:'',
+                upRate:'',
+                downRate:'',
+                platformId:'',
+                coinName:'',
+                smsnum:'',
+                phonenum:'',
+                smsText:'短信'    //语音或者短信
+            },
+            methods: {
+                bindphone:function (text) {
+                    var that =this;
+                    that.smsText =text;
+                    setTimeout(function () {
+                        if(text == '短信'){
+                            if(that.smsnum ==0   && that.msgPush){
+                                layer.open({
+                                    type: 1,
+                                    title: false,
+                                    closeBtn: 0,
+                                    area: '70%',
+                                    shadeClose: true,
+                                    content: $('.qcodeDoalog')
+                                });
+                                // layer.msg('<strong style="font-size:.3rem;color: #333 ">开启' + text +'推送失败</strong><br/><em style="color: #A6A4A4">原因：' + text +'推送条数为0</em><p class="warningtext showqcode">识别二维码联系客服充值</p>',{
+                                //     shade: 0.5,
+                                //     offset:'c',
+                                //     time: 0 //不自动关闭
+                                //     , icon:5
+                                //     , shadeClose: true
+                                //     // ,btn: ['去充值']
+                                // });
+                                that.msgPush =!that.msgPush;
+                            }
+
+                        }else{
+                            if(that.phonenum ==0   && that.telPush){
+                                layer.open({
+                                    type: 1,
+                                    title: false,
+                                    closeBtn: 0,
+                                    area: '70%',
+                                    shadeClose: true,
+                                    content: $('.qcodeDoalog')
+                                });
+                                that.telPush =!that.telPush;
+                            }
+                        }
+                    },10)
+                        //加载用户是否手机验证
+                        this.loadUserInfo();
+                },
+                //预警保存按钮 百度事件统计
+                saveBtn:function () {
+                    _hmt.push(['_trackEvent', 'saveBtn', 'saveBtn', '预警页面保存按钮', 1]);
+                },
+                //获取短信电话剩余条数
+                getUserSmsNum: function () {
+                    this.$http({
+                        method: "get",
+                        url: web+"/appUser/getUserSmsNum",
+                        data: {
+                            token: this.userToken,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        if (data.data.code == 0) {
+                            this.smsnum = data.data.data.smsNum;
+                            this.phonenum =data.data.data.voiceNum
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                //获取最新行情价格
+                getCoinMarket: function () {
+                    this.$http({
+                        method: "get",
+                        url:web+ "/appCoinData/getCoinMarket",
+                        data: {
+                            token: this.userToken,
+                            platformId:platformId,
+                            coinId:coinId,
+                            relativeTrade:relativeTrade,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        if (data.data.code == 0) {
+                            //获取行情价格
+                            this.nowMoney =data.data.data;
+                            var m = this.nowMoney.toExponential().match(/\d(?:\.(\d*))?e([+-]\d+)/);
+                            this.nowMoney=this.nowMoney.toFixed(Math.max(0, (m[1] || '').length - m[2]));
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                //极速拉升百分比点击展示
+                clickme:function () {
+                    $('.demo').html('<input type="hidden" class="single-slider" value="2" />');
+                    setTimeout(function () {
+                        var sliderw = $('.demo').width();
+                        $('.single-slider').jRange({
+                            from:1,
+                            to:3,
+                            step: 1,
+                            scale: [1,2,3],
+                            format: '%s',
+                            width:sliderw,
+                            showLabels: true,
+                            showScale: true
+                        });
+                    },100)
+                },
+                //重新设置
+                againSetting:function () {
+                    this.readynum = true;
+                    this.oldnum=false;
+                    this.upInput ='';
+                    this.downInput ='';
+                },
+                loadUserInfo: function () {
+                    this.$http({
+                        method: "post",
+                        url: web+"/appUser/checkUserPhone",
+                        data: {
+                            token: this.userToken,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                       // console.log(data);
+                        if (data.data.code == 0) {
+                            this.phoneStatus = data.data.data;
+                                if (this.phoneStatus == '0') {
+                                    window.location.href = 'bindingPhone.html';
+                                }
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                loadDetailData:function () {
+                    var that =this;
+                    this.$http({
+                        method: "post",
+                        url: web+"/appWarnConfig/getWarnConfigDetail",
+                        data: {
+                            token: this.userToken,
+                            platformId:platformId,
+                            coinId:coinId,
+                            relativeTrade:relativeTrade,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data.data.data);
+                        var item,way;
+                        for(var i =0;i<data.data.data.length;i++){
+                            item = data.data.data[i];
+                            if(item.configTypeId ==10 || item.configTypeId ==20){
+                                if(item.openFlag ==0){
+                                    this.amountPush=true;
+                                }else{
+                                    this.amountPush=false;
+                                }
+                            }
+                            if(item.configTypeId ==50 || item.configTypeId ==60){
+                                that.jsnumNew=item.configValue*100;
+                                //极速拉升百分比回填
+                                $('.demo').html('<input type="hidden" class="single-slider" value="' + that.jsnumNew + '" />')
+                                setTimeout(function () {
+                                    var sliderw = $('.demo').width();
+                                    $('.single-slider').jRange({
+                                        from:1,
+                                        to:3,
+                                        step: 1,
+                                        scale: [1,2,3],
+                                        format: '%s',
+                                        width:sliderw,
+                                        showLabels: true,
+                                        showScale: true
+                                    });
+                                },100)
+                            }
+
+                            if(item.configTypeId == 10){
+                                // console.log(item.configValue);
+                                if(item.configValue){
+                                    //上次设置展示
+                                    this.oldnum =true;
+                                    this.upInputshow =item.configValue;
+                                    this.upInput =item.configValue;
+
+                                    this.readynum =false;
+                                }else{
+                                    this.readynum =true;
+                                }
+                                // this.rateFun('up');
+                            }else if(item.configTypeId == 20){
+                                if(item.configValue) {
+                                    //上次设置展示
+                                    this.oldnum =true;
+                                    this.downInputshow = item.configValue;
+                                    this.downInput =item.configValue;
+
+                                    this.readynum =false;
+                                }else{
+                                    this.readynum =true;
+                                }
+                                // this.rateFun('down');
+                            }
+                            if(item.configTypeId != undefined){
+                                way = item.configTypeId;
+                                    if (way == 30 || way == 40) {
+                                        this.SessionPush = true;
+                                    } else if (way == 50 || way == 60) {
+                                        this.topspeedPush = true;
+                                    }else if (way == 70 || way == 80) {
+                                        this.reboundPush = true;
+                                    }
+
+                            }
+
+                                if(item.remindWay != undefined && item.remindWay.indexOf(",") > 0){
+                                    way = item.remindWay.split(',');
+                                    for (var j = 0; j < way.length; j++) {
+                                        if (way[j] == 10) {
+                                            that.wxPush = true;
+                                        } else if (way[j] == 20) {
+                                                that.msgPush = true;
+                                        }else if (way[j] == 30) {
+                                                that.telPush = true;
+                                        }
+                                    }
+                                }
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                rateFun:function (type) {
+                    // this.getCoinMarket();
+                    var num = 0;
+                    var regu = /^[0-9]+\.?[0-9]*$/;
+                    if(type == 'up'){
+                        //上涨
+                        if(!regu.test(this.upInput)) {
+                            layer.msg('请输入数字类型');
+                            this.upInput='';
+                            return;
+                        }
+                        num = (((this.upInput - this.nowMoney)/this.nowMoney)*100).toFixed(2);
+                        // console.log(this.nowMoney);
+                        if(this.nowMoney==undefined){
+                            layer.msg('没有查询到当前价格');
+                            return;
+                        }else{
+                            this.upRate = num ;
+                            tempUpRatio=num;
+                        }
+                    }else{
+                        if(!regu.test(this.downInput)) {
+                            layer.msg('请输入数字类型');
+                            this.downInput='';
+                            return;
+                        }
+                        // if(this.downInput > this.nowMoney){
+                        //     layer.msg('下跌价格须小于当前价格');
+                        //     return;
+                        // }
+                        num = (((this.nowMoney - this.downInput)/this.nowMoney)*100).toFixed(2);
+                        if(this.nowMoney==undefined){
+                            layer.msg('没有查询到当前价格');
+                            return;
+                        }else {
+                            this.downRate = num;
+                            tempDownRatio=num;
+                        }
+                    }
+                },
+                amount:function (type) {
+                    var num = 0;
+                    var regu = /^\-?[0-9]+\.?[0-9]*$/;
+                    if(type == 'up'){
+                        //上涨
+                        if(!regu.test(this.upRate)) {
+                            layer.msg('请输入数字类型');
+                            this.upRate='';
+                            return;
+                        }
+                        if(tempUpRatio !=this.upRate){
+                            var r = /^\+?[1-9][0-9]*$/;　　//正整数
+                            if(r.test(this.nowMoney)){
+                                num = ((1 + this.upRate / 100) * this.nowMoney);
+                            }else{
+                                num = ((1 + this.upRate / 100) * this.nowMoney).toFixed(15).replace(/0+$/g,"");
+                            }
+                            // console.log(this.nowMoney);
+                            if(this.nowMoney==undefined){
+                                layer.msg('没有查询到当前价格');
+                                return;
+                            }else{
+                                this.upInput = num;
+                                tempUpRatio=this.upRate;
+                            }
+                        }
+
+                    }else{
+                        if(!regu.test(this.downRate)) {
+                            layer.msg('请输入数字类型');
+                            this.downRate='';
+                            return;
+                        }
+                        if(tempDownRatio !=this.downRate) {
+                            var r = /^\+?[1-9][0-9]*$/;　　//正整数
+                            if(r.test(this.nowMoney)){
+                                num = ((1 - this.downRate / 100) * this.nowMoney);
+                            }else{
+                                num = ((1 - this.downRate / 100) * this.nowMoney).toFixed(15).replace(/0+$/g,"");
+                            }
+                            if (this.nowMoney == undefined) {
+                                layer.msg('没有查询到当前价格');
+                                return;
+                            } else {
+                                this.downInput = num;
+                                tempDownRatio =this.downRate;
+                            }
+                        }
+                    }
+                },
+                saveConfig:function () {
+                    if(this.amountPush){
+                        this.openflag = '0';
+                        if(!this.oldnum){
+                            if(this.upInput.length <= 0 ){
+                                layer.msg('请输入上涨价格');
+                                return;
+                            }
+                            if(this.downInput.length <= 0){
+                                layer.msg('请输入下跌价格');
+                                return;
+                            }
+                        }
+                    }
+                    if(!this.amountPush && !this.SessionPush && !this.topspeedPush  && !this.reboundPush){
+                        layer.msg('提醒设置，必选一项');
+                        return;
+                    }
+
+                    var configValue = '',configTypeId = '',remindWay='',openflag='';
+                    if(this.upInput.length > 0){
+                        configValue += this.upInput + ',';
+                        configTypeId += '10,';
+                    }
+                    if(this.downInput.length > 0){
+                        configValue += this.downInput + ',';
+                        configTypeId += '20,';
+                    }
+                    if(this.wxPush){
+                        remindWay += '10,';
+                    }
+                    if(this.smsnum !=0){
+                        if(this.msgPush){
+                            remindWay += '20,';
+                        }
+                    }
+                    if(this.phonenum !=0) {
+                        if (this.telPush) {
+                            remindWay += '30,';
+                        }
+                    }
+                    if(this.SessionPush){
+                        configTypeId += '30,40,';
+                        configValue += 0.1 + ',' + 0.1+ ',';
+                    }
+                    if(this.topspeedPush){
+                        configTypeId += '50,60,';
+                        var jsnum = ($(".single-slider").val())/100;
+                        configValue += jsnum + ',' + jsnum+ ',';
+                    }
+                    if(this.reboundPush){
+                        configTypeId += '70,80';
+                        configValue += 0.05 + ',' + 0.05+ ',';
+                    }
+                    this.$http({
+                        method: "get",
+                        url: web+"/appWarnConfig/setWarnConfig",
+                        data: {
+                            token: this.userToken,
+                            platformId:platformId,
+                            coinId:coinId,
+                            openFlag:this.openflag,
+                            configValue:configValue,
+                            remindWay:remindWay,
+                            configTypeId:configTypeId,
+                            relativeTrade:relativeTrade,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                       console.log(data);
+                        if (data.data.code == 0) {
+                            layer.msg(data.data.message);
+                            //延迟1S跳转首页
+                            setTimeout(function () {
+                                window.location.href ='index.html';
+                            },1000)
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                //暂停预警
+                // pauseConfig:function () {
+                //
+                // }
+            },
+            mounted: function () {
+                this.userToken = localStorage.getItem("userToken");
+                // console.log(this.userToken);
+                //获取最新行情价格
+                this.getCoinMarket();
+                //获取短信电话剩余条数
+                this.getUserSmsNum();
+
+                //加载用户是否手机验证
+                // this.loadUserInfo();
+                //加载行情价格
+                // this.loadPersonData();
+                //加载详情数据
+                this.loadDetailData();
+                //延迟计算涨跌幅
+                // this.numFunction();
+                this.coinName=coinName;
+                // console.log( this.coinName);
+                if(platformId==3){
+                    this.platformId='火币';
+                }else if(platformId==5){
+                    this.platformId='币安';
+                }else if(platformId==19){
+                    this.platformId='OKEX';
+                }else if(platformId==20){
+                    this.platformId='中币';
+                }else if(platformId==21){
+                    this.platformId='比特儿';
+                }else if(platformId==22){
+                    this.platformId='币蛋';
+                }else if(platformId==23){
+                    this.platformId='bibox';
+                }else if(platformId==24){
+                    this.platformId='bit-z';
+                }else if(platformId==621){
+                    this.platformId='FC';
+                }
+                sliderw = $('.demo').width();
+                // 手势滑动
+                $('.single-slider').jRange({
+                    from:1,
+                    to:3,
+                    step: 1,
+                    scale: [1,2,3],
+                    format: '%s',
+                    width: sliderw,
+                    showLabels: true,
+                    showScale: true
+                });
+            },
+        })
+    })
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?23a7df0a4f6dd37bf6e346d0a4279fac";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

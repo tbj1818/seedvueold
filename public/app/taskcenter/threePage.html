@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>关注公众号</title>
+    <script src="../../js/appcommon.js"></script>
+    <style>
+        .layui-layer-btn .layui-layer-btn0 {border-color: #1E9FFF;
+            background-color: #1E9FFF;
+            color: #fff;
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="farmbgcheats">
+<section  id="htmlWap" v-cloak>
+<section class="gzhgzhhwk">
+    <div  class="qcodeImgw100">
+        <img src="/view/h5/images/weixinguanzhubg.png">
+    </div>
+    <div class="qcodeImgnob">
+        <img :src="serviceqrcode" />
+        <p>扫码关注公众号</p>
+        <button type="button" class="btn-block btn-copywechat rechargecopyBtn" @click="copyBtnText()">复制野生漫话菌公众号</button>
+        <div class="invitationcode">
+            <input type="text"  maxlength="4" v-model="code"  class="cell-input" placeholder="填写验证码" autocomplete="off" />
+        </div>
+    </div>
+    <div class="partingLine"><span class="lineGray"></span></div>
+    <h2>关注上方公众号获得魔法算力（7天）</h2>
+    <h6>1.扫描上方二维码或者复制“<span class="bluecopylink">{{wechatAccount}}</span>”进行搜索关注公众号。</h6>
+    <h6>2.关注后发送“布谷算力”得到验证码，并填入上方对话框。</h6>
+    <h6>3.验证成功后即可获得10魔法算力(7天)。</h6>
+</section>
+<button type="button" id="saveBtn" class="btn-block btn-enterappbtn" @click="confirm()">确定</button>
+</section>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function () {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                userToken: GetQueryString('token'),
+                code:'',
+                serviceqrcode:'/view/h5/images/ysmhjpic.jpg',                   //公众号图片
+                wechatAccount:decodeURI(GetQueryString('wechatAccount')),       //微信公众号昵称
+                taskId:decodeURI(GetQueryString('taskId')),     //taskId
+            },
+            methods: {
+                confirm: function () {
+                   if(!this.code){
+                       layer.msg('请填写验证码');
+                       return;
+                   }else{
+                       this.$http({
+                           method: "post",
+                           url: "/appTaskLog/attentionOA",
+                           data: {
+                               token:this.userToken,
+                               inviteCode:this.code,
+                               taskId:this.taskId,
+                               platform:'H5'
+                           },
+                           emulateJSON: true
+                       }).then(function (data) {
+                           // console.log(data);
+                           if (data.data) {
+                               if(data.data.code==0){
+                                   layer.confirm(data.data.message, {
+                                       title: false, //不显示标题
+                                       btn: ['确定'] //按钮
+                                   })
+                               }else {
+                                   layer.msg(data.data.message);
+                               }
+                           }
+                       }, function(error) {
+                           console.log(error);
+                       })
+                   }
+                },
+                copyBtnText: function () {
+                    //复制文案
+                    var clipboard = new Clipboard('.rechargecopyBtn', {
+                        target: function () {
+                            return document.querySelector('.bluecopylink');
+                        }
+                    });
+                    clipboard.on('success', function (e) {
+                        layer.msg('复制成功')
+                    });
+                    clipboard.on('error', function (e) {
+                        layer.msg('复制失败')
+                    });
+                },
+            },
+            mounted: function () {
+            }
+        });
+    });
+</script>
+</html>

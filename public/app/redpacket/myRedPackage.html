@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>我的</title>
+    <link rel="icon" href="../../favicon2018921.ico" type="image/x-icon"/>
+    <script src="../../js/appcommon.js"></script>
+    <link rel='stylesheet' href='../../css/redpackage.css?time="+Math.random()+"'>
+    <style>
+        body {
+            background: #fff;
+            line-height: 1;
+            font-family: -apple-system, BlinkMacSystemFont, Helvetica Neue, Helvetica, Arial, PingFang SC, Hiragino Sans GB, Heiti SC, Microsoft YaHei, WenQuanYi Micro Hei, sans-serif;
+        }
+        .qcodeDoalog{padding: 10px;}
+        .qcodeDoalog img{width: 60%; margin:50px auto 20px;}
+        .qcodeDoalog .btn-primary{width: 80%; padding: 15px 0; margin: 20px auto;background:#FB403F; box-shadow:0px 4px 10px 0px rgba(251,64,63,0.45);border-radius:5px;}
+    </style>
+</head>
+<body>
+<div id="htmlWap" v-cloak>
+    <section data-v-fcc23632="" class="user-wrap">
+        <section data-v-fcc23632="">
+            <div data-v-fcc23632="" class="user">
+                <div data-v-fcc23632="" class="user-info clearfix">
+                    <div data-v-fcc23632="" class="avatar">
+                        <img data-v-fcc23632="" :src="wechatphoto">
+                    </div>
+                    <p data-v-fcc23632="" class="name">{{wechatname}}</p>
+                </div>
+                <div data-v-fcc23632="" class="user-value">
+                    <h3 data-v-fcc23632="" class="title">资产价值(元)</h3>
+                    <p data-v-fcc23632="" class="value text-hidden-one dinMedium">{{rmbprice | numSlicefive}}</p>
+                    <p data-v-fcc23632="" class="takeout" @click="withdraw(appType)">查看</p>
+                </div>
+                <ul data-v-fcc23632="" class="user-capital">
+                        <li data-v-fcc23632="" class="capital-item clearfix">
+                            <div data-v-fcc23632="" class="coin-icon" style="background-image: url('../../images/bgticon.png');"></div>
+                        <div data-v-fcc23632="" class="coin-info">
+                            <p data-v-fcc23632="" class="name">BGT</p>
+                            <p data-v-fcc23632="" class="value">≈ ￥{{rmb}}</p>
+                        </div>
+                        <div data-v-fcc23632="" class="capital-value">
+                            <p data-v-fcc23632="" class="count dinMedium">{{userbgtallnum | numSlicefive}}</p>
+                            <p data-v-fcc23632="" class="value">￥{{rmbprice | numSlicefive}}</p>
+                        </div>
+                        </li>
+                        <li class="m-cell" style="margin-top: 10px; border:#F5F5F5 solid 1px">
+                            <div class="cell-item" @click="opendetail(token,inviteCode,redPacketId,rmb,appType)">
+                                <div class="cell-left">红包记录</div>
+                                <div class="cell-right cell-arrow"></div>
+                            </div>
+                        </li>
+                </ul>
+            </div>
+        </section>
+
+    </section>
+
+<footer class="m-tabbar tabbar-fixed">
+    <a href="javascript:;" @click="opensend(token,inviteCode,redPacketId,appType)" class="tabbar-item">
+        <span class="tabbar-icon">
+            <i class="icon-home-outline"></i>
+        </span>
+        <span class="tabbar-txt">发红包</span>
+    </a>
+    <a href="javascript:;" @click="openmy(token,inviteCode,redPacketId,appType)" class="tabbar-item tabbar-active">
+        <span class="tabbar-icon">
+           <i class="icon-ucenter-outline"></i>
+        </span>
+        <span class="tabbar-txt">我的</span>
+    </a>
+</footer>
+    <div class="qcodeDoalog"><img src="../../images/bugured.png" />
+        <h6 class="warningtext showqcode">更多功能请前往布谷查看~</h6>
+        <a href="http://www.bugu.one?time=20190118" type="button" class="btn-block btn-primary">前往布谷</a>
+    </div>
+    <div class="redloading" v-show="loadpic">
+        <img src="../../images/redpacket/redloadding.gif" />
+    </div>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function () {
+        var apphtml = new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                inviteCode:GetQueryString("inviteCode"),   //邀请码
+                appType:GetQueryString("appType"),          //设备来源
+                dataList: [],
+                rmb:'',                 //人民币汇率
+                wechatphoto:'../../images/mylogo.png',         //用户头像
+                wechatname:'未获取到昵称',          //用户昵称
+                userbgtallnum:'',       //用户BGT总量
+                rmbprice:'',             //人民币价值
+                redPacketId:GetQueryString("redPacketId"),          //红包ID
+                loadpic:true,
+            },
+            methods: {
+                getInfo:function(){
+                    this.$http({
+                        method: "post",
+                        url: "/appPropsConfig/getInfo",
+                        data: {
+                            token:this.token,
+                            key:'BGT_TO_RMB',
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if(data.data.code ==0){
+                            this.rmb =data.data.data;
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+
+                    }, function (error) {
+                        console.log(error);
+                    });
+                },
+                getUserWalletInfo:function(){
+                    this.$http({
+                        method: "post",
+                        url: fund+"/appRedPacket/getUserWalletInfo",
+                        data: {
+                            token:this.token,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        if(data.data.code ==0){
+                            if(data.data.data.photo){
+                                this.wechatphoto=data.data.data.photo;
+                            }
+                            this.userbgtallnum=data.data.data.bgt;
+                            this.wechatname=data.data.data.inckname;
+                            this.rmbprice =this.userbgtallnum*this.rmb;
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                        
+                    }, function (error) {
+                        console.log(error);
+                    });
+                },
+                opensend:function(token,inviteCode,redPacketId,appType){
+                    window.location.href="sendRedPackage.html?token="+token+"&inviteCode="+inviteCode+"&redPacketId="+redPacketId+"&appType="+appType;
+                },
+                openmy:function(token,inviteCode,redPacketId,appType){
+                    window.location.href="myRedPackage.html?token="+token+"&inviteCode="+inviteCode+"&redPacketId="+redPacketId+"&appType="+appType;
+                },
+                withdraw:function(appType){
+                    if (appType == "ios") {
+                       layer.msg('资产已存入账户，请前往查看。')
+                        return;
+                    } else if(appType == "android") {
+                        layer.msg('资产已存入账户，请前往查看。')
+                        return;
+                    }else{
+                        layer.open({
+                            type: 1,
+                            title: false,
+                            area: '80%',
+                            shadeClose: true,
+                            content: $('.qcodeDoalog')
+                        });
+                    }
+                },
+                opendetail:function(token,inviteCode,redPacketId,rmb,appType){
+                    if(appType=="ios" || appType=="android"){
+                        window.location.href="redPackageDetail.html?token="+token+"&inviteCode="+inviteCode+"&redPacketId="+redPacketId+"&rmb="+rmb+"&appType="+appType;
+                    }else{
+                        layer.open({
+                            type: 1,
+                            title: false,
+                            area: '80%',
+                            shadeClose: true,
+                            content: $('.qcodeDoalog')
+                        });
+                    }
+                }
+            },
+            filters: {
+                numSlicefive: function (val) {
+                    if (val) {
+                        return parseFloat(val.toFixed(5));
+                    }
+                }
+            },
+            mounted: function () {
+                var that=this;
+                this.getInfo();
+                setTimeout(function () {
+                    that.getUserWalletInfo();
+                },400)
+                //加载层
+                this.$nextTick(function () {
+                    var that=this;
+                    setTimeout(function () {
+                        that.loadpic=false;
+                    },1000)
+                })
+            },
+        });
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

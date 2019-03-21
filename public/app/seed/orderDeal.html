@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>挂单交易</title>
+    <link rel="icon" href="../../favicon2018921.ico" type="image/x-icon"/>
+    <script src="../../js/appcommon.js"></script>
+</head>
+<style>
+    .seedcontain{padding: 0}
+    .tab-panel{background: none}
+    .m-cell:after{border: 0 !important}
+    .tab-nav-item{ background: #FFF !important;}
+    .cell-item:not(:last-child){border-bottom: #f3f3f3 solid 1px}
+    .cell-item{line-height: 1.15rem}
+</style>
+<body>
+<div id="htmlWap" v-cloak>
+        <header class="m-navbar">
+                <a href="javascript:;" @click="goback" class="navbar-item">
+                    <i class="back-ico"></i>
+                </a>
+                <div class="navbar-center">
+                    <span class="navbar-title">挂单交易</span>
+                </div>
+        </header>
+    <section>
+        <div class="seedcontain seedbg">
+            <ul class="tab-nav">
+                <li class="tab-nav-item"  :class="tabactive?'tab-active':''" @click="saletab(0)"><a href="javascript:;">我要出售</a></li>
+                <li class="tab-nav-item"  :class="tabactive2?'tab-active':''" @click="saletab(1)"><a href="javascript:;">我要购买</a></li>
+            </ul>
+
+            <div class="seedWcontainr">
+                <div class="tab-panel-item tab-active">
+                    <div class="m-cell seedWbg">
+                        <div class="cell-item">
+                            <div class="cell-left" v-if="publishType==10">出售内容</div>
+                            <div class="cell-left"  v-if="publishType==20">购买内容</div>
+                            <div class="cell-right">农场树苗</div>
+                        </div>
+                        <div class="cell-item">
+                            <div class="cell-left">出售总数</div>
+                            <div class="cell-right">
+                                <input type="number" pattern="[0-9]*" v-model="dealnum" style="text-align:right" class="cell-input" placeholder="请输入出售总量" autocomplete="off" />
+                            </div>
+                        </div>
+                        <div class="cell-item">
+                            <div class="cell-left"></div>
+                            <div class="cell-right">
+                                我的树苗总量{{allnum}}  <span class="bluetext marl10" @click="allsale">全部出售</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="m-cell seedWbg">
+                        <div class="cell-item">
+                            <div class="cell-left">设置单价</div>
+                            <div class="cell-right">
+                                <input type="number" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')" pattern="[0-9]*" v-model="dealprice" style="text-align:right" class="cell-input mar_r10" placeholder="请设置单价" autocomplete="off" />BGT
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <button type="button" class="btn-block rechargeaffirmbtn" @click="enterbuy">确定出售</button>
+                <section class="guadanrules">
+                    <h1>挂单出售规则：</h1>
+                    <ul>
+                        <li>1、出售总数不得超过您的持有总量 </li>
+                        <li>2、出售中的树苗不再产生阳光收益 </li>
+                        <li>3、系统将收取1%的佣金作为交易手续费</li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+        <!-- 挂单确认弹窗 -->
+        <div class="mask-black-dialog" id="YDUI_CONFRIM" v-show="dialogshow">
+            <div class="m-confirm">
+                <div class="confirm-hd"><strong class="confirm-title">挂单确认</strong></div>
+                <div class="confirm-bd">出售内容: <em class="bluetext">树苗</em></div>
+                <div class="confirm-bd">出售总量: <em class="bluetext">{{dealnum}}棵</em></div>
+                <div class="confirm-bd">树苗单价: <em class="bluetext">{{dealprice}}BGT</em></div>
+                <div class="confirm-ft">
+                    <a
+                            href="javascript:;"
+                            class="confirm-btn default"
+                            @click="hide">取消</a>
+                    <a
+                            href="javascript:;"
+                            class="confirm-btn primary"
+                            @click="orderentrer(token,publishType,dealnum,dealprice)"
+                    ><em class="bluetext">确定</em></a>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function () {
+        new Vue({
+            el: '#htmlWap',
+            data: {
+                token:GetQueryString('token'),                         //头部获取token
+                allnum:GetQueryString('saplingBalance'),              //头部全部树苗总量
+                userphoto:"../../images/notuserphoto.png",
+                tabactive: true,
+                tabactive2: false,
+                dialogshow: false,
+                publishType:10,            //挂单交易状态10为出售 20为购买
+                dealnum:'',             //交易数量
+                dealprice:'',           //交易单价
+            },
+        methods:{
+            saletab:function(type){
+                if(type==0){
+                    this.tabactive=true;
+                    this.tabactive2=false;
+                    this.publishType=10;
+                    this.dealprice='';
+                    this.dealnum='';
+                }else if(type==1){
+                    this.tabactive=false;
+                    this.tabactive2=true;
+                    this.publishType=20;
+                    this.dealprice='';
+                    this.dealnum='';
+                }
+            },
+            allsale:function(){
+                this.dealnum=this.allnum;
+            },
+            enterbuy:function(){
+                if(!this.dealnum){
+                    layer.msg('请输入交易总数');
+                    return;
+                }else if(!this.dealprice){
+                    layer.msg('请输入交易单价');
+                    return;
+                }
+                this.dialogshow=true;
+            },
+            hide:function(){
+                this.dialogshow=false;
+            },
+            orderentrer:function(token,publishType,num,price){
+                this.dialogshow=false;
+                this.$http({
+                        method: "post",
+                        url: fund+"/appSceneGoods/publishGoods",
+                        data: {
+                            token:this.token,
+                            publishType:publishType,
+                            num:num,
+                            price:price,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        layer.msg(data.data.message)
+                        window.location.href="treeDeal.html?token="+token
+                    }, function (error) {
+                        console.log(error);
+                    });
+                // window.location.href="dealRecord.html?token="+token
+            },
+            goback:function(){
+                window.location.href="orderDetail.html?token="+this.token
+            }
+        },
+        mounted:function(){
+        }
+    })
+    });
+</script>
+</html>

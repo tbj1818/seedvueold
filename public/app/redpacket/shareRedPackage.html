@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>分享红包</title>
+    <link rel="icon" href="../../favicon2018921.ico"  type="image/x-icon" />
+    <script src="../../js/appcommon.js"></script>
+    <link rel='stylesheet' href='../../css/redpackage.css?time="+Math.random()+"'>
+    <style>
+        body{background:#faf0e7;line-height: 1; font-family: -apple-system,BlinkMacSystemFont,Helvetica Neue,Helvetica,Arial,PingFang SC,Hiragino Sans GB,Heiti SC,Microsoft YaHei,WenQuanYi Micro Hei,sans-serif;}
+    </style>
+</head>
+<body >
+<div id="htmlWap" v-cloak>
+    <div data-v-550ce266="" class="prize-wrap">
+        <section data-v-550ce266="" class="prize-unshared">
+            <section data-v-550ce266="" class="prize" style="">
+                <div data-v-550ce266="" class="prize-content"></div>
+                <div data-v-550ce266="" class="prize-header"></div>
+                <div data-v-550ce266="" class="prize-info">
+                    <div data-v-550ce266="" class="avatar">
+                        <img data-v-550ce266="" :src="wechatphoto">
+                    </div>
+                    <p data-v-550ce266="" class="user-name">{{wechatname}}</p>
+                    <div data-v-550ce266="" class="prize-status">
+                        <p data-v-550ce266="" class="desc">{{noteDesc}}</p>
+                        <button data-v-550ce266="" class="status-text prizeShareTest cn" @click="sharebtn(appType,lineLink,inviteCode,redPacketId,noteDesc)"></button>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </div>
+    <div class="weixin-tip" @click="hide()">
+        <p>
+            <img src="../../images/redpacket/shareicon.png" width="100%" alt="微信打开">
+        </p>
+    </div>
+    <div class="redloading" v-show="loadpic">
+        <img src="../../images/redpacket/redloadding.gif" />
+    </div>
+</div>
+</body>
+<script src="../../js/jweixin-1.4.0.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+
+        var token= GetQueryString('token');
+        var wechatphoto=GetQueryString('wechatphoto');
+        var wechatname=decodeURIComponent(GetQueryString('wechatname'));
+        var noteDesc=decodeURIComponent(GetQueryString('noteDesc'));
+        var redPacketId=GetQueryString("redPacketId");      //红包ID
+        var inviteCode=GetQueryString("inviteCode");      //红包ID
+        var appType=GetQueryString("appType");
+        var shareUrl = location.href.split('#')[0].toString();
+        if(wechatname =='' || wechatname ==undefined || wechatname ==null || wechatname =='undefined'){
+          var wechatname ='您的好友';
+        }
+
+        // 调用微信分享接口
+        var imgUrl = web+'/view/h5/images/shareredicon.jpg';
+        var lineLink = web+'/appUserRedPacker/redPacket'+"?inviteCode="+inviteCode+"&redPacketId="+redPacketId; // 分享出去的地址
+        var noteDesc = noteDesc;
+        var shareTitle = '来自"'+ wechatname +'"的红包';
+        // console.log(shareTitle);
+    $.ajax({
+        type : 'POST',
+        url :  web+"/appLogin/getWxShareParam", //调取后台接口
+        dataType : "json",
+        data:{
+            token:token,
+            url:shareUrl,
+            redPacketId:redPacketId,
+            inviteCode:inviteCode,
+            platform:'H5'
+        },
+        success : function(data){
+            /* console.log(data); */
+            var appId = data.data.appid;
+            var timestamp = data.data.timestamp;
+            var nonceStr = data.data.nonceStr;
+            var signature = data.data.sign;
+
+            wx.config({
+                debug: false,
+                appId: appId,
+                timestamp: timestamp,
+                nonceStr: nonceStr,
+                signature: signature,
+                jsApiList: [
+                    // 'checkJsApi',
+                    'onMenuShareTimeline',
+                    'onMenuShareAppMessage'
+                ]
+            });
+            wx.ready(function() {
+                wx.onMenuShareTimeline({
+                    title: shareTitle, // 分享标题
+                    desc: noteDesc,  //分享内容
+                    link: lineLink, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+                    imgUrl: imgUrl, // 分享图标
+                    success: function () {
+                        // 用户确认分享后执行的回调函数
+                        layer.msg('分享成功');
+                    },
+                    cancel: function () {
+                        // 用户取消分享后执行的回调函数
+                        layer.msg('取消分享');
+                    }
+                });
+                wx.onMenuShareAppMessage({
+                    title: shareTitle, // 分享标题
+                    desc: noteDesc, // 分享描述
+                    link: lineLink, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+                    imgUrl: imgUrl, // 分享图标
+                    type: '', // 分享类型,music、video或link，不填默认为link
+                    dataUrl:'' , // 如果type是music或video，则要提供数据链接，默认为空
+                    success: function () {
+                        // 用户确认分享后执行的回调函数
+
+                    },
+                    cancel: function () {
+                        // 用户取消分享后执行的回调函数
+                    }
+                });
+            });
+        },
+
+    });
+
+    $(function() {
+        var apphtml =  new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                wechatphoto: GetQueryString('photo'),
+                wechatname:decodeURIComponent(GetQueryString('wechatname')),
+                noteDesc:decodeURIComponent(GetQueryString('noteDesc')),
+                appType:GetQueryString("appType"),
+                lineLink:web+'/appUserRedPacker/redPacket',
+                shareurl:'',                //分享页面地址
+                redPacketId:GetQueryString("redPacketId"),      //红包ID
+                inviteCode:GetQueryString("inviteCode"),      //邀请码
+                loadpic:true,
+            },
+            methods: {
+                sharebtn:function(appType,lineLink,inviteCode,redPacketId,noteDesc){
+                    if (appType == "ios") {
+                        // console.log(noteDesc);
+                        window.webkit.messageHandlers.redPacketShare.postMessage(lineLink+"?inviteCode="+inviteCode+"&redPacketId="+redPacketId+"&noteDesc="+noteDesc);
+                        return;
+                    } else if(appType == "android") {
+                        console.log(noteDesc);
+                            window.android.redPacketShare(lineLink+"?inviteCode="+inviteCode+"&redPacketId="+redPacketId,noteDesc);
+                            return;
+                    }else{
+                            $('.weixin-tip').show();
+                            return;
+                        }
+                },
+                hide: function (){
+                    $('.weixin-tip').hide();
+                }
+            },
+            mounted: function () {
+                if(!this.wechatphoto){
+                   this.wechatphoto='../../images/mylogo.png'
+                }
+            },
+            beforeCreate:function () {
+                //加载层
+                this.$nextTick(function () {
+                    var that=this;
+                    setTimeout(function () {
+                        that.loadpic=false;
+                    },1000)
+                })
+            }
+        });
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

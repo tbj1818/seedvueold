@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title>
+    <link rel="icon" href="favicon2018921.ico" type="image/x-icon"/>
+    <style>body{padding:0;box-sizing:border-box}.m-grids-3{background:0;margin-top:10px;box-shadow:0 0 4px 0 rgba(153,153,153,0.25)}.m-grids-3 .grids-txt{text-align:center;padding:.2rem .1rem;font-weight:bold;font-size:.3rem}.m-grids-3 .grids-txt2{text-align:center;padding:.2rem 0;font-size:.26rem}.m-cell{border-top:#f4f4f4 solid 1px}#htmlWap{position:relative;z-index:9999}.layui-layer-dialog .layui-layer-content .layui-layer-ico{display:inline-block}.round{width:200px;z-index:1;position:absolute;top:-50px;right:0;height:200px;background:rgba(101,68,230,0.23);border-radius:50%}.round2{width:200px;z-index:1;position:absolute;top:150px;left:-150px;height:200px;background:rgba(101,68,230,0.28);border-radius:50%}.textcolor6{color:#666}
+    </style>
+    <script src="js/common.js"></script>
+</head>
+<body class="bggray">
+<div class="round"></div>
+<div class="round2"></div>
+<div id="htmlWap" v-cloak>
+
+    <div class="invitePic">
+        <img class="invitextpic" src="images/invitetext.png"/>
+        <img src="images/yaoqingboy.png"/>
+    </div>
+    <section class="wartype mart0">
+        <div class="yqwk">
+            <div class="yqmText">您的邀请码</div>
+            <div class="yqmnum">{{qcodeImg}}</div>
+            <span class="copyBtn" @click="copyBtnText()"><i class="icon-order"></i>复制链接</span>
+
+            <div class="partingLine"><span class="lineGray"></span></div>
+            <div class="rulewk">
+                <div class="ruleTitle"><img src="images/yaoqing-guize.png"/></div>
+                <div class="yqrule">
+                    分享邀请卡或复制链接给好友，邀请的前10名好友将为您带来20算力/人的奖励。
+                </div>
+                <div class="ruleTitle bor_t">已成功邀请好友 <span class="numsharpen"> {{datanum}}人</span></div>
+                <div class="m-cell" v-for="item in dataList">
+                    <div class="cell-item" style="padding-left: 10px">
+                        <div class="cell-left textcolor6">{{item.userAccount}}</div>
+                        <div class="cell-right" style="color:#5856D0;">{{item.regTime | removeyear}}</div>
+                    </div>
+                </div>
+                <div class="nodata" @click="page(1)" v-show="loadMore">加载更多</div>
+                <div v-show="dataList.length==0">
+                    <p class="nodata">暂无数据</p>
+                </div>
+            </div>
+        </div>
+        <button type="button" id="saveBtn" class="btn-block btn-appbtn" @click="saveConfig()">邀请好友</button>
+        <div class="copylink">
+            我是布谷创世农场主，邀请你来布谷一起做幸福的农场主，轻松赚钱，快乐生活！我的邀请码是{{qcodeImg}}，下载地址：安卓：http://www.bugu.one/；ios：http://www.bugu.one/
+        </div>
+    </section>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var userToken = GetQueryString('userToken');
+    $(function () {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                qcodeImg: '',
+                dataList: [],
+                currentPage: 1,
+                pageSize: 5,
+                loadMore: false,
+                appType: GetQueryString('appType'),
+                datanum: '',
+                hashrate: '20',  //算力
+                userRole: ''   //用户身份
+            },
+            methods: {
+                getInviteCode: function () {
+                    //获取邀请码
+                    this.$http({
+                        method: "post",
+                        url: "/appUser/getInviteCodeV2",
+                        data: {
+                            token: this.token,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        if (data.data) {
+                            if (data.data.code == 0) {
+                                this.qcodeImg = data.data.data.inviteCode;
+                                this.userRole = data.data.data.userRole;
+                                this.userName = data.data.data.nickname;
+                                if(this.userName){
+                                    this.userName =data.data.data.nickname;
+                                }else if(data.data.data.userAccount){
+                                    this.userName =data.data.data.userAccount;
+                                }else{
+                                    this.userName ="布谷";
+                                }
+                            } else {
+                                layer.msg(data.data.message);
+                            }
+                        } else {
+                            layer.msg('加载失败,请稍后重试');
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                page: function () {
+                    var that = this;
+                    this.$http({
+                        method: "post",
+                        url: "/appSmsLog/getSuccessInviteLog",
+                        data: {
+                            token: that.token,
+                            limit: that.pageSize,
+                            offset: that.currentPage++,
+                            order: 'desc',
+                            sort: 'regTime',
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        if (data.data.data.num > 10) {
+                            this.hashrate = 0;
+                        }
+                        if (data.data.code == 0) {
+                            if (data.data) {
+                                that.datanum = data.data.data.num;
+                                for (var i  in data.data.data.list) {
+                                    var item = data.data.data.list[i]
+                                    that.dataList.push(item)
+                                }
+                                if (data.data.data.list.length >= that.pageSize) {
+                                    that.loadMore = true;
+                                } else {
+                                    that.loadMore = false;
+                                }
+                            } else {
+                                that.loadMore = false;
+                                layer.msg('加载失败,请稍后重试');
+                            }
+                        } else {
+                            that.loadMore = false;
+                        }
+
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                copyBtnText: function () {
+                    //复制文案
+                    var clipboard = new Clipboard('.copyBtn', {
+                        target: function () {
+                            return document.querySelector('.copylink');
+                        }
+                    });
+                    clipboard.on('success', function (e) {
+                        layer.msg('复制成功')
+                    });
+                    clipboard.on('error', function (e) {
+                        layer.msg('复制失败')
+                    });
+                },
+                saveConfig: function () {
+                    // console.log(that.appType);
+                    //邀请好友保存图片方法
+                    // if(this.appType == 'ios'){
+                    //     //调用IOS原生方法
+                    //     window.webkit.messageHandlers.savePic.postMessage('savePic');
+                    // }else{
+                    window.location.href = 'qrcodeDownload.html?Invitation=' + this.qcodeImg + '&appType=' + this.appType + '&userRole=' + this.userRole +"&userName="+ encodeURI(this.userName);
+                    // }
+                }
+            },
+            filters:{
+                removeyear:function (val) {
+                    if (val) {
+                        return val.substring(0, val.toString().indexOf("."));
+                    }
+                }
+            },
+            mounted: function () {
+                // this.userToken = localStorage.getItem("userToken");
+                this.getInviteCode();
+                //获取邀请记录
+                this.page(1);
+                /*  设备判断  */
+                var userAgent = navigator.userAgent;
+                var isMac = !!userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/);
+                if (isMac) {
+                    $('.bggray').css('margin-top', 80);
+                    $('.yqwk').css('padding-bottom', 60);
+                }
+            }
+        })
+    })
+</script>
+</html>

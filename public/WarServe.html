@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title>
+    <link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <link rel="stylesheet" href="css/ydui.css">
+    <link rel="stylesheet" href="css/bb.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/vue-resource.js"></script>
+    <script src="js/layer/layer.js"></script>
+    <script src="js/ydui.flexible.js"></script>
+    <style>
+        body{padding: 0;}
+        .m-grids-3{background: none}
+        .m-grids-3:before{border:0}
+    </style>
+</head>
+
+<body>
+<div id="htmlWap" style="height: 100%">
+    <header class="m-navbar">
+        <a  href="javascript:history.go(-1);" class="navbar-item">
+            <i class="back-ico"></i>
+        </a>
+        <div class="navbar-center">
+            <span class="navbar-title">3/3</span>
+        </div>
+    </header>
+    <div class="guideBg">
+        <h3 class="guideH3">预警服务</h3>
+        <h6 class="guideH6">让每个涨跌尽在掌握之中</h6>
+        <div class="guijx">
+            <img src="images/ydBgLogo.png" />
+                <a href="javascript:;" class="round33">
+                    <img src="images/wechat.png" />
+                </a>
+                <a href="javascript:;" class="round331">
+                    <img src="images/smsicon.png" />
+                </a>
+                <a href="javascript:;" class="round332">
+                    <img src="images/telicon.png" />
+                </a>
+            </div>
+        </div>
+        <div class="openwar">
+            <button type="button" @click="coinId" class="btn-block btn-primary">开启预警</button>
+        </div>
+        <div class="ProgressBar"><div class="three"></div> </div>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var id = GetQueryString('platformId');
+    var coinid = GetQueryString('coinId');
+    var coinName =GetQueryString('coinName');
+    var relativeTrade =GetQueryString('relativeTrade');
+
+    $(function() {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                userToken: '',
+                platformName:''
+            },
+            methods: {
+                coinId: function () {
+                    //添加到自选
+                    this.$http({
+                        method: "post",
+                        url: "/appFocusConfig/addFocusConfig",
+                        data: {
+                            token:this.userToken,
+                            platformId:id,
+                            platformName:this.platformName,
+                            coinId:coinid,
+                            coinName:coinName,
+                            relativeTrade:relativeTrade,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+//                        console.log(data);
+                        if(data.data.code == 0){
+                            // layer.msg(data.data.message);
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    });
+                    setTimeout(function() {
+                        window.location.href = 'warning2.html?platformId=' + id + "&coinId=" + coinid + "&coinName=" + coinName +'&relativeTrade=' +relativeTrade;
+                    },1000);
+                }
+            },
+            mounted: function () {
+                this.userToken = localStorage.getItem("userToken");
+                if(id==3){
+                    this.platformName='火币';
+                }else if(id==5){
+                    this.platformName='币安';
+                }else if(id==19){
+                    this.platformName='OKEX';
+                }else if(id==20){
+                    this.platformName='中币';
+                }else if(id==21){
+                    this.platformName='比特儿';
+                }else if(id==22){
+                    this.platformName='币蛋';
+                }else if(id==23){
+                    this.platformName='bibox';
+                }else if(id==24){
+                    this.platformName='bit-z';
+                }
+
+            }
+        })
+    })
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?23a7df0a4f6dd37bf6e346d0a4279fac";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

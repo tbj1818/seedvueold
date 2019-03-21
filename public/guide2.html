@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title>
+    <link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <link rel="stylesheet" href="css/ydui.css">
+    <link rel="stylesheet" href="css/bb.css?time=20180817">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/vue-resource.js"></script>
+    <script src="js/layer/layer.js"></script>
+    <script src="js/ydui.flexible.js"></script>
+    <style>
+        body{padding: 0;}
+        .m-grids-3{background: none}
+        .m-grids-3:before{border:0}
+    </style>
+</head>
+
+<body>
+<div id="htmlWap" style="height: 100%">
+    <header class="m-navbar">
+        <a  href="javascript:history.go(-1);" class="navbar-item">
+            <i class="back-ico"></i>
+        </a>
+        <div class="navbar-center">
+            <span class="navbar-title">2/3</span>
+        </div>
+    </header>
+    <div class="guideBg">
+        <h3 class="guideH3">添加自选</h3>
+        <h6 class="guideH6">请选择您喜欢的币种</h6>
+        <div class="guijx">
+                <img src="images/ydBgLogo.png" />
+                <a href="javascript:;" class="round11" v-for="item in dataList">
+                     <span class="ptIcon" @click="coinId(item.coinId,item.coinName,item.relativeTrade)">
+                        <h3 class="grids-txt">{{item.coinNameCN}}</h3>
+                        <em class="bzText">{{item.coinName}}/{{item.relativeTrade}}</em>
+                    </span>
+                </a>
+            </div>
+        </div>
+        <div class="ProgressBar"><div class="two"></div> </div>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var id = GetQueryString('id');
+    var coinName= GetQueryString('coinName');
+    $(function() {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                userToken: '',
+                dataList:'',
+            },
+            methods: {
+                loadCoinList:function () {
+                    //获取币种
+                    this.$http({
+                        method: "post",
+                        url: "/appCoin/getCoins",
+                        data: {
+                            token:this.userToken,
+                            platformId: id,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if (data.data) {
+                            this.dataList = data.data.data;
+                        } else {
+                            layer.msg('加载失败,请稍后重试');
+                        }
+                    }, function(error) {
+                        console.log(error);
+                    })
+                },
+                coinId: function(coinid,coinName,relativeTrade) {
+                    window.location.href ='WarServe.html?platformId='+ id +"&coinId=" + coinid +"&coinName="+ coinName +'&relativeTrade='+ relativeTrade;
+                }
+            },
+            mounted: function(){
+                this.userToken = localStorage.getItem("userToken");
+                //获取币种
+                this.loadCoinList();
+            }
+        })
+    })
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?23a7df0a4f6dd37bf6e346d0a4279fac";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

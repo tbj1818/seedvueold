@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>树苗交易</title>
+    <link rel="icon" href="../../favicon2018921.ico" type="image/x-icon"/>
+    <script src="../../js/appcommon.js"></script>
+</head>
+<style>
+    .hello .tab-panel-item{margin: 0 auto; padding: 0; width: 95%}
+</style>
+<body>
+<div id="htmlWap" v-cloak>
+   <header class="m-navbar">
+        <a href="javascript:;" @click="goback" class="navbar-item">
+            <i class="back-ico"></i>
+        </a>
+        <div class="navbar-center">
+            <span class="navbar-title">树苗交易</span>
+        </div>
+        <a href="javascript:;" @click="gorecord(token)" class="navbar-item">
+            交易记录
+       </a>
+    </header>
+    <div class="hello">
+        <!-- tab -->
+        <section class="mart10">
+            <ul class="tab-nav">
+                <li class="tab-nav-item"
+                    :class="tabactive?'tab-active':''"
+                    @click="saletab(0)"
+                ><a href="javascript:;">购买树苗</a></li>
+                <li
+                        class="tab-nav-item"
+                        :class="tabactive2?'tab-active':''"
+                        @click="saletab(1)"
+                ><a href="javascript:;">出售树苗</a></li>
+            </ul>
+            <div class="tab-panel">
+                <div class="tab-panel-item tab-active">
+                    <ul>
+                        <li class="seedlist" v-for="(item,index) in buylist" :key="index">
+                            <h1>
+                            <span class="userphoto">
+                              <img :src="item.userPhoto" alt="用户头像"/>
+                            </span><span class="userName">{{item.userNickname}}</span>
+                            </h1>
+                            <section class="seedWbg">
+                                <div class="listcell">
+                                    <div class="cellLR">
+                                        <div class="left_cell">出售总数:<span class="graytext">{{item.goodsNum}}</span>
+                                        </div>
+                                        <div class="right_cell">已成交:<span class="graytext">{{item.finishNum}}笔</span>
+                                        </div>
+                                    </div>
+                                    <div class="cellLR">
+                                        <div class="left_cell">剩余数量:<span class="graytext">{{item.residueNum}}</span>
+                                        </div>
+                                        <div class="right_cell"></div>
+                                    </div>
+                                </div>
+                                <section class="cellLR padtb5">
+                                    <span class="left_cell">树苗售价:<strong
+                                            class="greenText">{{item.goodsPrice}}BGT/棵</strong></span>
+                                    <span class="right_cell">
+                                        <button @click="clickHandler(token)" class="smallbuyBtn">立即购买</button>
+                                  </span>
+                                </section>
+                            </section>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        <!-- 右下角添加 -->
+        <div class="roundicon" @click="pluslink(token)">
+            <img src="../../images/seed/rightPlus.png"/>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function () {
+        new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),//头部获取。,
+                appType: GetQueryString('appType'),//头部获取设备来源,
+                saplingBalance: GetQueryString('saplingBalance'),       //头部获取树苗总量,
+                userphoto: "../../images/notuserphoto.png",
+                userName: "珠穆拉玛",
+                tabactive: true,
+                tabactive2: false,
+                getType:20,                            //交易类型10：出售单，20：收购单
+                buylist: [{
+                    userPhoto: "../../images/notuserphoto.png",
+                    userName: '低调的风',
+                    gameType: 10000,
+                    pourMoney: 20,
+                    resultMoney: 200,
+                    pourMoney: 5
+                }]
+            },
+            methods: {
+                saletab: function (type) {
+                    if (type == 0) {
+                        this.getType =20;
+                        this.tabactive = true;
+                        this.tabactive2 = false;
+                        this.getlist();
+                    } else if (type == 1) {
+                        this.getType =10;
+                        this.tabactive = false;
+                        this.tabactive2 = true;
+                        this.getlist();
+                    }
+                },
+                gorecord:function(token){
+                  window.location.href="dealRecord.html?token="+token+"&saplingBalance="+this.saplingBalance
+                },
+                pluslink: function (token) {
+                    window.location.href = "orderDeal.html?token=" + token+"&saplingBalance="+this.saplingBalance
+                },
+                clickHandler: function (token) {
+                    // this.$router.push({ path: "/view/h5/app/seed/seedBuy" });
+                    window.location.href = "seedBuy.html?token=" + token;
+                },
+                getlist: function () {
+                    var that=this;
+                    that.buylist=[];
+                    this.$http({
+                        method: "post",
+                        url:  "http://192.168.192.121:20050/appSceneGoods/getGoodsList",
+                        data: {
+                            token: this.token,
+                            getType: this.getType,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        // this.buylist = data.data.data.list;
+                        for (var i  in data.data.data.list) {
+                            var item = data.data.data.list[i]
+                                that.buylist.push(item);
+                                if(!item.userPhoto){
+                                    item.userPhoto="../../images/notuserphoto.png";
+                                }
+                            // for (var i  in data.data.data.finishNumMap) {
+                            //     var item2 = data.data.data.finishNumMap[i]
+                            //     that.buylist.finishNum.push(item2)
+                            // }
+                        }
+                        
+                        
+                    }, function (error) {
+                        layer.msg('接口出错');
+                    });
+                },
+                goback:function(appType){
+                    if (appType == 'ios') {
+                    //调用IOS原生方法
+                        window.webkit.messageHandlers.gofarm.postMessage(1);
+                        return;
+                    } else if (appType == 'android') {
+                        window.android.gofarm(1);
+                        return;
+                    } else {
+                        console.log(1);
+                        layer.msg('请在手机端操作')
+                        return;
+                    }
+                }
+            },
+            mounted: function () {
+                this.getlist()
+            }
+        })
+    });
+</script>
+</html>

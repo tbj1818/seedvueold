@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>红包记录</title>
+    <link rel="icon" href="../../favicon2018921.ico"  type="image/x-icon" />
+    <script src="../../js/appcommon.js"></script>
+    <link rel='stylesheet' href='../../css/redpackage.css?time="+Math.random()+"'>
+    <style>
+        body{background: #f5f5f5;line-height: 1; font-family: -apple-system,BlinkMacSystemFont,Helvetica Neue,Helvetica,Arial,PingFang SC,Hiragino Sans GB,Heiti SC,Microsoft YaHei,WenQuanYi Micro Hei,sans-serif;}
+        .tab-nav-item.tab-active{background: #fff}.tab-nav-item.tab-active{color: #FB403F}
+        .tab-nav-item{background: #fff}
+        .nodata{width: 100%; height: 100%; text-align: center; margin: 0 auto; font-size:0.3rem}.nodata img{margin: 10px auto 0}
+        .tab-nav-item.tab-active:before{width:40%; margin-left: -20% }
+        .text-gray{ color: #999; font-size: .26rem}
+        .tab-nav:after{border: 0}.m-tab{padding: 60px 0 30px}
+        .tab-nav{position: fixed;z-index: 0;width: 100%;z-index: 999;top: 0;}
+    </style>
+</head>
+<body>
+<div id="htmlWap" v-cloak>
+    <div id="J_Tab" class="m-tab">
+        <ul class="tab-nav">
+            <li class="tab-nav-item tab-active"  @click="getRedPacket(1)">抢到红包</li>
+            <li class="tab-nav-item"  @click="getRedPacket(2)">发出红包</li>
+        </ul>
+        <div class="tab-panel" style="width: 90%;margin: 10px auto; background: #fff; border-radius: 5px">
+            <div class="tab-panel-item tab-active">
+                <section data-v-2dd03c99="" class="receive" style="padding-left: 0">
+                    <ul data-v-2dd03c99="" infinite-scroll-distance="10" class="receive-list" style="padding: 0;">
+                        <li v-show="num==1" data-v-2dd03c99="" class="receive-item clearfix" v-for="item in getdatalist" @click="toredpackagedetail(token,item.redPacketId,appType)">
+                            <img v-if="num==1" data-v-2dd03c99=""  :src="item.photo" class="avatar">
+                            <div data-v-2dd03c99="" class="info">
+                                <p  data-v-2dd03c99="" class="name text-hidden-one"><span class="text-gray">来自</span> {{item.userNickname}}</p>
+                                <p  data-v-2dd03c99="" class="time">{{item.getTime}}</p>
+                            </div>
+                            <div data-v-2dd03c99="" class="value">
+                                <p data-v-2dd03c99="" class="bit-value text-hidden-one dinMedium">{{item.redPacketValue}}<span data-v-2dd03c99="">BGT</span>
+                                </p>
+                                <p data-v-2dd03c99="" class="rmb-value text-hidden-one">≈￥{{item.redPacketValue*rmb | numSlicefive}}</p>
+
+                            </div>
+                        </li>
+                        <li v-show="num==0" data-v-2dd03c99="" class="receive-item clearfix" v-for="item in getdatalist"  @click="toredpackagedetail(token,item.redPacketId,appType)">
+                            <div data-v-2dd03c99="" class="info">
+                                <p  data-v-2dd03c99="" class="name text-hidden-one">{{item.issueType}}</p>
+                                <p  data-v-2dd03c99="" class="time">{{item.issueTime}}</p>
+                            </div>
+                            <div data-v-2dd03c99="" class="value">
+                                <p  data-v-2dd03c99="" class="bit-value text-hidden-one dinMedium">{{item.sumAmount}}<span data-v-2dd03c99="">BGT</span>
+                                </p>
+                                <p  data-v-2dd03c99="" class="rmb-value text-hidden-one">
+                                    <span v-show="item.state==10">未领取</span>
+                                    <span v-show="item.state==20">已领完</span>
+                                    <span v-show="item.state==30" style="color:#FB403F ">未领完已退回</span>
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
+                    <div class="nodata" v-show="getdatalist.length==0 && datastate">
+                        <img src="../../images/nodata.png" width="50px" />
+                        <h6>暂无数据</h6>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <div class="redloading" v-show="loadpic">
+        <img src="../../images/redpacket/redloadding.gif" />
+    </div>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function() {
+        var apphtml =  new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                appType:GetQueryString("appType"),      //来源
+                getdatalist: [],
+                wechatphoto:'../../images/mylogo.png',         //微信头像
+                wechatname:'',          //微信昵称
+                num:1,
+                redPacketId:GetQueryString('redPacketId'),      //红包ID
+                rmb:GetQueryString('rmb'),             //转人民币汇率
+                inviteCode:GetQueryString("inviteCode"),      //邀请码
+                datastate:false,
+                loadpic:true,
+                state:''                //红包被领取状态
+            },
+            methods: {
+                getRedPacket:function(flag){
+                    this.getdatalist='';
+                   if(flag==1){
+                       this.num=1;
+                   }else{
+                       this.num=0;
+                   }
+                    this.$http({
+                        method: "post",
+                        url: fund+"/appRedPacket/getRedPacketRecord",
+                        data: {
+                            token:this.token,
+                            flag:flag,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if(data.data.code==0){
+                            this.getdatalist =data.data.data.recordList;
+                            if(this.getdatalist.length==0){
+                                this.datastate=true;
+                            }else{
+                                this.datastate=false;
+                            };
+                            for(var i in this.getdatalist){
+                                if(this.getdatalist[i].photo == undefined || this.getdatalist[i].photo == null ||this.getdatalist[i].photo ==''  ){
+                                    this.getdatalist[i].photo ='../../images/mylogo.png';
+                                }
+                                if(this.getdatalist[i].nickname == undefined){
+                                    this.getdatalist[i].nickname ='您的好友';
+                                }
+                                if (this.getdatalist[i].getValue){
+                                    console.log(1);
+                                    this.state=1;
+                                }else{
+                                    this.state=2;
+                                }
+                            }
+                            this.wechatphoto =data.data.data.photo;
+                            if(!this.wechatphoto){
+                                this.wechatphoto='../../images/mylogo.png';
+                            }
+                            this.wechatname=data.data.data.userNickname;
+                            this.sumNum = data.data.data.sumNum;
+                            this.bgtnum=data.data.data.getValue;
+
+                            this.rmbprice =this.bgtnum*this.rmb;
+                            if(this.rmb){
+                                this.rmbprice =this.bgtnum*0.3;
+                            }
+
+                            this.preceiveNum=data.data.data.receiveNum;
+                            this.sumAmount=data.data.data.sumAmount;
+
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+
+
+                    }, function (error) {
+                        console.log(error);
+                    });
+                },
+                toredpackagedetail:function(token,redPacketId,appType){
+                    window.location.href="getDetail.html?token="+token+"&redPacketId="+redPacketId+"&appType="+appType;
+                }
+            },
+            filters: {
+                numSlicefive: function (val) {
+                    if (val) {
+                            return parseFloat(val.toFixed(5));
+                    }
+                },
+            },
+            mounted: function () {
+                    this.getRedPacket(1);
+
+            },
+            beforeCreate: function () {
+                //加载层
+                this.$nextTick(function () {
+                    var that=this;
+                    setTimeout(function () {
+                        that.loadpic=false;
+                    },1000)
+                })
+            }
+        });
+        setTimeout(function () {
+            $('.tab-nav-item').click(function () {
+                $(this).addClass('tab-active').siblings().removeClass('tab-active');
+            })
+        },100);
+    });
+
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

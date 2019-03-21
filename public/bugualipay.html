@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title><link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <script src="js/common.js"></script>
+</head>
+<body class="farmbgcheats">
+<section  id="htmlWap" v-cloak>
+    <section class="gzhgzhhwk alipaycontent">
+             <h3>两种领取方法：</h3>
+             <p>方法一：复制口令：<span class="rechargecopylink">636155615</span>，打开支付宝粘贴搜索即可。</p>
+                <button type="button" class="btn-block btn-copywechat alipaycopyBtn" @click="copyBtnText()">点击复制口令</button>
+           <div class="picauto clearfix">
+            <img src="images/alipay01.png" />
+            <img src="images/alipay02.png" />
+           </div>
+            <p>方法二：截屏下图，打开支付宝“扫一扫”，右上角“相册”选择刚刚截的图。</p>
+            <div class="picauto">
+                <img style="float: none;width: 80%; margin: 0 auto;" src="images/alipay.png" />
+            </div>
+            <h3>红包如何使用：</h3>
+            <p>1 打开支付宝,向商家出示你的二维码或扫描商家收款二维码，付款时支付宝会默认使用你所获得的红包进行抵扣。</p>
+            <p>2 线上交易支付时，支付宝将默认使用你所获得的红包进行抵扣。</p>
+            <p>PS：以上两种支付方式仅支持消费金额大于红包金额</p>
+            <h7 class="redcenter">每天都可以领哦！</h7>
+    </section>
+</section>
+</body>
+<script src="js/jquery.qrcode.min.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function () {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                code:'',
+            },
+            methods: {
+                aliPayTask:function () {
+                       this.$http({
+                           method: "post",
+                           url: "/appTeamLog/aliPayTask",
+                           data: {
+                               token:this.token,
+                               platform:'H5'
+                           },
+                           emulateJSON: true
+                       }).then(function (data) {
+                           console.log(data);
+
+                       }, function(error) {
+                           console.log(error);
+                       })
+                },
+
+                copyBtnText: function () {
+                    //复制文案
+                    var clipboard = new Clipboard('.alipaycopyBtn', {
+                        target: function () {
+                            return document.querySelector('.rechargecopylink');
+                        }
+                    });
+                    clipboard.on('success', function (e) {
+                        layer.msg('复制成功')
+                    });
+                    clipboard.on('error', function (e) {
+                        layer.msg('复制失败')
+                    });
+                }
+            },
+            mounted: function () {
+                var that =this;
+                setTimeout(function () {
+                    that.aliPayTask()
+                },30000)
+            }
+        });
+    });
+</script>
+</html>

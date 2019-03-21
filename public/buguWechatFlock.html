@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title><link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <script src="js/common.js"></script>
+    <style>
+        .layui-layer-btn .layui-layer-btn0 {
+            border-color: #1E9FFF;
+            background-color: #1E9FFF;
+            color: #fff;
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="farmbgcheats">
+<section  id="htmlWap" v-cloak>
+<section class="gzhgzhhwk">
+    <div  class="qcodeImgw100">
+        <img src="images/wechatflock.png">
+    </div>
+    <div class="qcodeImgnob">
+        <h3>布谷官方微信群</h3>
+        <p><span class="rechargecopylink">{{wechatnum}}</span><span class="copytext bluenum" @click="copyBtnText()">复制</span></p>
+        <button type="button" class="btn-block btn-copywechat rechargecopyBtn" @click="copyBtnwechat()">直接加入微信群</button>
+        <span class="arrowicon"><img src="images/arrowsicon.png" /></span>
+        <div class="invitationcode">
+            <input type="text"  maxlength="4" v-model="code"  class="cell-input" placeholder="填写验证码" autocomplete="off" />
+        </div>
+    </div>
+    <div class="partingLine"><span class="lineGray"></span></div>
+    <h2>加入布谷微信群获得算力值</h2>
+    <h6>1.复制群号或点击按钮加入微信群。</h6>
+    <h6>2.入群后联系客服得到验证码并填写。</h6>
+    <h6>3.验证成功即可获得算力值。</h6>
+</section>
+<button type="button" id="saveBtn" class="btn-block btn-enterappbtn" @click="confirm()">确定</button>
+</section>
+</body>
+<script src="js/jquery.qrcode.min.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function () {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                userToken: GetQueryString('token'),
+                code:'',
+                wechatnum:''
+            },
+            methods: {
+                confirm: function () {
+                   if(!this.code){
+                       layer.msg('请填写验证码');
+                       return;
+                   }else{
+                       this.$http({
+                           method: "post",
+                           url: "/appTaskLog/addServerWatch",
+                           data: {
+                               token:this.userToken,
+                               inviteCode:this.code,
+                               taskId:104,
+                               platform:'H5'
+                           },
+                           emulateJSON: true
+                       }).then(function (data) {
+                           // console.log(data);
+                           if (data.data) {
+                               if(data.data.code==0){
+                                   layer.confirm(data.data.message, {
+                                       title: false, //不显示标题
+                                       btn: ['确定'] //按钮
+                                   })
+                               }else {
+                                   layer.msg(data.data.message);
+                               }
+                           }
+                       }, function(error) {
+                           console.log(error);
+                       })
+                   }
+                },
+                getServiceInviteQrPic:function () {
+                    this.$http({
+                        method: "post",
+                        url: "/appPropsConfig/getInfo",
+                        data: {
+                            token:this.userToken,
+                            key:'SERVICE_WX_ACCOUNT',
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if (data.data) {
+                            if(data.data.code==0){
+                                this.wechatnum=data.data.data;
+                            }else {
+                                layer.msg(data.data.message);
+                            }
+                        }
+                    }, function(error) {
+                        console.log(error);
+                    })
+                },
+                copyBtnText: function () {
+                    //复制文案
+                    var clipboard = new Clipboard('.copytext', {
+                        target: function () {
+                            return document.querySelector('.rechargecopylink');
+                        }
+                    });
+                    clipboard.on('success', function (e) {
+                        layer.msg('复制成功')
+                    });
+                    clipboard.on('error', function (e) {
+                        layer.msg('复制失败')
+                    });
+                },
+            },
+            mounted: function () {
+                this.getServiceInviteQrPic()
+            }
+        });
+    });
+</script>
+</html>

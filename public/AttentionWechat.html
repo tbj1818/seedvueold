@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title>
+    <link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <link rel="stylesheet" href="css/ydui.css">
+    <link rel="stylesheet" href="css/bb.css">
+
+    <style>
+        body{padding: 0}
+        html{height: auto}
+        .m-grids-3{background: none; margin-top:10px;box-shadow:0px 0px 4px 0px rgba(153,153,153,0.25)}
+        .m-grids-3 .grids-txt{text-align: center; padding:.2rem .1rem; font-weight: bold; font-size: .3rem}
+        .m-grids-3 .grids-txt2{text-align: center; padding:.2rem 0;font-size: .26rem}
+        .m-cell{border-top:#F4F4F4 solid 1px; }
+    </style>
+</head>
+
+<body class="attentionbg">
+    <div id="htmlWap" v-cloak>
+        <section class="wartype">
+            <div class="yqmwkw">
+                <img src="images/guanzhubg.png" />
+                <span class="qcodeImg"><img src="images/gzhhqrcode.jpg" /></span>
+                <h3>布谷公众号</h3>
+                <button type="button" id="saveBtn" class="btn-block btn-copyappbtn" @click="saveConfig()">点击保存二维码</button>
+                <button type="button" id="saveBtn" class="btn-block btn-gzhhappbtn copyBtnText" @click="copyBtnText()">点击复制公众号名称</button>
+            </div>
+            <div class="copylink">布谷</div>
+        </section>
+    </div>
+</body>
+<script src="js/jquery.min.js"></script>
+<script src="js/vue.min.js"></script>
+<script src="js/clipboard.min.js"></script>
+<script src="js/layer/layer.js"></script>
+<script src="js/ydui.js"></script>
+<script src="js/ydui.flexible.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function () {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                userToken: '',
+                appType:GetQueryString('appType')
+            },
+            methods: {
+                    copyBtnText:function () {
+                        //复制文案
+                        var clipboard = new Clipboard('.copyBtnText', {
+                            target: function () {
+                                return document.querySelector('.copylink');
+                            }
+                        });
+                        clipboard.on('success', function (e) {
+                            layer.msg('复制成功')
+                        });
+
+                        clipboard.on('error', function (e) {
+                            layer.msg('复制失败')
+                        });
+                    },
+                    //保存到本地二维码图片方法
+                    saveConfig: function () {
+                        //邀请好友保存图片方法
+                        if(this.appType == 'ios'){
+                            //调用IOS原生方法
+                            window.webkit.messageHandlers.savePic.postMessage('savePic');
+                            return;
+                        }else if(this.appType == 'android'){
+                            window.android.savaPic('qrcode');
+                            return;
+                        }else{
+                            layer.msg('请在手机APP端操作');
+                            return;
+                        }
+                    }
+            },
+            mounted: function () {
+                // this.userToken = localStorage.getItem("userToken");
+            }
+        });
+    });
+</script>
+
+</html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title><link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <link rel="stylesheet" href="css/ydui.css">
+    <link rel="stylesheet" href="css/bb.css?time=20180718">
+    <style>
+        .m-cell { margin-left: .1rem }
+        .layui-layer-dialog{text-align: center}
+        .layui-layer-content{text-align: center}
+        .layui-layer .layui-layer-btn{text-align: center}
+        .cell-item:not(:last-child):after { margin-left: 0.1rem  }
+        .m-confirm{width: 60%}
+        .layui-layer .layui-layer-btn a{background-color: #1E9FFF; border-color:#1E9FFF;color:#fff}
+        .layui-layer .layui-layer-btn a:not(:last-child){background-color: #fff; border-color:#dedede;color:#333}
+        .confirm-bd{text-align: center}
+    </style>
+</head>
+
+<body>
+<div id="htmlWap" v-cloak>
+    <header class="m-navbar">
+        <a href="javascript:history.go(-1);" class="navbar-item">
+            <i class="back-ico"></i>
+        </a>
+        <div class="navbar-center">
+            <span class="navbar-title">{{platformName}}，添加自选</span>
+        </div>
+    </header>
+    <section>
+        <div class="tab-panel-item tab-active">
+            <div class="m-celltitle m-celltitleBg2">{{platformName}}的币种</div>
+            <div class="m-cell">
+                <a class="cell-item" href="javascript:;" id="dialogadd"  v-for="item in list">
+                    <div class="cell-left">
+                        <div class="grids-logo" style="width: 10px">
+                            <!--<template v-if="item.platformId ==3">-->
+                                <!--<img src="images/huobi.png"/>-->
+                            <!--</template>-->
+                            <!--<template v-if="item.platformId ==5">-->
+                                <!--<img src="images/bian.png"/>-->
+                            <!--</template>-->
+                            <!--<template v-if="item.platformId ==4">-->
+                                <!--<img src="images/okex.png"/>-->
+                            <!--</template>-->
+                            <!--<template v-if="item.platformId ==6">-->
+                                <!--<img src="images/dabi.png"/>-->
+                            <!--</template>-->
+                        </div>
+                        <div class="grids-text">
+                            <span class="Icopt">
+                                {{item.platformName}}
+                                <template v-if="item.coinNameCN != undefined && item.coinNameCN != ''">,
+                                    <template v-if="item.coinNameCN.length > 10">
+                                        {{item.coinNameCN.substring(0, 10)}}...
+                                    </template>
+                                    <template v-if="item.coinNameCN.length <= 10">
+                                        {{item.coinNameCN}}
+                                    </template>
+                                </template>
+                            </span>
+                            </br>
+                            <span class="nameIco">{{item.coinName}}/{{item.relativeTrade}}</span>
+                        </div>
+                    </div>
+                    <div v-show="item.focusFlag == 0" class="cell-right" @click="addItem(item)"><i class="icon-star-outline"></i>
+                    </div>
+                    <div v-show="item.focusFlag == 1" class="cell-right" @click="deleteItem(item)"><i class="icon-star"></i></div>
+                </a>
+                <div class="nodata"  @click="page(1)" v-show="loadMore">加载更多</div>
+            </div>
+            <div class="nodata" v-show="list.length==0">暂无数据</div>
+        </div>
+        <!--弹窗确认-->
+        <div class="mask-black-dialog" v-show="addShow" id="YDUI_CONFRIM">
+            <div class="m-confirm">
+                <div class="confirm-hd"></div>
+                <div class="confirm-bd">自选成功！</div>
+                <div class="confirm-ft">
+                    <a href="javascript:;" @click="goAdd()"   class="confirm-btn default">继续自选</a>
+                    <a href="javascript:;" @click="warning(dialogItem)" class="confirm-btn primary">预警设置</a>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+</body>
+<script src="js/jquery.min.js"></script>
+<script src="js/vue.min.js"></script>
+<script src="js/vue-resource.js"></script>
+<script src="js/layer/layer.js"></script>
+<script src="js/ydui.js"></script>
+<script src="js/ydui.flexible.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var key = GetQueryString('key');
+    var fromType = GetQueryString('fromType');
+    var platformId = GetQueryString('platformId');
+    var relativeTrade = GetQueryString('relativeTrade');
+    $(function (win, $) {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                userToken: '',
+                phoneStatus: '0',
+                list: [],
+                platformName: '',
+                loadMore:false,
+                currentPage:1,
+                addShow:false,
+                dialogItem:[]
+            },
+            methods: {
+                searchData: function () {
+                    this.$http({
+                        method: "get",
+                        url: web+"/appCoin/dataList",
+                        data: {
+                            token: this.userToken,
+                            platformId: 0,
+                            keyword: key,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if (data.data.code == 0) {
+                            this.list = data.data.data;
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                page:function () {
+                    // console.log(this.currentPage);
+                    this.currentPage++;
+
+                    this.$http({
+                        method: "get",
+                        url: web+"/appCoin/dataList",
+                        data: {
+                            token: this.userToken,
+                            platformId: platformId,
+                            limit:50,
+                            offset:this.currentPage,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data.data.data);
+                        var res = data.data.data;
+                        if (res.length == 0) {
+                            layer.msg('暂无更多数据');
+                            this.loadMore = false;
+                        } else {
+                            for (var i in res) {
+                                this.list.push(res[i]);
+                            }
+                        }
+                    })
+                },
+                loadData: function () {
+                        var that = this;
+                        this.$http({
+                            method: "get",
+                            url: web+"/appCoin/dataList",
+                            data: {
+                                token: this.userToken,
+                                platformId: platformId,
+                                platform:'H5'
+                            },
+                            emulateJSON: true
+                        }).then(function (data) {
+                            // console.log(data);
+                            if (data.data.code == 0) {
+                                this.list = data.data.data;
+                                if(this.list.length == 50){
+                                    this.loadMore = true;
+                                }
+                            } else {
+                                layer.msg(data.data.message);
+                            }
+                        }, function (error) {
+                            console.log(error);
+                        })
+                },
+                addItem: function (item) {
+                    var body ={
+                            platformId: item.platformId,
+                            platformName: item.platformName,
+                            coinId: item.coinId,
+                            coinName: item.coinName,
+                            relativeTrade: item.relativeTrade,
+                            coinNameCN: item.coinNameCN,
+                        };
+                    this.$http({
+                        method: "get",
+                        url: web+"/appFocusConfig/addFocusConfig",
+                        data: {
+                            token: this.userToken,
+                            _body:JSON.stringify(body),
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+//                        console.log(data);
+                        if (data.data.code == 0) {
+                            //询问框
+                            this.addShow=true;
+                            this.dialogItem =item;
+                            // layer.confirm(data.data.message, {
+                            //     title: false, //不显示标题
+                            //     closeBtn: 0, //不显示关闭按钮
+                            //     btn: ['继续添加','预警设置'] //按钮
+                            // }, function(){
+                            //     layer.closeAll();
+                            // }, function(){
+                            //     window.location.href = 'warning2.html?platformId='+item.platformId+"&coinId="+item.coinId +"&coinName=" +item.coinName +'&relativeTrade='+item.relativeTrade;
+                            // });
+                            item.focusFlag = 1;
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                //继续自选
+                goAdd:function () {
+                    this.addShow=false;
+                    _hmt.push(['_trackEvent', 'goadd', 'click', '继续自选', 1]);
+                },
+                warning:function (item) {
+                    _hmt.push(['_trackEvent', 'waring', 'click', '预警设置', 2]);
+                    window.location.href = 'warning2.html?platformId='+item.platformId+"&coinId="+item.coinId +"&coinName=" +item.coinName +'&relativeTrade='+item.relativeTrade;
+                },
+                deleteItem: function (item) {
+                    this.$http({
+                        method: "get",
+                        url: web+"/appFocusConfig/delFocusConfig",
+                        data: {
+                            token: this.userToken,
+                            platformId: item.platformId,
+                            coinId: item.coinId,
+                            relativeTrade: item.relativeTrade,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+//                        console.log(data);
+                        if (data.data.code == 0) {
+                            layer.msg(data.data.message);
+                            item.focusFlag = 0;
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                loadUserInfo: function () {
+                    this.$http({
+                        method: "get",
+                        url: web+"/appUser/checkUserPhone",
+                        data: {
+                            token: this.userToken,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        if (data.data.code == 0) {
+                            this.phoneStatus = data.data.data;
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+            },
+            mounted: function () {
+                this.userToken = localStorage.getItem("userToken");
+                //加载用户是否手机验证
+                this.loadUserInfo();
+                if (key != undefined && key != "") {
+                    this.searchData();
+                } else if (platformId != undefined && platformId != "") {
+                    this.loadData();
+                }
+                if(fromType && fromType == 'index'){
+                    this.platformName ='搜索结果'
+
+                 }
+                //取平台名称
+                if (platformId == 3) {
+                    this.platformName = '火币';
+                } else if (platformId == 5) {
+                    this.platformName = '币安';
+                } else if (platformId == 19) {
+                    this.platformName = 'OKEX';
+                } else if (platformId == 20) {
+                    this.platformName = '中币';
+                } else if (platformId == 21) {
+                    this.platformName = '比特儿';
+                } else if (platformId == 22) {
+                    this.platformName = '币蛋';
+                } else if (platformId == 24) {
+                    this.platformName = 'bit-z';
+                }else if (platformId == 23) {
+                    this.platformName = 'bibox';
+                }else if (platformId == 621) {
+                    this.platformName = 'FC';
+                }
+            }
+        })
+    })
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?23a7df0a4f6dd37bf6e346d0a4279fac";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

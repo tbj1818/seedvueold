@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title>
+    <link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <link rel="stylesheet" href="css/ydui.css">
+    <link rel="stylesheet" href="css/bb.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/vue-resource.js"></script>
+    <script src="js/layer/layer.js"></script>
+    <script src="js/ydui.flexible.js"></script>
+    <style>
+        body{padding: 0}
+        .m-grids-3{background: none; margin-top:10px;box-shadow:0px 0px 4px 0px rgba(153,153,153,0.25)}
+        .m-grids-3 .grids-txt{text-align: center; padding:.2rem .1rem; font-weight: bold; font-size: .3rem}
+        .m-grids-3 .grids-txt2{text-align: center; padding:.2rem 0;font-size: .26rem}
+    </style>
+</head>
+
+<body>
+<div id="htmlWap" v-cloak>
+    <header class="m-navbar">
+        <a  href="javascript:history.go(-1);" class="navbar-item">
+            <i class="back-ico"></i>
+        </a>
+        <div class="navbar-center">
+            <span class="navbar-title">短信明细</span>
+        </div>
+    </header>
+    <section class="wartype">
+        <div class="m-grids-3">
+            <a href="#" class="grids-item" style="width: 30%">
+                <div class="grids-txt"><span>类型</span></div>
+            </a>
+            <a href="#" class="grids-item" style="width: 25%">
+                <div class="grids-txt"><span>奖励</span></div>
+            </a>
+            <a href="#" class="grids-item" style="width: 45%">
+                <div class="grids-txt" ><span>时间</span></div>
+            </a>
+        </div>
+        <div class="m-grids-3" v-for="item in dataList">
+            <a href="#" class="grids-item" style="width: 30%">
+                <div class="grids-txt2"><span>{{item.remark}}</span></div>
+            </a>
+            <a href="#" class="grids-item" style="width: 25%">
+                <div class="grids-txt2" ><span class="blackText">{{item.optType == 40 ? "-":"+"}}{{item.num}}</span></div>
+            </a>
+            <a href="#" class="grids-item" style="width: 45%">
+                <div class="grids-txt2">{{item.optTime.substr(0,19)}}</div>
+            </a>
+        </div>
+        <div class="nodata"  @click="page(1)" v-show="loadMore">加载更多</div>
+        <div v-show="dataList.length==0">
+            <p class="nodata">暂无数据</p>
+        </div>
+</div>
+</section>
+</body>
+<script>
+    $(function() {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                userToken: '',
+                dataList:[],
+                currentPage: 1,
+                pageSize: 30,
+                loadMore:false,
+            },
+            methods: {
+                /**
+                 * 获取记录
+                 * optClass 10 短信 20 语音 30 BGT
+                 * optType 10 购买 20 新用户赠送 30 邀请奖励 40 使用扣除
+                 */
+                page:function () {
+                    var that = this;
+                    that.$http({
+                        method: "post",
+                        url: "/appSmsLog/getSmsOptLogByType",
+                        data: {
+                            token:that.userToken,
+                            limit: that.pageSize,
+                            offset: that.currentPage++,
+                            optClass: '10',
+                            order: 'desc',
+                            sort: 'optTime',
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if (data.data.code == 0) {
+                            if (data.data) {
+                                for (var i  in data.data.data) {
+                                    var item = data.data.data[i]
+                                    switch (item.optType) {
+                                        case 10: {
+                                            item.remark = "购买";
+                                            break;
+                                        }
+                                        case 20: {
+                                            item.remark = "新用户赠送";
+                                            break;
+                                        }
+                                        case 30: {
+                                            item.remark = "邀请奖励";
+                                            break;
+                                        }
+                                        case 40: {
+                                            item.remark = "使用扣除";
+                                            break;
+                                        }
+                                        case 50: {
+                                            item.remark = "系统返还";
+                                            break;
+                                        }
+                                        default: {
+                                            item.remark = "其他";
+                                            break;
+                                        }
+
+                                    }
+                                    that.dataList.push(item)
+                                }
+                                if (data.data.data.length == that.pageSize) {
+                                    that.loadMore = true;
+                                } else {
+                                    that.loadMore = false;
+                                }
+                            } else {
+                                that.loadMore = false;
+                                layer.msg('加载失败,请稍后重试');
+                            }
+                        }  else {
+                            that.loadMore = false;
+                        }
+
+                    }, function(error) {
+                        console.log(error);
+                    })
+                }
+            },
+            mounted: function(){
+                this.userToken = localStorage.getItem("userToken");
+                this.page(1);
+            }
+        })
+    })
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?23a7df0a4f6dd37bf6e346d0a4279fac";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

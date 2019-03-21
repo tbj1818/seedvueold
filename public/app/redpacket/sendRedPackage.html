@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>发红包</title>
+    <link rel="icon" href="../../favicon2018921.ico" type="image/x-icon"/>
+    <script src="../../js/appcommon.js"></script>
+    <link rel='stylesheet' href='../../css/redpackage.css?time="+Math.random()+"'>
+    <style>
+        body {
+            background: #fff;
+            line-height: 1;
+            font-family: -apple-system, BlinkMacSystemFont, Helvetica Neue, Helvetica, Arial, PingFang SC, Hiragino Sans GB, Heiti SC, Microsoft YaHei, WenQuanYi Micro Hei, sans-serif;
+        }
+    </style>
+</head>
+<body>
+<div id="htmlWap" v-cloak>
+    <section class="prizeSend-wrap">
+        <div class="avatar-wrap">
+            <img :src="wechatphoto" alt="wechatphoto" class="avatar">
+        </div>
+        <div class="total-count">
+            <p class="count-token">共发放 <span place="num" class="num dinMedium">{{bgtallnum}}</span> 枚 <span
+                    place="token">BGT</span>
+            </p>
+        </div>
+        <div class="prize-form">
+            <div class="prizeType-wrap">
+                <div class="input-item prizeType"><span class="input-item-field">红包类型</span>
+                    <p class="prizeType-input">BGT</p>
+                </div>
+            </div>
+            <label class="input-item prizeAmount"><span class="input-item-field">{{textstate}}</span>
+                <input type="number" class="input-item-input" v-model="bgtnum"  @input="inputFun" placeholder="0.00"> <span
+                        class="input-item-unit">枚</span>
+            </label>
+            <div class="input-note-wrap">
+                <p class="change-type" @click="cutstate(typestate)">
+                    <span :class="typestate==10?'active':''">随机红包</span>
+                    <span class="cuticon"><img src="../../images/redpacket/cut.png" /></span>
+                    <span :class="typestate==20?'active':''">普通红包</span>
+                </p>
+                <p class="input-note">持有 BGT 总量 {{userbgtallnum}}</p>
+            </div>
+            <label class="input-item prizeCount"><span class="input-item-field">红包个数</span>
+                <input type="tel" placeholder="填写个数" class="input-item-input"  @input="inputFun" v-model="redpackagenum"> <span
+                        class="input-item-unit">个</span>
+            </label>
+            <label class="input-item">
+                <span class="input-item-field">留言</span>
+                <input type="text"  maxlength="20" v-model="noteDesc" placeholder="恭喜发财，大吉大利"  @input="inputFun" class="input-item-input">
+            </label>
+        </div>
+        <div v-show="btnstate" class="pirze-gen bgt-btn" @click="sendredpackage(wechatphoto,wechatname,noteDesc,appType,inviteCode)">塞钱进红包</div>
+        <div v-show="!btnstate" class="pirze-gen bgt-btn disabled">塞钱进红包</div>
+        <p class="redtexttip">随机红包个数大于{{maxNum}}，新用户领取后返还{{returnRatio}}倍金额</p>
+    </section>
+    <footer class="m-tabbar tabbar-fixed">
+        <a href="javascript:;" @click="opensend(token,inviteCode,appType)" class="tabbar-item tabbar-active">
+        <span class="tabbar-icon">
+            <i class="icon-home-outline"></i>
+        </span>
+            <span class="tabbar-txt">发红包</span>
+        </a>
+        <a href="javascript:;"  @click="openmy(token,inviteCode,appType)" class="tabbar-item">
+        <span class="tabbar-icon">
+           <i class="icon-ucenter-outline"></i>
+        </span>
+            <span class="tabbar-txt">我的</span>
+        </a>
+    </footer>
+    <div class="redloading" v-show="loadpic">
+        <img src="../../images/redpacket/redloadding.gif" />
+    </div>
+</div>
+</body>
+<script src="../../js/jweixin-1.4.0.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var token= GetQueryString('token');
+    var wechatphoto=GetQueryString('wechatphoto');
+    var wechatname='';
+    var noteDesc=decodeURIComponent(GetQueryString('noteDesc'));
+    var redPacketId=GetQueryString("redPacketId");      //红包ID
+    var inviteCode='';      //邀请码
+    var timer = setInterval(function(){
+        if(inviteCode){
+            clearInterval(timer);
+        }
+    }, 1000);
+    var appType=GetQueryString("appType");
+    var shareUrl = location.href.split('#')[0].toString();
+    if(wechatname =='' || wechatname ==undefined || wechatname ==null || wechatname =='undefined'){
+        var wechatname ='您的好友';
+    }
+
+    // 调用微信分享接口
+    var imgUrl = web+'/view/h5/images/shareredicon.jpg';
+    var lineLink = web+'/appUserRedPacker/redPacket'+"?inviteCode="+inviteCode+"&redPacketId="+redPacketId; // 分享出去的地址
+    var noteDesc = noteDesc;
+    var shareTitle = '来自"'+ wechatname +'"的红包';
+    // console.log(shareTitle);
+    $.ajax({
+        type : 'POST',
+        url :  web+"/appLogin/getWxShareParam", //调取后台接口
+        dataType : "json",
+        data:{
+            token:token,
+            url:shareUrl,
+            redPacketId:redPacketId,
+            inviteCode:inviteCode,
+            platform:'H5'
+        },
+        success : function(data){
+            /* console.log(data); */
+            var appId = data.data.appid;
+            var timestamp = data.data.timestamp;
+            var nonceStr = data.data.nonceStr;
+            var signature = data.data.sign;
+
+            wx.config({
+                debug: false,
+                appId: appId,
+                timestamp: timestamp,
+                nonceStr: nonceStr,
+                signature: signature,
+                jsApiList: [
+                    // 'checkJsApi',
+                    'onMenuShareTimeline',
+                    'onMenuShareAppMessage'
+                ]
+            });
+            wx.ready(function() {
+                wx.onMenuShareTimeline({
+                    title: shareTitle, // 分享标题
+                    desc: noteDesc,  //分享内容
+                    link: lineLink, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+                    imgUrl: imgUrl, // 分享图标
+                    success: function () {
+                        // 用户确认分享后执行的回调函数
+                        layer.msg('分享成功');
+                    },
+                    cancel: function () {
+                        // 用户取消分享后执行的回调函数
+                        layer.msg('取消分享');
+                    }
+                });
+                wx.onMenuShareAppMessage({
+                    title: shareTitle, // 分享标题
+                    desc: noteDesc, // 分享描述
+                    link: lineLink, // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+                    imgUrl: imgUrl, // 分享图标
+                    type: '', // 分享类型,music、video或link，不填默认为link
+                    dataUrl:'' , // 如果type是music或video，则要提供数据链接，默认为空
+                    success: function () {
+                        // 用户确认分享后执行的回调函数
+
+                    },
+                    cancel: function () {
+                        // 用户取消分享后执行的回调函数
+                    }
+                });
+            });
+        },
+
+    });
+
+    $(function () {
+        var apphtml = new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                appType: GetQueryString('appType'),
+                inviteCode:GetQueryString("inviteCode"),      //邀请码
+                dataList: [],
+                userbgtallnum: 0,                  //用户持有的BGT总量
+                bgtallnum: 0,                      //总共发放的bgt数量
+                noteDesc: '恭喜发财，大吉大利',                       //红包祝福语
+                redpackagenum:'',                 //发送红包个数
+                bgtnum:'',                        //单个发放的bgt数量
+                wechatphoto: '../../images/mylogo.png',                  //微信头像
+                wechatname: '暂无获取到名称',             //微信昵称
+                typestate:10,                          //红包类型（10为随机，20为普通）
+                btnstate: false,                      //发送红包按钮状态
+                textstate:'红包总量',
+                flag:GetQueryString('flag'),
+                maxNum:'',                           // 发送多少个红包新用户领取才能返还
+                returnRatio:'',                      // 新用户领取红包返还比例
+                loadpic:true,
+                minBalance:''                       // 发红包后余额最小保留量
+            },
+            methods: {
+                getUserWalletInfo:function () {
+                    var that = this;
+                    this.$http({
+                        method: "post",
+                        url: fund+"/appRedPacket/getUserWalletInfo",
+                        data: {
+                            token:this.token,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if(data.data.code==0){
+                            // console.log(data.data.data.photo);
+                            if(data.data.data.photo){
+                                this.wechatphoto=data.data.data.photo;
+                            }
+                            this.maxNum=data.data.data.maxNum;
+                            this.returnRatio=data.data.data.returnRatio;
+                            this.minBalance=data.data.data.minBalance;
+                            this.inviteCode=data.data.data.inviteCode;
+                            inviteCode=that.inviteCode;
+                            this.userbgtallnum=data.data.data.bgt;
+                            this.wechatname=data.data.data.inckname;
+                            wechatname =this.wechatname;
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+
+                    }, function (error) {
+                        console.log(error);
+                    });
+                },
+                sendredpackage:function (wechatphoto,wechatname,noteDesc,appType,inviteCode) {
+                    this.btnstate = false;
+                    var that =this;
+                    if(!this.noteDesc){
+                        this.noteDesc='恭喜发财，大吉大利';
+                        noteDesc=this.noteDesc;
+                    }
+                    if (this.bgtnum !='' && this.redpackagenum !='' && this.noteDesc !='') {
+
+                        if(this.userbgtallnum-this.bgtnum<this.minBalance){
+                            layer.msg('您的余额不能小于'+this.minBalance+'BGT');
+                            return;
+                        }
+                        layer.msg('红包生成中……');
+                        this.$http({
+                            method: "post",
+                            url: fund+"/appRedPacket/issueRedPacket",
+                            data: {
+                                token:this.token,
+                                sumAmount:this.bgtnum,
+                                sumNum:this.redpackagenum,
+                                issueTypeId:this.typestate,
+                                noteDesc:this.noteDesc,
+                                platform:'H5'
+                            },
+                            emulateJSON: true
+                        }).then(function (data) {
+                            console.log(data);
+                            if(data.data.code ==0){
+                                //生成成功后跳转页面
+                                    window.location.href="shareRedPackage.html?photo="+wechatphoto+"&wechatname="+encodeURIComponent(wechatname)+"&noteDesc="+encodeURIComponent(noteDesc)+"&appType="+appType +"&inviteCode="+ inviteCode +"&redPacketId="+data.data.data.redPacketId+"&token="+that.token+"&type=issue";
+                            }else{
+                                layer.msg(data.data.message);
+                                this.btnstate = true;
+                            }
+
+                        }, function (error) {
+                            console.log(error);
+                        });
+                    }
+                },
+                inputFun:function(e){
+                    if(this.bgtnum>0) {
+                        if (this.bgtnum > 100) {
+                            layer.msg('红包总量不能大于100');
+                            this.bgtnum = 100;
+                            return;
+                        }
+                        if (this.redpackagenum > 100) {
+                            layer.msg('红包个数不能大于100');
+                            this.redpackagenum = 100;
+                            return;
+                        }
+                        if (this.bgtnum < 0.01 && this.bgtnum.length >= 4) {
+                            layer.msg('红包总量不能小于0.01');
+                            this.bgtnum = 0;
+                            return;
+                        }
+                        if (this.typestate == 20) {
+                            this.bgtallnum = this.bgtnum * this.redpackagenum;
+                        } else {
+                            this.bgtallnum = this.bgtnum;
+                        }
+
+                        if (this.bgtnum != '' && this.redpackagenum != '') {
+                            this.btnstate = true;
+                        } else {
+                            this.btnstate = false;
+                        }
+                    }else{
+                        layer.msg('红包金额必须大于0');
+                    }
+                },
+                cutstate:function(typestate){
+                    if(typestate ==10){
+                        this.typestate=20;
+                        this.textstate='单个红包数量';
+                        this.bgtallnum=this.bgtnum*this.redpackagenum;
+                    }else{
+                        this.typestate=10;
+                        this.textstate='红包总量';
+                        if(this.bgtnum==''){
+                            this.bgtnum=0;
+                        }
+                        this.bgtallnum =this.bgtnum;
+                    }
+                },
+                opensend:function(token,inviteCode,appType){
+                    window.location.href="sendRedPackage.html?token="+token+"&inviteCode="+inviteCode+"&appType="+appType;
+                },
+                openmy:function(token,inviteCode,appType){
+                    window.location.href="myRedPackage.html?token="+token+"&inviteCode="+inviteCode+"&appType="+appType;
+                },
+            },
+            mounted: function () {
+                this.getUserWalletInfo();
+                this.$nextTick(function () {
+                    var that=this;
+                    setTimeout(function () {
+                        that.loadpic=false;
+                    },1000)
+                })
+            },
+        });
+
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>通讯录邀请预注册</title>
+    <link rel="icon" href="../../favicon2018921.ico" type="image/x-icon"/>
+    <script src="../../js/appcommon.js"></script>
+    <style>
+        .layui-layer {
+            background: #f44479 !important;
+        }
+    </style>
+</head>
+<body style="padding-bottom: 0">
+<div class="freeregnewteacher" id="htmlWap" v-cloak>
+    <img class="regpic" src="../../images/teacher/banner.png"/>
+    <div class="wechatphoto"><img :src="wechatphotoleft"/></div>
+    <h6 class="freeonetext">{{wechatnametop}}: “邀你加入布谷”</h6>
+    <div class="regeditteacher">
+        <input type="number" pattern="[0-9]*" oninput="if(value.length>11)value=value.slice(0,11)"
+               class="cell-input cell-inputteacher"
+               placeholder="请输入手机号码" autocomplete="off" v-model="userPhone">
+        <h3>填写手机号并下载布谷，即可领取</h3>
+        <div class="freegetbtn" @click="savePhone()">
+            接收邀请
+        </div>
+        <p class="Top_Record">
+        <p class="topRec_List">
+        <div class="maquee" style="height: 45px; overflow: hidden">
+            <ul>
+                <li v-for="item in inviteBgtNumlist">
+                    <div class="ownwechat">
+                        <img :src="item.photo"/>
+                        {{item.nickname}}，激活{{item.num}}BGT奖池
+                    </div>
+                </li>
+            </ul>
+        </div>
+        </p>
+        </p>
+    </div>
+    <div class="regqcodeDialog"><img src="../../images/regpopup.png"/>
+        <div v-if="oldman" class="alreadyreg">您已经领取过<br>新人注册礼包</div>
+        <div v-if="newman" class="alreadyreg">恭喜获得奖励<br><strong>10BGT</strong><br>
+            <p>奖励当天有效，过期将被收回</p></div>
+        <div class="regdialogbtnwk"><strong>奖励已放入<span class="yellow">{{userPhonehide}}</span>账户内</strong>
+            <button type="button" v-show="saveBtn" id="saveBtn" class="btn-block btn-primary reg_btnorange"
+                    @click="downloadpage()">点击查看
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+<script src="../../js/md5.js"></script>
+<script src="../../js/base64.min.js"></script>
+<script>
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2]
+        }
+    }
+
+    var code = GetQueryString("code");
+    if (code == "null" || code == "") {
+        code = 0
+    }
+    $(function () {
+        var htmlWap = new Vue({
+            el: "#htmlWap",
+            data: {
+                userPhone: "",
+                inviteCode: code,
+                oldman: false,
+                newman: false,
+                wechatnametop: decodeURIComponent(GetQueryString('userName')),
+                wechatnamebottom: '低调的风',
+                wechatphotoleft: GetQueryString("wechatphoto"),
+                wechatphotoright: "../../images/mylogo.png",
+                userPhonehide: "你的好友",
+                inviteBgtNumlist:[]         //获得BGT人数组
+            },
+            methods: {
+                savePhone: function () {
+                    if (this.userPhone.length != 11 || !/^1[3456789]\d{9}$/.test(this.userPhone)) {
+                        layer.msg("请输入正确手机号!");
+                        return
+                    }
+                    var senddata = "inviteCode=" + this.inviteCode + "&phone=" + this.userPhone + "&platform=H5";
+                    var sign = $.md5(senddata + key);
+                    var mbencode = Base64.encode(sign);
+                    this.$http({
+                        method: "post",
+                        url: sysh5 + "/appReadyReg/readyReg",
+                        data: {phone: this.userPhone, inviteCode: this.inviteCode, platform: "H5", sign: mbencode},
+                        emulateJSON: true
+                    }).then(function (data) {
+                        this.userPhonehide = (this.userPhone + "").replace(/(\d{3})\d{4}(\d{4})/, "$1****$2");
+                        if (data.data.code == 0) {
+                            this.oldman = false;
+                            this.newman = true;
+                            layer.open({
+                                type: 1,
+                                title: false,
+                                closeBtn: 0,
+                                area: "80%",
+                                shadeClose: true,
+                                content: $(".regqcodeDialog")
+                            })
+                        } else {
+                            if (data.data.code == 1) {
+                                this.oldman = true;
+                                this.newman = false;
+                                layer.open({
+                                    type: 1,
+                                    title: false,
+                                    closeBtn: 0,
+                                    area: "80%",
+                                    shadeClose: true,
+                                    content: $(".regqcodeDialog")
+                                })
+                            } else {
+                                layer.msg(data.data.message)
+                            }
+                        }
+                    }, function (error) {
+                        console.log(error)
+                    })
+                }, downloadpage: function () {
+                    window.location.href = "http://www.bugu.one?Math="+Math.random();
+                },
+
+                inviteBgtNum(){
+                    this.$http({
+                        method: "post",
+                        url:"http://192.168.2.154:10080/appUserAddr/inviteBgtNum",
+                        data: {},
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if(data.data.code ==0){
+                            this.inviteBgtNumlist =data.data.data.list;
+                            for(var i in this.inviteBgtNumlist){
+                                if(this.inviteBgtNumlist[i].photo == undefined){
+                                    this.inviteBgtNumlist[i].photo ='../../images/mylogo.png';
+                                }
+                                if(this.inviteBgtNumlist[i].nickname == undefined){
+                                    this.inviteBgtNumlist[i].nickname =this.inviteBgtNumlist[i].userAccount;
+                                }
+                            }
+                        }
+
+                    }, function (error) {
+                        console.log(error)
+                    })
+
+                }
+            },
+            filters: {
+                isM: function (val) {
+                    console.log(val);
+                    return val == 'undefined' ? 'item.photo' : '../../images/mylogo.png'
+                }
+            },
+            mounted: function () {
+                // console.log(this.wechatnametop);
+                this.inviteBgtNum();
+                if(this.wechatnametop=='null'){
+                    console.log(1);
+                    this.wechatnametop="你的好友";
+                }if(this.wechatphotoleft=='null'){
+                    this.wechatphotoleft="../../images/mylogo.png";
+                }
+            }
+        })
+    });
+
+    // 底部垂直滚动跑马灯
+    function autoScroll(obj) {
+        $(obj).find("ul").animate({
+            marginTop: "-39px"
+        }, 1000, function () {
+            $(this).css({marginTop: "0px"}).find("li:first").appendTo(this);
+        })
+    }
+
+    $(function () {
+        var scroll = setInterval('autoScroll(".maquee")', 1500);
+        $(".maquee").hover(function () {
+            console.log("aaa");
+            clearInterval(scroll);
+        }, function () {
+            scroll = setInterval('autoScroll(".maquee")', 1500);
+        });
+
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

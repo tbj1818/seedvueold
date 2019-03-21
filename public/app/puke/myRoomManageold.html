@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>我的房间</title>
+    <link rel="icon" href="../../favicon2018921.ico"  type="image/x-icon" />
+    <script src="../../js/appcommon.js"></script>
+    <style>
+        body{ background:#271B50;}
+        .swiper_con{width: 90%; margin:10px auto}
+        .m-grids-4{ background: none !important;}
+        .swiper-wrapper .text-gray .grids-txt{color:#76F4FE;font-size: .28rem;}
+    </style>
+</head>
+<body>
+<div id="htmlWap" v-cloak>
+    <div id="J_Tab" class="m-tab">
+
+        <div class="swiper-container roomdatawkbg">
+            <ul class="tab-nav roomdata">
+                <li class="tab-nav-item" v-for="(item,index) in tabsParam" :class="{'tab-active':index==nowIndex}"
+                    @click="toggleTabs(index)">{{item}}</li>
+            </ul>
+            <div class="swiper-wrapper" v-show="nowIndex===0">
+                <div class="m-grids-4 text-gray">
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>房间名称</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>金额</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>下注</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>结果</span></div>
+                    </a>
+                </div>
+                    <div class="m-grids-4 roombg" v-for="item in getdatalist">
+                        <section v-show="item.resultValueTmp!=item.pourValue">
+                        <a href="javascript:;" class="grids-item">
+                            <div class="grids-txt"><span>{{item.roomName}}</span></div>
+                        </a>
+                        <a href="javascript:;" class="grids-item">
+                            <div class="grids-txt"><span>{{item.pourMoney | numSlicetwo}}</span></div>
+                        </a>
+                        <a href="javascript:;" class="grids-item">
+                            <div class="grids-txt"><span>{{item.pourValue}}</span></div>
+                        </a>
+                        <a href="javascript:;" class="grids-item btn-notsmallget">
+                            <div class="grids-txt"><span>{{item.resultValue}}
+                                <span class="color_green mar_l10" v-if="item.resultMoney>0">+{{item.resultMoney | numSlicetwo}}</span>
+                                <span class="color_green mar_l10" v-if="item.resultMoney==0">-{{item.pourMoney | numSlicetwo}}</span>
+                            </span></div>
+                        </a>
+                        </section>
+
+
+                        <section class="current" v-show="item.resultValueTmp==item.pourValue">
+                            <a href="javascript:;" class="grids-item">
+                                <div class="grids-txt"><span>{{item.roomName}}</span></div>
+                            </a>
+                            <a href="javascript:;" class="grids-item">
+                                <div class="grids-txt"><span>{{item.pourMoney | numSlicetwo}}</span></div>
+                            </a>
+                            <a href="javascript:;" class="grids-item">
+                                <div class="grids-txt"><span>{{item.pourValue}}</span></div>
+                            </a>
+                            <a href="javascript:;" class="grids-item btn-notsmallget">
+                                <div class="grids-txt"><span>{{item.resultValue}}
+                                    <span class="color_green mar_l10" v-if="item.resultMoney>0">+{{item.resultMoney | numSlicetwo}}</span>
+                                    <span class="color_green mar_l10" v-if="item.resultMoney==0">-{{item.pourMoney | numSlicetwo}}</span>
+                                </span></div>
+                            </a>
+                     </section>
+                    </div>
+                <p class="nodata" v-show="getdatalist.length==0">暂无数据</p>
+                <div class="nodata downtext" @click="loadmoredata(10)" v-show="loadMore">加载更多</div>
+            </div>
+            <div  class="swiper-wrapper" v-show="nowIndex===1">
+                <div class="m-grids-4 text-gray">
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>房间名称</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>初始奖池</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>当前奖池</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>胜率</span></div>
+                    </a>
+                </div>
+                <div class="m-grids-4 roombg" v-for="item in getdatalist2"  @click="opendetail(token,item.roomCode)">
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>{{item.roomDesc}}</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>{{item.jackpotAmount | numSlicetwo}}</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>{{item.jackpotCurrentValue  | numSlicetwo}}</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item btn-notsmallget">
+                        <div class="grids-txt"><span>{{item.winProbability*100 | numSlicetwo}}%</span></div>
+                    </a>
+                </div>
+                <p class="nodata" v-show="getdatalist2.length==0">暂无数据</p>
+                <div class="nodata downtext" @click="loadmoredata(20)" v-show="loadMore2">加载更多</div>
+            </div>
+        </div>
+    </div>
+    <!--等待图标-->
+    <div class="pukeloading" v-show="loadpic">
+        <img src="../../images/pukeloading.gif" />
+    </div>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function() {
+        var apphtml =  new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                appType:GetQueryString("appType"),      //来源
+                getType:10,                             //获取类型
+                limit:15,                              //每页数据条数
+                offset:1,                              //第几页
+                getdatalist: [],
+                getdatalist2: [],
+                loadMore:false,
+                loadMore2:false,
+                tabsParam:['我玩过的','我创建的'],
+                nowIndex:0,                            //默认第一个tab为激活状态
+                loadpic:true,
+                datastate:'数据加载中…'
+            },
+            methods: {
+                toggleTabs(index){
+                    this.nowIndex=index;
+                    this.offset=1;
+                    this.loadpic=true;
+                    if(index==0){
+                        this.getType=10;
+                    }
+                    if(index==1){
+                        this.getType=20;
+                    };
+                    this.getRedPacket(index,0);
+                },
+                getRedPacket(index,type){
+                    if(index==0){
+                        this.getType=10;
+                    }
+                    if(index==1){
+                        this.getType=20;
+                    }
+                    if(type==1){
+                        this.offset++
+                    }
+                    this.$http({
+                        method: "post",
+                        url: snatch+"/appGameUserRoom/getGameList",
+                        data: {
+                            token:this.token,
+                            getType:this.getType,
+                            limit:this.limit,
+                            offset:this.offset,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        this.loadpic=false;
+                        // console.log(data);
+                        // console.log(this.offset);
+                        if(data.data.code==0){
+                            if (this.getType==10 && data.data.data.dataList) {
+                                this.getdatalist2=[];
+                                if(this.offset==1){
+                                    this.getdatalist=[];
+                                }
+                                if(data.data.data.dataType==10) {
+                                    this.loadpic=false;
+                                    for (var i  in data.data.data.dataList) {
+                                        var item = data.data.data.dataList[i];
+                                        this.getdatalist.push(item);
+                                        if (!data.data.data.dataList[i].userNickname) {
+                                            data.data.data.dataList[i].userNickname = data.data.data.dataList[i].userAccount;
+                                        }
+                                        //替换下注
+                                        if (data.data.data.dataList[i].pourValue == 'A') {
+                                            data.data.data.dataList[i].pourValue = 1;
+                                        } else if (data.data.data.dataList[i].pourValue == 'J') {
+                                            data.data.data.dataList[i].pourValue = 11;
+                                        } else if (data.data.data.dataList[i].pourValue == 'Q') {
+                                            data.data.data.dataList[i].pourValue = 12;
+                                        } else if (data.data.data.dataList[i].pourValue == 'K') {
+                                            data.data.data.dataList[i].pourValue = 13;
+                                        }
+                                        if (parseInt(data.data.data.dataList[i].pourValue) < 7) {
+                                            data.data.data.dataList[i].pourValue = '小';
+                                        } else if (parseInt(data.data.data.dataList[i].pourValue) == 7) {
+                                            data.data.data.dataList[i].pourValue = '中';
+                                        } else {
+                                            data.data.data.dataList[i].pourValue = '大';
+                                        }
+                                        //替换结果
+                                        if (data.data.data.dataList[i].resultValue == 'A') {
+                                            data.data.data.dataList[i].resultValue = 1;
+                                        } else if (data.data.data.dataList[i].resultValue == 'J') {
+                                            data.data.data.dataList[i].resultValue = 11;
+                                        } else if (data.data.data.dataList[i].resultValue == 'Q') {
+                                            data.data.data.dataList[i].resultValue = 12;
+                                        } else if (data.data.data.dataList[i].resultValue == 'K') {
+                                            data.data.data.dataList[i].resultValue = 13;
+                                        }
+                                        if (parseInt(data.data.data.dataList[i].resultValue) < 7) {
+                                            data.data.data.dataList[i].resultValueTmp = '小';
+                                        } else if (parseInt(data.data.data.dataList[i].resultValue) == 7) {
+                                            data.data.data.dataList[i].resultValueTmp = '中';
+                                        } else {
+                                            data.data.data.dataList[i].resultValueTmp = '大';
+                                        }
+                                    }
+                                }else{
+                                    return;
+                                }
+                                if (data.data.data.dataList.length >= this.limit) {
+                                    this.loadMore = true;
+                                }else {
+                                    this.loadMore = false;
+                                }
+                            }else{
+                                this.loadMore = false;
+                                // console.log(this.offset);
+                            }
+                            //我创建的
+                            if (this.getType==20 && data.data.data.dataList) {
+                                console.log(data);
+                                this.getdatalist=[];
+                                if( this.offset==1){
+                                    this.getdatalist2=[];
+                                }
+                                if(data.data.data.dataType==20){
+                                    this.loadpic=false;
+                                    for (var i  in data.data.data.dataList) {
+                                        var item = data.data.data.dataList[i];
+                                        this.getdatalist2.push(item);
+                                    }
+                                }else{
+                                    return;
+                                }
+                                // this.getdatalist2 = data.data.data.dataList;
+
+                                if (data.data.data.dataList.length >= this.limit) {
+                                    this.loadMore2 = true;
+                                }else {
+                                    this.loadMore2 = false;
+                                }
+                            }else{
+                                this.loadMore2 = false;
+                                // console.log(this.offset);
+                            }
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        layer.msg('接口出错');
+                    });
+                },
+                loadmoredata: function(index){
+                    if(index==10){
+                        this.getRedPacket(0,1);
+                    }else{
+                        this.getRedPacket(1,1);
+                    }
+                },
+                opendetail(token,roomCode){
+                    window.location.href='roomInformation.html?token='+token+"&roomId="+roomCode ;
+                }
+            },
+            filters: {
+                numSlicetwo: function (val) {
+                    if (val) {
+                        return parseFloat(val.toFixed(2));
+                    }else if(val==0){
+                        return parseFloat(val.toFixed(2));
+                    }
+                },
+            },
+            mounted: function () {
+                    this.getRedPacket(0);
+            },
+            beforeCreate: function(){
+                //加载层
+                this.$nextTick(function () {
+                    var that=this;
+                    setTimeout(function () {
+                        that.loadpic=false;
+                    },1000)
+                })
+            }
+        });
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

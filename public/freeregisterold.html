@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title><link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <link rel="stylesheet" href="css/ydui.css">
+    <link rel="stylesheet" href="css/bb.css?time=20180914">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/vue-resource.js"></script>
+    <script src="js/layer/layer.js"></script>
+    <script src="js/ydui.flexible.js"></script>
+    <style>
+        .cell-item:not(:last-child):after{margin-left: 0}
+        .m-cell{margin: 0 10px;}
+        .yregistereBg .layui-layer{ background: none}
+    </style>
+</head>
+
+<body style="background:#4D59F9">
+<div id="htmlWap" v-cloak class="yregistereBg">
+    <section class="bindphone yregphone">
+        <div class="m-cell reg_borderR">
+            <div class="cell-item">
+                <div class="cell-left"><i class="cell-icon demo-icons-phone"></i></div>
+                <div class="cell-right">
+                    <input type="number" v-show="saveBtn" pattern="[0-9]*" oninput="if(value.length>11)value=value.slice(0,11)"  class="cell-input" placeholder="请输入手机号码" autocomplete="off" v-model="userPhone">
+                </div>
+            </div>
+        </div>
+        <div class="regbtnwk">
+            <button type="button" v-show="saveBtn" id="saveBtn" class="btn-block btn-primary reg_btnorange" @click="savePhone()">点击领取</button>
+        </div>
+    </section>
+    <div class="regqcodeDialog"><img src="images/regpopup.png"/>
+        <div v-if="oldman" class="alreadyreg">您已经领取过<br>新人注册礼包</div>
+        <div v-if="newman" class="alreadyreg">恭喜获得奖励<br><strong>10BGT</strong><br><p>奖励当天有效，过期将被收回</p></div>
+        <div class="regdialogbtnwk"><strong>奖励已放入<span class="yellow">{{userPhonehide}}</span>账户内</strong><button type="button" v-show="saveBtn" id="saveBtn" class="btn-block btn-primary reg_btnorange" @click="downloadpage()">点击查看</button></div>
+    </div>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function() {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                userPhone:'',
+                inviteCode:GetQueryString('code'),
+                oldman:false,
+                newman:false,
+                userPhonehide:''
+            },
+            methods: {
+                savePhone:function(){
+                    if(this.userPhone.length != 11 || !/^1[3456789]\d{9}$/.test(this.userPhone)){
+                        layer.msg('请输入正确手机号!');
+                        return;
+                    }
+                    this.$http({
+                        method: "post",
+                        url: "/appReadyReg/readyReg",
+                        data: {
+                            phone:this.userPhone,
+                            inviteCode:this.inviteCode,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        this.userPhonehide =(this.userPhone +'').replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+                        if(data.data.code == 0){
+                            // layer.msg(data.data.message);
+                                this.oldman=false;
+                                this.newman=true
+                            layer.open({
+                                type: 1,
+                                title: false,
+                                closeBtn: 0,
+                                area: '80%',
+                                shadeClose: true,
+                                content: $('.regqcodeDialog')
+                            });
+                        }else{
+                            // layer.msg(data.data.message);
+                            this.oldman=true;
+                            this.newman=false
+                            layer.open({
+                                type: 1,
+                                title: false,
+                                closeBtn: 0,
+                                area: '80%',
+                                shadeClose: true,
+                                content: $('.regqcodeDialog')
+                            });
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                downloadpage:function () {
+                    window.location.href="http://www.bugu.one?Math="+Math.random();
+                }
+            },
+            mounted: function () {
+            }
+        })
+    })
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?23a7df0a4f6dd37bf6e346d0a4279fac";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

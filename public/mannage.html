@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title><link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <link rel="stylesheet" href="css/ydui.css">
+    <link rel="stylesheet" href="css/bb.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/vue-resource.js"></script>
+    <script src="js/layer/layer.js"></script>
+    <script src="js/ydui.flexible.js"></script>
+    <style>
+        .m-cell{margin-left:.1rem}
+        .cell-item:not(:last-child):after{margin-left: 0.1rem}
+        .icon-add{color: #fff}
+    </style>
+</head>
+
+<body>
+<div id="htmlWap" v-cloak>
+    <header class="m-navbar">
+        <a  href="javascript:history.go(-1);" class="navbar-item">
+            <i class="back-ico"></i>
+        </a>
+        <div class="navbar-center">
+            <span class="navbar-title">自选管理</span>
+        </div>
+        <div class="navbar-item whiteText">
+            <a href="AddPlatform.html" style="font-size: .3rem; font-weight: bold;color: #333">
+                添加
+            </a>
+        </div>
+    </header>
+
+    <section class="addzxBtn">
+        <div class="tab-panel-item tab-active">
+            <div class="m-celltitle m-celltitleBg2">已添加的币种,点击右侧星星移除自选</div>
+            <div class="m-cell">
+                <a class="cell-item" href="javascript:;" v-for="item in addList">
+                    <div class="cell-left">
+                        <div class="grids-text">
+                            <p class="Icopt">
+                                {{item.platformName}}
+                                <template v-if="item.coinNameCN != undefined && item.coinNameCN != ''">,
+                                    <template v-if="item.coinNameCN.length > 10">
+                                        {{item.coinNameCN.substring(0, 10)}}...
+                                    </template>
+                                    <template v-if="item.coinNameCN.length <= 10">
+                                        {{item.coinNameCN}}
+                                    </template>
+                                </template>
+                            </p>
+                            <p class="nameIco">{{item.coinName}}/{{item.relativeTrade}}</p>
+                        </div>
+                    </div>
+                    <div class="cell-right"><i class="icon-star" @click="deleteItem(item.rowId)"></i></div>
+                </a>
+            </div>
+        </div>
+        <div class="nodata" v-show="addList.length==0">暂无自选</div>
+    </section>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var fromType = GetQueryString('fromType');
+    var platformId = GetQueryString('platformId');
+    $(function() {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                userToken:'',
+                phoneStatus:'0',
+                addList:[],
+                platformName:''
+            },
+            methods: {
+                loadAddCoin:function () {
+                    this.$http({
+                        method: "post",
+                        url: "/appFocusConfig/dataList",
+                        data: {
+                            token:this.userToken,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                     // console.log(data);
+                        if(data.data.code == 0){
+                            this.addList = data.data.data;
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                deleteItem:function (rowId) {
+                    this.$http({
+                        method: "post",
+                        url: "/appFocusConfig/delFocusConfig",
+                        data: {
+                            token:this.userToken,
+                            rowId:rowId,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+//                        console.log(data);
+                        if(data.data.code == 0){
+                            layer.msg(data.data.message);
+                            this.loadAddCoin();
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                loadUserInfo:function () {
+                    this.$http({
+                        method: "post",
+                        url: "/appUser/checkUserPhone",
+                        data: {
+                            token:this.userToken,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        if(data.data.code == 0){
+                            this.phoneStatus = data.data.data;
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                //返回
+                // backTo:function () {
+                //     if(fromType && fromType == 'index'){
+                //         window.location.href = 'add1.html';
+                //     }
+                // }
+            },
+            mounted: function () {
+                this.userToken = localStorage.getItem("userToken");
+                //加载用户是否手机验证
+                this.loadUserInfo();
+                this.loadAddCoin();
+            }
+        })
+    })
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?23a7df0a4f6dd37bf6e346d0a4279fac";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title>
+    <link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <link rel="stylesheet" href="css/ydui.css?time=20180925">
+    <link rel="stylesheet" href="css/bb.css?time=20180925">
+    <style>
+       .icon-clock, .icon-star-outline{color: #ff6a2f; font-size: 0.4rem}
+        .gray{color: #ccc}
+       .btn-block{font-size: 0.24rem;border-radius: 30px;}
+       .m-grids-3 .grids-item{padding: 0}
+    </style>
+</head>
+
+<body>
+<div id="htmlWap" v-cloak >
+    <section>
+        <div class="m-tab" data-ydui-tab>
+            <div class="tab-panel" style="margin-top: 0">
+                <div class="m-grids-3" style="background:#f6f6f6;padding:10px 0 10px 10px">
+                    <div href="#" class="grids-item" style="width:25%">
+                        <div class="grids-txt" style=" text-align: left"><span>币种</span></div>
+                    </div>
+                    <div href="#" class="grids-item" style="width:30%;">
+                        <div class="grids-txt" style="text-align: right">价格</div>
+                    </div>
+                    <div href="#" class="grids-item" style="width: 25%">
+                        <div class="grids-txt" style="padding-left: 15px;">涨幅</div>
+                    </div>
+                    <div href="#" class="grids-item" style="width:20%">
+                        <div class="grids-txt">预警</div>
+                    </div>
+                </div>
+                <!--BTC-7 ETH-8 EOS-9 HT-10 BCH-11 XRP-12-->
+                <div class="tab-panel-item tab-active" style="padding: 0">
+                        <div class="m-grids-3"  v-for="(item,value) in dataList" style="padding-left: 0.2rem">
+                            <a href="#" class="grids-item" style="width:25%;">
+                                <div class="grids-text">
+                                    <span class="nameIco">
+                                       {{item.coinName}}/{{item.relativeTrade}}
+                                    </span>
+                                </div>
+                                <div class="grids-text">
+                                    <span class="Icopt">
+                                       {{item.platformName}}
+                                       <template v-if="item.coinNameCN != undefined && item.coinNameCN != ''">,
+                                           <template v-if="item.coinNameCN.length > 3">
+                                              {{item.coinNameCN.substring(0, 3)}}...
+                                           </template>
+                                           <template v-if="item.coinNameCN.length <= 3">
+                                              {{item.coinNameCN}}
+                                           </template>
+                                       </template>
+                                    </span>
+                                </div>
+                            </a>
+                            <a href="#" class="grids-item" style="width:28%; overflow:hidden">
+                                <div class="grids-txt">
+                                    <div class="grids-text">
+                                        <p class="nameIcoblue textRight dynamicNum" @click="ShowUsdt(item.priceUsdt)" v-show="item.priceUsdt">{{item.priceUsdt}}</p>
+                                        <p class="nameIcoblue textRight dynamicNum" @click="ShowUsdt(item.priceUsdt)" v-show="!item.priceUsdt">---</p>
+                                        <!--<p class="nametext">≈￥{{item.priceUsdt * rootRate}}</p>-->
+                                    </div>
+                                    <div class="grids-text">
+                                        <p class="nameIcormb textRight dynamicNum" @click="ShowUsdt(item.priceUsdt * item.relativePrice * rootRate)" v-show="item.priceUsdt">≈¥{{item.priceUsdt * item.relativePrice * rootRate | numSlicesix}}</p>
+                                        <p class="nameIcormb textRight dynamicNum" @click="ShowUsdt(item.priceUsdt * rootRate)" v-show="!item.priceUsdt">---</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <a href="#" class="grids-item" style="width: 27%; padding:0 0 0 0.5rem;margin-top: 10px;">
+                                <div class="grids-txt">
+                                    <button type="button" :class="item.priceUpRatio < 0 ? 'btn-block btn-danger' : (item.priceUpRatio == 0 ? 'btn-block btn-disabled' : 'btn-block btn-primary')">
+                                        <template v-if="item.priceUpRatio != undefined">
+                                            {{item.priceUpRatio > 0 ? '+' :''}} {{item.priceUpRatio*100 | numSlice}}%
+                                        </template>
+                                        <template v-if="item.priceUpRatio == undefined">
+                                            <span class="btn-block btn-disabled">0.00%</span>
+                                        </template>
+                                    </button>
+                                </div>
+                            </a>
+                            <a href="javascript:;" @click="warning(item.platformId,item.coinId,item.coinName,item.priceUsdt,item.priceUsdt,item.relativeTrade)" class="grids-item" style="width: 20%;margin-top: 10px; vertical-align: middle">
+                                <div class="grids-txt" style="text-align: center">
+                                    <i v-show="item.warnFlag==1" class="icon-clock"></i>
+                                    <i v-show="item.warnFlag==0" class="settingtext">设置</i>
+                                </div>
+                            </a>
+                        </div>
+                    <!-- 自选添加 -->
+                    <section class="addzxBtn" v-if="isShowAdd">
+                        <a href="javaScript:;" class="aBloack wflex" @click="addBtn()">
+                            <span><i class="icon-add"></i></span>
+                            <span class="textBtn">管理自选，添加自选</span>
+                        </a>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!--底部菜单-->
+    <div class="bottonmenu">
+        <footer class="m-tabbar tabbar-fixed">
+            <a href="#" class="tabbar-item tabbar-active">
+                <span class="tabbar-icon">
+                    <i class="icon-footmark"></i>
+                    <span class="tabbar-txt">预警</span>
+                </span>
+
+            </a>
+            <a href="javascript:;" @click="loadUserInfo()" class="tabbar-item">
+                <span class="tabbar-icon">
+                    <i class="icon-ucenter"></i>
+                     <span class="tabbar-txt">我的</span>
+                </span>
+
+            </a>
+        </footer>
+    </div>
+    <!--领取Bgt-->
+    <!--<div class="getBgt"><a href="GetBgt.html"> 领取BGT</a></div>-->
+    <!-- 暂无自选 -->
+    <section class="addzxBtn" v-if="isZeroShowAdd">
+        <a href="javaScript:;" class="aBloack" @click="addBtn()">
+            <div class="btnk"></div>
+            <div class="textBtn">暂无自选，点此添加</div>
+        </a>
+    </section>
+</div>
+</body>
+<script src="js/jquery.min.js"></script>
+<script src="js/vue.min.js"></script>
+<script src="js/vue-resource.js"></script>
+<script src="js/layer/layer.js"></script>
+<script src="js/ydui.flexible.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var token = GetQueryString('token');
+    $(function() {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                userToken:'',
+                rmb:true,
+                rootRate:'6.39',
+                navNum:'2',
+                isRefresh:true,
+                isZeroShowAdd:false,
+                isShowAdd:true,
+                coinId:'7',
+                tabList:[],
+                dataList:[],
+                rotate:false,
+                amount:''  //涨跌幅
+            },
+            methods: {
+                //添加自选 百度事件统计
+                addBtn:function () {
+                    _hmt.push(['_trackEvent', 'addBtn', 'click', '首页添加自选按钮', 1]);
+                    window.location.href = 'mannage.html'
+                },
+                loadUserInfo: function () {
+                    this.$http({
+                        method: "post",
+                        url: "/appUser/checkUserPhone",
+                        data: {
+                            token: this.userToken,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        if (data.data.code == 0) {
+                            this.phoneStatus = data.data.data;
+                            if (this.phoneStatus == '0') {
+                                window.location.href = 'bindingPhone.html';
+                            }else{
+                                window.location.href = 'Mypage.html';
+                            }
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                changeNav:function(selectType){
+                    this.navNum = selectType;
+                },
+                ShowUsdt:function (usdt) {
+                  layer.msg(usdt);
+                  if(usdt ==undefined){
+                      layer.msg('暂无价格');
+                  }
+                },
+                loadRootRate:function(){
+                    //获取平台汇率
+                    this.$http({
+                        method: "post",
+                        url: "/appCoinData/getRMBRate",
+                        emulateJSON: true
+                    }).then(function (data) {
+                        if(data.data.data){
+                            // console.log(data);
+                            this.rootRate = data.data.data;
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+
+                warning:function (platformId,coinId,coinName,nowMoney,priceUsdt,relativeTrade) {
+                    if(priceUsdt ==undefined || priceUsdt ==0){
+                        layer.msg('暂无价格，无法设置');
+                        return;
+                    }
+                    window.location.href = 'warning2.html?platformId='+ platformId+"&coinId="+ coinId+"&relativeTrade=" + relativeTrade +"&coinName=" + coinName;
+                },
+                loadPersonData:function(){
+                    this.$http({
+                        method: "post",
+                        url:"/appFocusConfig/indexDataList",
+                        data: {
+                            token: this.userToken,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        if(data.data.code == 0){
+                            this.dataList = data.data.data.data;
+                            var priceUpRatios = new Map();
+                            priceUpRatios = data.data.data.priceRatio;
+                            var btcEthPrices = new Map();
+                            btcEthPrices = data.data.data.btcEthPriceData;
+                            var tempKey = "";
+                            for(var i in this.dataList){
+                                this.dataList[i].relativePrice = 1;
+                                var m = this.dataList[i].priceUsdt.toExponential().match(/\d(?:\.(\d*))?e([+-]\d+)/);
+                                this.dataList[i].priceUsdt=this.dataList[i].priceUsdt.toFixed(Math.max(0, (m[1] || '').length - m[2]));
+                                if(this.dataList[i].lastUpdateTime == undefined){
+                                    this.dataList[i].lastUpdateTime = 0;
+                                }
+                                if( this.dataList[i].lastUpdateTime * 1000 < data.data.data.date - (1000 * 60*5)){
+                                    this.dataList[i].priceUpRatio =0;
+                                }else{
+                                    if(this.dataList[i].priceUpRatio == 0){
+                                        tempKey = this.dataList[i].platformId + "_" + this.dataList[i].coinId + "_" + this.dataList[i].relativeTrade;
+                                        var openPrice = priceUpRatios[tempKey];
+                                        // console.log(openPrice);
+                                        if(openPrice ==0 || openPrice ==undefined){
+                                            this.dataList[i].priceUpRatio=0.00;
+                                        }else{
+                                            this.dataList[i].priceUpRatio = (this.dataList[i].priceUsdt - openPrice)/openPrice;
+                                        }
+                                    }
+                                }
+                                // btc或者eth和Usdt的换算汇率取 || 交易对转换
+                                if(this.dataList[i].relativeTrade != 'USDT'){
+                                    tempKey = this.dataList[i].platformId + this.dataList[i].relativeTrade;
+                                    this.dataList[i].relativePrice = btcEthPrices[tempKey];
+                                }
+                                //btc或者eth和Usdt的换算汇率取不到时初始化为0
+                                if(this.dataList[i].relativePrice == undefined){
+                                    this.dataList[i].relativePrice =0;
+                                }
+                            }
+                            if(this.dataList.length == 0){
+                                this.isZeroShowAdd = true;
+                                this.isShowAdd = false;
+                            }else{
+                                this.isZeroShowAdd = false;
+                                this.isShowAdd = true;
+                            }
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                // refresh:function () {
+                //     this.loadPersonData();
+                //     this.rotate=!this.rotate;
+                //
+                // }
+            },
+            computed:{
+
+            },
+            filters: {
+                numSlice: function (val) {
+                    if (val != undefined) {
+                        return val.toFixed(2);
+                    }
+                },
+                numSlicesix: function (val) {
+                    if (val != undefined) {
+                        return val.toFixed(6);
+                    }
+                }
+            },
+            mounted: function () {
+                var that =this;
+                //获取token
+                if(token != undefined && token.length > 0){
+                    that.userToken = token;
+                }else{
+                    that.userToken = localStorage.getItem("userToken");
+                }
+                localStorage.setItem("userToken", that.userToken);
+                // console.log('token='+that.userToken);
+                //获取平台汇率
+                that.loadRootRate();
+                //获取已自选币种
+                // this.loadCoinList();
+                that.loadPersonData(1);
+                setInterval(function(){
+                    that.loadPersonData(1);
+                },30000);
+            }
+        })
+    })
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?23a7df0a4f6dd37bf6e346d0a4279fac";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

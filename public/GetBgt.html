@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title>
+    <link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <link rel="stylesheet" href="css/ydui.css">
+    <link rel="stylesheet" href="css/bb.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue.min.js"></script>
+    <script src="js/vue-resource.js"></script>
+    <script src="js/layer/layer.js"></script>
+    <script src="js/ydui.flexible.js"></script>
+    <style>
+        body{padding: 0}
+        .m-grids-3{background: none; margin-top:10px;box-shadow:0px 0px 4px 0px rgba(153,153,153,0.25)}
+        .m-grids-3 .grids-txt{text-align: center; padding:.2rem .1rem; font-weight: bold; font-size: .3rem}
+        .m-grids-3 .grids-txt2{text-align: center; padding:.2rem 0;font-size: .26rem}
+    </style>
+</head>
+
+<body>
+<div id="htmlWap" v-cloak>
+    <header class="m-navbar">
+        <a  href="javascript:history.go(-1);" class="navbar-item">
+            <i class="back-ico"></i>
+        </a>
+        <div class="navbar-center">
+            <span class="navbar-title">BGT空投</span>
+        </div>
+    </header>
+    <section>
+        <div class="buguLogoText">
+            <div class="bgLOgo"><img src="images/buguLogo.png" /> </div>
+            <div class="bgLtext"><h3>bugu.one</h3><h3>布谷</h3></div>
+        </div>
+        <div class="bgtshm">
+            BGT是通过区块链的技术，构建一个去中心化的用户社交平台，用户在布谷农场中的行为都会产生价值，布谷农场将用户产生的这些价值数字化，来保证资产在布谷农场的唯一及不可篡改性，从而实现一个去中心化的生态体系。
+        </div>
+
+        <div class="getBgtBtn" @click="getbgtBtn()" v-if="getBgtFlag == 0">领取20BGT</div>
+        <div class="getBgtBtn" @click="myBgt()" v-if="getBgtFlag == 1">我的BGT</div>
+        <div class="texthint">每邀请一人可获得20BGT，上不封顶。<a href="ShareFriend.html" class="linktext">我要邀请</a> </div>
+    </section>
+</div>
+</body>
+<script>
+    $(function() {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                userToken: '',
+                dataList:[],
+                getBgtFlag: false,
+                // getBgtstate:'领取20BGT'
+            },
+            methods: {
+                getbgtBtn:function () {
+                    //加载用户是否手机验证
+                    this.getBgt();
+                },
+                getBgt: function () {
+                    this.$http({
+                        method: "post",
+                        url: "/appSmsLog/getBgtCoin",
+                        data: {
+                            token: this.userToken,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if (data.data.code == 0) {
+                            this.getBgtFlag = 1;
+                        }else if(data.data.code == -3){
+                            window.location.href = 'bindingPhone.html';
+                        }
+                        layer.msg(data.data.message);
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                checkUserIsGet: function(){
+                    this.$http({
+                        method: "post",
+                        url: "/appUser/getUserSmsNum",
+                        data: {
+                            token: this.userToken,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        if (data.data.code == 0) {
+                            this.getBgtFlag = data.data.data.getBgtFlag;
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                myBgt:function () {
+                    window.location.href = 'Mypage.html';
+                }
+            },
+            mounted: function(){
+                this.userToken = localStorage.getItem("userToken");
+                this.checkUserIsGet();
+            }
+        })
+    })
+</script>
+
+</html>

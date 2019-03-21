@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>游戏列表</title>
+    <link rel="icon" href="../../favicon2018921.ico"  type="image/x-icon" />
+    <link rel="stylesheet" href="../../css/ydui.css">
+    <link rel="stylesheet" href="../../css/shdw.css?201811171020">
+</head>
+<body>
+<div class="game-content" id="htmlWap" v-cloak>
+    <div class="game-long-container" v-for="(item,index) in gamelist" :key="index">
+            <img :src="item.gameicon" class="long-icon">
+            <div class="g-long-name">
+                <span class="g-l-name">{{item.gamename}}</span>
+                <span class="g-l-tag g-l-5" v-if="item.hot ==1">热门</span>
+                <span class="g-l-tag g-l-4" v-if="item.li ==1">礼包</span>
+                <span class="g-l-tag g-l-8" v-if="item.xian ==1">限号</span>
+                <span class="g-l-tag g-l-3" v-if="item.jing ==1">精品</span>
+                <span class="g-l-tag g-l-6"  v-if="item.shf ==1">首发</span>
+            </div>
+            <div class="g-long-info">{{item.infoversion}}</div>
+            <div class="g-long-desc">{{item.startf}}</div>
+        <div class="game-btn g-l-right" @click="stargame(item)">开玩</div>
+    </div>
+
+</div>
+<script src="../../js/jquery.min.js"></script>
+<script src="../../js/vue.min.js"></script>
+<script src="../../js/vue-resource.js"></script>
+<script src="../../js/layer/layer.js"></script>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var token = GetQueryString('token');
+    $(function () {
+        var htmlWap = new Vue({
+            el: '#htmlWap',
+            data: {
+                gamePath:'', //游戏地址
+                gamelist:[],
+                gameicon:''
+            },
+            methods: {
+                gameinfo:function(){
+                    this.$http({
+                        method: "get",
+                        dataType: "json", //返回数据格式为json
+                        url: "../../js/gamelist.json",
+                        data: {
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                            console.log(data.data.gameinfo);
+                            this.gamelist= data.data.gameinfo;
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                stargame: function (item) {
+                    this.$http({
+                        method: "post",
+                        url: "/appTeamLog/getTeamPath",
+                        data: {
+                            token: token,
+                            teamType: '20',
+                            gid:item.gid,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if (data.data) {
+                            this.gamePath = data.data.data.gamePath;
+                            console.log(this.gamePath);
+                            window.location.href = this.gamePath;
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+            },
+            mounted: function () {
+                this.gameinfo();
+            }
+        })
+    })
+</script>
+</body>
+</html>

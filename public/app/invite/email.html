@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>农场来信</title>
+    <link rel="icon" href="../../favicon2018921.ico" type="image/x-icon"/>
+    <script src="../../js/appcommon.js"></script>
+</head>
+<style>
+</style>
+<body>
+<div id="htmlWap" v-cloak>
+    <div class="seedemailbg">
+        <div class="emailimg">
+            <img src="./images/seedtop.png" />
+            <div class="heartbeat">
+                <img src="./images/heartbeat.png" />
+            </div>
+        </div>
+        <div class="seedtext">
+            <h1>布谷农场种子玩法</h1>
+            <section class="centerimg">
+                <img src="./images/seed.png" />
+            </section>
+            <section class="seedcontent">
+                获取途径：农场中赠送<br>
+                使用方法：农BGT是布谷生态内价值流通凭证，用户可在布谷收取BGT。并可以使用BGT在布谷中内购买商品或参与其他活动等...
+            </section>
+            <section class="centerimg">
+                <img src="./images/seed.png" />
+            </section>
+            <section class="seedcontent">
+                获取途径：农场中赠送<br>
+                使用方法：农BGT是布谷生态内价值流通凭证，用户可在布谷收取BGT。并可以使用BGT在布谷中内购买商品或参与其他活动等...
+            </section>
+            <button class="gofarmbtn" @click="gofarm(appType)">前往农场</button>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var appType = GetQueryString('appType');
+    var inviteCode;
+    $(function () {
+        new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                appType: GetQueryString('appType'),
+                inviteCode:GetQueryString('code'),        //邀请码
+                wechatName:decodeURI(GetQueryString('wechatName')),     //用户微信昵称
+                dataList: [],
+                limit:100,                              //每页数据条数
+                offset:1,                              //第几页
+                loadMore:false,
+                isDisablebook:false,                //通讯录重复点击
+                userPhoto:'../../images/notuserphoto.png',                       //用户头像
+                invitNum:'0',                        //邀请人数
+                ranking:'100+',                         //排名
+                activeTime:'',                          //活动时间
+            },
+            methods: {
+                getInvitelog: function (getPeriodNo) {
+                    this.$http({
+                        method: "post",
+                        url: web + "/appInviteGameRecord/inviteRecord",
+                        data: {
+                            token: this.token,
+                            periodId:getPeriodNo,
+                            offset:this.offset++,
+                            limit:this.limit,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        this.dataList=[];
+                        if (data.data.code == 0) {
+                            if(data.data.data){
+                                // this.dataList=data.data.data.data;
+                                for (var i  in data.data.data.data) {
+                                    var item = data.data.data.data[i];
+                                    this.dataList.push(item);
+                                }
+                                this.userPhoto=data.data.data.photo;
+                                this.invitNum=data.data.data.invitNumSum;
+                                this.ranking=data.data.data.ranking;
+                                this.periodNo=data.data.data.periodNo;
+                                $('title').text('第'+this.periodNo+'期');
+                                this.activeTime=(data.data.data.startTime).substring(0,10);
+                                if(!data.data.data.photo){
+                                    this.userPhoto='../../images/notuserphoto.png';
+                                }
+                                if(!data.data.data.invitNumSum){
+                                    this.invitNum='0';
+                                }
+                                if(!data.data.data.ranking){
+                                    this.ranking='100+';
+                                }
+                                if (data.data.data.data.length >= this.limit) {
+                                    this.loadMore = true;
+                                }else {
+                                    this.loadMore = false;
+                                }
+
+                            }
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        console.log(error);
+                    })
+                },
+                copyBtnText: function () {
+                    //复制文案
+                    var clipboard = new Clipboard('.copylinkbtn', {
+                        target: function () {
+                            return document.querySelector('.copylink');
+                        }
+                    });
+                    clipboard.on('success', function (e) {
+                        layer.msg('复制成功')
+                    });
+                    clipboard.on('error', function (e) {
+                        layer.msg('复制失败')
+                    });
+                },
+                addressshare:function(appType) {
+                    // layer.msg('敬请期待');
+                    var that =this;
+                    this.isDisablebook=true;
+                   // 跳转通讯录邀请方法
+                    if(appType == 'ios'){
+                        // layer.msg('敬请期待');
+                        //调用IOS原生方法
+                        window.webkit.messageHandlers.addressbook.postMessage('');
+                        setTimeout(function () {
+                            that.isDisablebook=false;
+                        },1500)
+                        return;
+                    } else if (appType == 'android') {
+                        window.android.addressbook();
+                        setTimeout(function () {
+                            that.isDisablebook=false;
+                        },1500);
+                        return;
+                    } else {
+                        layer.msg('请在手机端操作');
+                        setTimeout(function () {
+                            that.isDisablebook=false;
+                        },1500);
+                        return;
+                    }
+                },
+                getPeriodNo:function(getPeriodNo){
+                    this.getPeriodNo=getPeriodNo;
+                    this.getInvitelog(getPeriodNo);
+                },
+                //分享按钮调取原生分享方法
+             sharelink:function(link,appType,inviteCode,wechatName) {
+                    if (appType == 'ios') {
+                        //调用IOS原生方法
+                        window.webkit.messageHandlers.shareUrl.postMessage(link + inviteCode + '&userName=' + encodeURI(wechatName));
+                        return;
+                    } else if (appType == 'android') {
+                        console.log(link + inviteCode+wechatName);
+                        window.android.shareUrl(link + inviteCode + '&userName=' + encodeURI(wechatName));
+                        return;
+                    } else {
+                        console.log(link + inviteCode + '&userName=' + encodeURI(wechatName));
+                        layer.msg('请在手机端操作')
+                        return;
+                    }
+             }
+            },
+            mounted: function () {
+                this.getInvitelog();
+                this.web = web;
+                window.getPeriodNo=this.getPeriodNo;
+            },
+        });
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

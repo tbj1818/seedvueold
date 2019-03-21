@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title>
+    <link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <link rel="stylesheet" href="css/ydui.css?time=20180925">
+    <link rel="stylesheet" href="css/bb.css?time=201810171338">
+    <link rel="stylesheet" href="css/swiper.min.css?time=201801010">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/vue-resource.js"></script>
+    <script src="js/layer/layer.js"></script>
+    <script src="js/ydui.flexible.js"></script>
+    <script src="js/swiper.min.js"></script>
+    <script src="js/jquery.qrcode.min.js"></script>
+    <script src="js/html2canvas.min.js"></script>
+    <style>
+        body{height: auto;background:#F5F5F5;}
+        .m-grids-3{background: none; margin-top:10px;box-shadow:0px 0px 4px 0px rgba(153,153,153,0.25)}
+        .m-grids-3 .grids-txt{text-align: center; padding:.2rem .1rem; font-weight: bold; font-size: .3rem}
+        .m-grids-3 .grids-txt2{text-align: center; padding:.2rem 0;font-size: .26rem}
+        .m-cell{border-top:#F4F4F4 solid 1px; }.swiper-container{width:85%; margin:10px auto;height: 100%}.userRole{display:none}
+    </style>
+</head>
+<body>
+<div class="swiper-container">
+    <div class="swiper-wrapper">
+        <div class="swiper-slide">
+            <div class="qrcodebg" id="qrcodebg">
+                <div id="htmlWap">
+                    <section>
+                        <div class="logo"><img src="images/logonew.png" />
+                            <h3 class="userRole">我是布谷创世农场主和我一起来布谷做幸福的创世农场主轻松赚钱，快乐生活!</h3>
+                        </div>
+                        <div class="mycode">我的专属邀请码:<strong class="yellow">{{qcode}}</strong></div>
+                        <div class="qrcodesecond">
+                            <img src="images/Qrcodesecondbg.png" />
+                            <h6>一起加入布谷</h6>
+                            <h3>免费领取价值<span class="yellowten">10</span>元的惊喜“壕”礼</h3>
+                        </div>
+                        <div class="mycodeimg">
+                            <div id="qrcode"></div>
+                            <img src="" class="qrcodeimg" />
+                        </div>
+                        <p class="qrcodeP">识别二维码，下载布谷</p>
+                    </section>
+                </div>
+            </div>
+            <button type="button"  class="btn-block btn-download" onclick="saveConfig('qrcodebg')">分享</button>
+        </div>
+        <div class="swiper-slide">
+            <div class="qrcodebg2" id="qrcodebg2">
+                <section>
+                    <div class="logo2">
+                        <img src="images/smalllogo.png" class="small" />
+                        <h3>注册即送BGT</h3>
+                        <p>下载布谷，做最有钱的农场主</p>
+                    </div>
+                    <div class="qrcodesecond2"><strong class="yellow">{{qcode}}</strong><p>我的专属邀请码</p></div>
+                    <div class="logo"><img src="images/yqtwopic.png" /></div>
+                    <div class="mycodeimg">
+                        <img src="" class="qrcodeimg" />
+                    </div>
+                    <p class="qrcodeP">识别二维码，下载布谷</p>
+                </section>
+            </div>
+            <button type="button"  class="btn-block btn-download" onclick="saveConfig('qrcodebg2')">分享</button>
+        </div>
+        <div class="swiper-slide">
+            <div class="qrcodebg3" id="qrcodebg3">
+                <section>
+                    <div class="logo"><img src="images/logo2.png" /></div>
+                    <div class="qrcodesecond3"><strong class="yellow">{{qcode}}</strong><p>我的专属邀请码</p></div>
+                    <div class="logo2"><img src="images/yqthreepic.png" /></div>
+                    <div class="mycodeimg">
+                        <img src="" class="qrcodeimg" />
+                    </div>
+                    <p class="qrcodeP">识别二维码，下载布谷</p>
+                </section>
+            </div>
+            <button type="button"  class="btn-block btn-download" onclick="saveConfig('qrcodebg3')">分享</button>
+        </div>
+
+    </div>
+</div>
+<div class="swiper-button-next"></div>
+<div class="swiper-button-prev"></div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var imgURL;
+    var Invitation = GetQueryString('Invitation');
+    var appType =  GetQueryString('appType');
+    var userRole = GetQueryString('userRole');
+    var userName = GetQueryString('userName');
+</script>
+<script>
+    $('.yellow').text(Invitation);
+    if(userRole ==10){
+        $('.userRole').show();
+    }
+    // swiper 切换
+    var swiper = new Swiper('.swiper-container', {navigation: {nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev',},});
+    //二维码生成
+    var qrcode = $('#qrcode').qrcode({
+        render: "canvas", //也可以替换为table
+        width: 120,
+        height: 120,
+        foreground: "#000",
+        background: "#FFF",
+        text: web + "/view/h5/freeregister.html?code="+Invitation+"&userName="+userName
+    }).hide();
+    //将生成的二维码转换成图片格式
+    var canvas = qrcode.find('canvas').get(0);
+    $('.qrcodeimg').attr('src', canvas.toDataURL('image/jpg'));
+    //合成图片增加微信昵称
+    function compound(name) {
+        //两个参数：所需要截图的元素id，截图后要执行的函数， canvas为截图后返回的最后一个canvas
+        html2canvas(document.getElementById(name)).then(function(canvas){
+            // document.body.appendChild(canvas);
+            var imgURL = canvas.toDataURL("image/png");
+            this.imgURL =imgURL;
+        });
+    }
+    //保存到本地图片方法
+    function saveConfig(name) {
+        this.compound(name);
+        setTimeout(function () {
+            console.log(imgURL);
+            //邀请好友保存图片方法
+            if(appType == 'ios'){
+                //调用IOS原生方法
+                window.webkit.messageHandlers.savePic.postMessage(imgURL);
+            }else if(appType == 'android'){
+                window.android.savaPic(imgURL);
+            }else{
+                layer.msg('邀请卡已生成')
+            }
+        },1000)
+        return;
+    }
+</script>
+</html>

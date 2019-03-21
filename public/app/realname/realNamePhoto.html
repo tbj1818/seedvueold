@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>上传证件照片</title>
+    <link rel="icon" href="../../favicon2018921.ico" type="image/x-icon"/>
+    <script src="../../js/appcommon.js"></script>
+    <style>
+        .icon-checkoff, .icon-checkon{margin-right:5px;}
+        .tabbar-txt{color: #333}
+    </style>
+</head>
+
+<body>
+        <div id="htmlWap" v-cloak>
+            <div class="person-notice-bar">
+                我们会加密存储您的身份信息，绝不外泄，请放心认证
+            </div>
+            <div class="personbox">
+                <p>请上传您本人身份证原件照片</p>
+                <div class="picbox" @click="clickUpImg(1,appType)">
+                    <img :src="frontphoto" />
+                    <p>请上传身份证人脸面照片</p>
+                </div>
+                <div class="picbox" @click="clickUpImg(2,appType)">
+                    <img :src="backphoto" />
+                    <p>请上传身份证国徽面照片</p>
+                </div>
+                <div class="picbox" @click="clickUpImg(3,appType)">
+                    <img :src="handphoto" />
+                    <p>请您上传一张手持身份证正面照和个人签字的照片，个人签字的内容包括“布谷”和当前日期，请确保照片和签字内容清晰可见。</p>
+                </div>
+
+                <div class="picdemo">
+                    <div class="m-tabbar" style="background: none">
+                        <a href="javascript:;" class="tabbar-item">
+                                <span class="tabbar-icon greenborder">
+                                    <img src="../../images/realname/img-one.png" />
+                                </span>
+                            <span class="tabbar-txt"><i class="icon-checkoff"></i>标准</span>
+                        </a>
+                        <a href="javascript:;" class="tabbar-item">
+                                <span class="tabbar-icon redborder">
+                                    <img src="../../images/realname/img-two.png" />
+                                </span>
+                            <span class="tabbar-txt"><i class="icon-checkon"></i>缺失</span>
+                        </a>
+                        <a href="javascript:;" class="tabbar-item">
+                                <span class="tabbar-icon redborder">
+                                    <img src="../../images/realname/img-three.png" />
+                                </span>
+                            <span class="tabbar-txt"><i class="icon-checkon"></i>闪光</span>
+                        </a>
+                        <a href="javascript:;" class="tabbar-item">
+                                <span class="tabbar-icon redborder">
+                                    <img src="../../images/realname/img-four.png" />
+                                </span>
+                            <span class="tabbar-txt"><i class="icon-checkon"></i>模糊</span>
+                        </a>
+                    </div>
+                </div>
+                <button type="button" class="btn-block personbtn" :disabled="repeatClick"  @click="linkpersonpic(token,appType)">确认上传</button>
+                <h3>本人对自己在APP上的一切行为负责，承诺遵守当地法规，并不会进行任何非法行为操作</h3>
+            </div>
+            <!--等待图标-->
+            <div class="pukeloading" v-show="loadpic">
+                <img src="../../images/blueloading.gif"/>
+            </div>
+        </div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    var uploadImgUrl, uploadImgUrl2,uploadImgUrl3;
+    $(function () {
+        window.vm = new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                appType: GetQueryString("appType"),      //来源
+                frontphoto:'../../images/realname/img-zheng.png',       //人像正面照片
+                backphoto:'../../images/realname/img-fan.png',          //国徽背面照
+                handphoto:'../../images/realname/img-ren.png',          //手持照片
+                repeatClick:false,                                      //重复点击
+                loadpic:true
+            },
+            methods: {
+                //上传照片
+                clickUpImg:function(type,appType){
+                    if (appType == 'ios') {
+                        //ios 上传图片
+                        window.webkit.messageHandlers.uploadPhoto.postMessage(type);
+                    }else if(appType =='android'){
+                        window.android.uploadPhoto(type);
+                    }
+                },
+                userphotoResult:function(aUploadImgUrl,type){
+                    if(type==1){
+                        this.frontphoto=aUploadImgUrl;
+                    }else if(type==2){
+                        this.backphoto=aUploadImgUrl;
+                    }else{
+                        this.handphoto=aUploadImgUrl;
+                    }
+                },
+                linkpersonpic:function(token,appType){
+                    if(this.frontphoto == "../../images/realname/img-zheng.png" ){
+                        layer.msg('请上传身份证人像面照片');
+                        return;
+                    }else if(this.backphoto == "../../images/realname/img-fan.png"){
+                        layer.msg('请上传身份证国徽面照片');
+                        return;
+                    }else if(this.handphoto == "../../images/realname/img-ren.png"){
+                        layer.msg('请上传手持人脸面照片');
+                        return;
+                    };
+                    //防止重复点击
+                    this.repeatClick=true;
+                    this.$http({
+                        method: "post",
+                        url: web+"/appUserRealName/saveRealname",
+                        data: {
+                            token: this.token,
+                            userIdCardImg:this.frontphoto,
+                            userIdCardImg1:this.backphoto,
+                            userIdCardImg2:this.handphoto,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        if(data.data.code==0){
+                            layer.msg(data.data.message);
+                            if (appType == 'ios') {
+                                //ios 跳转兑换中心
+                                window.webkit.messageHandlers.closePage.postMessage(1);
+                            }else if(appType =='android'){
+                                window.android.closePage();
+                            }
+                            // window.location.href="realName.html?token="+token+"&appType="+ appType;
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        layer.msg('提交失败');
+                    })
+                },
+                userPhotoResult:function (img,type) {
+                    this.loadpic = true;
+                    if(type==1){
+                        this.frontphoto=img;
+                        this.loadpic = false;
+                    }else if(type==2){
+                        this.backphoto=img;
+                        this.loadpic = false;
+                    }else if(type==3){
+                        this.handphoto=img;
+                        this.loadpic = false;
+                    }
+                    setTimeout(function () {
+                        this.loadpic = false;
+                    },2000)
+                },
+
+            },
+            mounted: function () {
+                window.userPhotoResult=this.userPhotoResult;
+            },
+            beforeCreate: function () {
+                //加载层
+                this.$nextTick(function () {
+                    var that = this;
+                    setTimeout(function () {
+                        that.loadpic = false;
+                    }, 1500)
+                })
+            }
+        });
+        function userPhotoResult(img,type) {
+            alert(img);
+            if(type==1){
+                this.frontphoto=img;
+            }else if(type==2){
+                this.backphoto=img;
+            }else if(type==3){
+                this.handphoto=img;
+            }
+        }
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+</html>

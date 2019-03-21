@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>实名认证</title>
+    <link rel="icon" href="../../favicon2018921.ico" type="image/x-icon"/>
+    <script src="../../js/appcommon.js"></script>
+    <style>
+        .cell-item:not(:last-child) {
+            border-bottom: 1px solid #F3F3F3;
+        }
+        .m-cell:after{border-bottom: 1px solid #F3F3F3;}
+    </style>
+</head>
+
+<body>
+        <div id="htmlWap" v-cloak>
+            <div class="person-notice-bar">
+                我们会加密存储您的身份信息，绝不外泄，请放心认证
+            </div>
+            <div class="personbg">
+                <section v-if="auditState==20">
+                    <img src="../../images/realname/personpic.png" />
+                </section>
+                <section v-else>
+                <img src="../../images/realname/personpic-no.png" />
+                </section>
+
+            </div>
+            <div class="personbox">
+                <div class="m-cell" style="margin-bottom:80px">
+                    <div class="cell-item">
+                        <div class="cell-left">真实姓名</div>
+                        <div class="cell-right">
+                            <input type="text" class="userrealinput" :readonly ="nameState" v-model="userName" placeholder="请填写您的真实姓名">
+                        </div>
+                    </div>
+                    <div class="cell-item">
+                        <div class="cell-left">身份证号</div>
+                        <div class="cell-right">
+                            <input type="text" style="width: 100%;" :readonly ="nameState" oninput="if(value.length>18)value=value.slice(0,18)" class="userrealinput" v-model="realNum" placeholder="请填写您的身份证号">
+                        </div>
+                    </div>
+                </div>
+                <h3 v-show="auditState ==30" style="text-align:center">审核未通过，驳回理由:{{rejectReason}}</h3>
+                <button type="button" v-if="auditState ==30 || auditState ==null || auditState ==''" class="btn-block personbtn"  @click="linkpersonpic(userName,realNum,token,appType)">上传证件照片</button>
+                <button type="button" v-if="auditState ==10" class="btn-block personbtn">证件审核中</button>
+                <button type="button" v-if="auditState ==20" class="btn-block personbtn">认证完成</button>
+            </div>
+            <!--等待图标-->
+            <div class="pukeloading" v-show="loadpic">
+                <img src="../../images/blueloading.gif"/>
+            </div>
+        </div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function () {
+       new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                appType: GetQueryString("appType"),      //来源
+                userName: '',                           //用户姓名
+                realNum:'',                            //用户身份证号码
+                nameState:false,                          //用户姓名状态
+                auditState:'',                          //审核状态
+                loadpic:true,
+                rejectReason:'照片不清晰'                         //驳回理由
+            },
+            methods: {
+                getUserRealName:function() {
+                    this.$http({
+                        method: "post",
+                        url:web+ "/appUserRealName/getUserRealName",
+                        data: {
+                            token: this.token,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if (data.data.code == 0) {
+                            if(data.data.data.userRealName){
+                                if(data.data.data.userRealName.auditState==20){
+                                    this.nameState=true;
+                                };
+                                this.userName=data.data.data.userRealName.userName;
+                                this.realNum=data.data.data.userRealName.userIdCard;
+                                this.auditState=data.data.data.userRealName.auditState;
+                                if(data.data.data.userRealName.rejectReason) {
+                                    this.rejectReason = data.data.data.userRealName.rejectReason;
+                                }
+                            }
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        layer.msg('接口出错');
+                    });
+                },
+                linkpersonpic:function(userName,realNum,token,appType){
+                    // console.log(this.nameState);
+                    if(!this.nameState){
+                        if(!userName){
+                            layer.msg('请输入您的真实姓名');
+                            return;
+                        }else if(!realNum){
+                            layer.msg('请输入您的身份证号码');
+                            return;
+                        }
+                        // if(realName){
+                        //     var regname = /^[\u4E00-\u9FA5A-Za-z]+$/;
+                        //     if(regname.test(realName) === false) {
+                        //         layer.msg('请输入正确的姓名');
+                        //         return;
+                        //     }
+                        // }
+                        if(realNum){
+                            var reg = /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/;
+                            if(reg.test(realNum) === false) {
+                                layer.msg('请输入正确的身份证号码');
+                                return;
+                            }
+                        };
+                    };
+                    this.$http({
+                        method: "post",
+                        url: web+ "/appUserRealName/saveRealIdCard",
+                        data: {
+                            token: this.token,
+                            userName:this.userName,
+                            userIdCard:this.realNum,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if(data.data.code==0){
+                                window.location.href="realNamePhoto.html?token="+token+"&appType="+ appType;
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        layer.msg('接口出错');
+                    });
+                   //
+                }
+            },
+            mounted: function () {
+                    this.getUserRealName();
+            },
+            beforeCreate: function () {
+                //加载层
+                this.$nextTick(function () {
+                    var that = this;
+                    setTimeout(function () {
+                        that.loadpic = false;
+                    }, 1000)
+                })
+            }
+        });
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

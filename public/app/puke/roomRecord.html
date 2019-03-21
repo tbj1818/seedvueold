@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>房间记录</title>
+    <link rel="icon" href="../../favicon2018921.ico"  type="image/x-icon" />
+    <script src="../../js/appcommon.js"></script>
+    <style>
+        body{ background:#271B50;}
+        .swiper_con{width: 90%; margin:10px auto}
+        .m-grids-4{ background: none;}
+        .swiper-wrapper .text-gray .grids-txt{color:#76F4FE;font-size: .28rem;}
+    </style>
+</head>
+<body>
+<div id="htmlWap" v-cloak>
+    <div id="J_Tab" class="m-tab" style="margin-top: 20px">
+        <div class="swiper-container roomdatawkbg">
+            <div  class="swiper-wrapper">
+                <div class="m-grids-4 text-gray">
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>房间名称</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>初始奖池</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>当前奖池</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>胜率</span></div>
+                    </a>
+                </div>
+                <div class="m-grids-4 roombg" v-for="item in getdatalist2"  @click="opendetail(token,item.roomCode)">
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>{{item.roomDesc}}</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>{{item.jackpotAmount | numSlicetwo}}</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item">
+                        <div class="grids-txt"><span>{{item.jackpotCurrentValue  | numSlicetwo}}</span></div>
+                    </a>
+                    <a href="javascript:;" class="grids-item btn-notsmallget">
+                        <div class="grids-txt"><span>{{item.winProbability*100 | numSlicetwo}}%</span></div>
+                    </a>
+                </div>
+                <p class="nodata" v-show="getdatalist2.length==0">暂无数据</p>
+                <div class="nodata downtext" @click="getRedPacket()" v-show="loadMore2">加载更多</div>
+            </div>
+        </div>
+    </div>
+    <!--等待图标-->
+    <div class="pukeloading" v-show="loadpic">
+        <img src="../../images/pukeloading.gif" />
+    </div>
+</div>
+</body>
+<script>
+    /* 获取头部信息 */
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2];
+        }
+    };
+    $(function() {
+        var apphtml =  new Vue({
+            el: '#htmlWap',
+            data: {
+                token: GetQueryString('token'),
+                appType:GetQueryString("appType"),      //来源
+                getType:20,                             //获取类型
+                limit:15,                              //每页数据条数
+                offset:1,                              //第几页
+                getdatalist2: [],
+                loadMore2:false,
+                nowIndex:0,                            //默认第一个tab为激活状态
+                loadpic:true,
+                datastate:'数据加载中…'
+            },
+            methods: {
+                getRedPacket: function(index,type){
+                    this.$http({
+                        method: "post",
+                        url: snatch+"/appGameUserRoom/getGameList",
+                        data: {
+                            token:this.token,
+                            getType:this.getType,
+                            limit:this.limit,
+                            offset:this.offset++,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        this.loadpic=false;
+                        if(data.data.code==0){
+                            //我创建的
+                            if (this.getType==20 && data.data.data.dataList) {
+                                console.log(data);
+                                this.getdatalist=[];
+                                if( this.offset==1){
+                                    this.getdatalist2=[];
+                                }
+                                if(data.data.data.dataType==20){
+                                    this.loadpic=false;
+                                    for (var i  in data.data.data.dataList) {
+                                        var item = data.data.data.dataList[i];
+                                        this.getdatalist2.push(item);
+                                    }
+                                }else{
+                                    return;
+                                }
+                                // this.getdatalist2 = data.data.data.dataList;
+
+                                if (data.data.data.dataList.length >= this.limit) {
+                                    this.loadMore2 = true;
+                                }else {
+                                    this.loadMore2 = false;
+                                }
+                            }else{
+                                this.loadMore2 = false;
+                                // console.log(this.offset);
+                            }
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        layer.msg('接口出错');
+                    });
+                },
+                opendetail: function(token,roomCode){
+                    window.location.href='roomInformation.html?token='+token+"&roomId="+roomCode ;
+                }
+            },
+            filters: {
+                numSlicetwo: function (val) {
+                    if (val) {
+                        return parseFloat(val.toFixed(2));
+                    }else if(val==0){
+                        return parseFloat(val.toFixed(2));
+                    }
+                },
+            },
+            mounted: function () {
+                    this.getRedPacket(0);
+            },
+            beforeCreate: function(){
+                //加载层
+                this.$nextTick(function () {
+                    var that=this;
+                    setTimeout(function () {
+                        that.loadpic=false;
+                    },1000)
+                })
+            }
+        });
+        setTimeout(function () {
+            //纵向滚动漂浮固定
+            var nav=$(".text-gray"); //得到导航对象
+            var win=$(window); //得到窗口对象
+            var sc=$(document);//得到document文档对象。
+            win.scroll(function() {
+                if (sc.scrollTop() >= 60) {
+                    nav.addClass("fixednav");
+                    $(".navTmp").fadeIn();
+                }else {
+                    nav.removeClass("fixednav");
+                    $(".navTmp").fadeOut();
+                }
+            });
+        },300);
+    });
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

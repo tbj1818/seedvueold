@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title>
+    <link rel="icon" href="../../favicon2018921.ico" type="image/x-icon"/>
+    <script src="../../js/appcommon.js"></script>
+    <style>
+        body {
+            background: #F5F5F5;
+        }
+
+        .layui-layer {
+            border-radius: 0 !important;
+        }
+    </style>
+</head>
+<body>
+<div id="htmlWap" v-cloak>
+    <div class="orderdetail">
+        <img v-if="statuspic==10 || statuspic==20" src="../../images/snatchactive/orderdetailbanner.png"/>
+        <img v-if="statuspic==30 || statuspic==40" src="../../images/snatchactive/orderdetailbannerzhj.png"/>
+        <img v-if="statuspic==50" src="../../images/snatchactive/orderdetailbannerwzhj.png"/>
+    </div>
+    <div class="ordercontainer" style="margin:10px auto 60px ">
+        <h2>亲爱的<span class="redtext"> {{userAccount}} </span>用户<span v-if="Statusyhtext">，很遗憾:</span>
+            <span  v-if="Statustext">，恭喜您:</span>
+        </h2>
+        <div class="place" v-if="ordersource ==1" @click="prizedialog()"><i v-if="statusicon ==0"
+                                                                            class="icon-correct"></i>{{status}}
+        </div>
+        <div class="place" v-if="ordersource ==2">{{winStatus}}<p v-show="Statustext">请前往<span class="bluecopylink" @click="linkdjcenter(appType)">兑奖中心</span>，查看您的获奖信息。</p></div>
+        <h3 v-show="publishTime">开奖时间：<span class="redtext">{{publishTime}}</span></h3>
+        <h3>本期中奖号码：<span class="redtext">{{StatusluckyCode}}</span></h3>
+        <h2>订单号码：{{orderNo}}</h2>
+        <h2>订单时间：{{buyTime}}</h2>
+        <h2>本期期号：{{periodNo}}</h2>
+        <h2>本期奖品：<span class="redtext">{{goodsName}}</span></h2>
+        <h2>抢购份数：<span class="redtext">{{buyNum}}份</span></h2>
+        <!-- 幸运号码 -->
+        <div class="orderluckylotto">
+            <h2>以下是您本订单的抢购幸运号码：</h2>
+            <ul class="lucknum">
+                <li v-for="item in luckCodeList">{{item.luckyCode}}</li>
+            </ul>
+        </div>
+
+        <div class="bottomshare" @click="linkshareyqk(appType)">每邀请1位好友送20BGT</div>
+        <!--中奖弹窗-->
+        <div class="prizeDialog">
+            <img src="../../images/snatchactive/orderdetailbannerzhj.png"/>
+            <div class="prizeh1">恭喜您中奖！</div>
+            <div class="alreadyh3"><strong>开奖时间：</strong><span style="color:#999">{{publishTime}}</span></div>
+            <div class="alreadyh3"><strong>本期中奖号码：<span class="rednum">{{StatusluckyCode}}</span></strong></div>
+            <div class="prizeDialogtext">
+                <p>订单号码：{{orderNo}}</p>
+                <p>订单时间：{{buyTime}}</p>
+                <p>本期期号：{{periodNo}}</p>
+                <p>本期奖品：{{goodsName}}</p>
+                <p>抢购份数：{{buyNum}}份</p>
+            </div>
+            <button type="button" v-show="saveBtn" id="saveBtn" class="btn-block btn-primary prize_dialog"
+                    onclick="sharelink('/view/h5/freeregister.html?code=')">分享给好友
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+<script src="../../js/md5.js"></script>
+<script src="../../js/base64.min.js"></script>
+<script>
+    function GetQueryString(name) {
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        var r = window.location.search.substr(1).match(reg);
+        if (r != null) {
+            return r[2]
+        }
+    }
+
+    var appType = GetQueryString("appType");
+    var token = GetQueryString("token");
+    var periodId =GetQueryString("periodId");
+    var inviteCode;
+    getInviteCode(token);
+    $(function () {
+        new Vue({
+            el: "#htmlWap",
+            data: {
+                token: GetQueryString("token"),
+                orderNo: GetQueryString("orderNo"),
+                appType: GetQueryString("appType"),
+                userAccount: "",
+                statusicon: 0,
+                status: "",
+                statuspic: "",
+                winStatus: "",
+                buyNum: "",
+                buyTime: "",
+                luckCodeList: [],
+                goodsName: "",
+                ordersource: GetQueryString("ordersource"),
+                periodNo: "",
+                luckyCode: "",
+                publishTime: "02:00",
+                StatusluckyCode: "",
+                counttime: "",
+                Statustext:true,
+                Statusyhtext:false
+            },
+            methods: {
+                getOrder: function () {
+                    var senddata = "orderNo=" + this.orderNo + "&platform=H5" + "&token=" + this.token;
+                    var sign = $.md5(senddata + key);
+                    var mbencode = Base64.encode(sign);
+                    this.$http({
+                        method: "post",
+                        url: snatch + "/appOrder/getOrder",
+                        data: {token: this.token, orderNo: this.orderNo, platform: "H5", sign: mbencode},
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        var that = this;
+                        if (data.data.code == 0) {
+                            this.userAccount = data.data.data.snatchOrder.userAccount;
+                            this.statusicon = data.data.data.snatchOrder.status;
+                            this.periodNo = data.data.data.snatchOrder.periodNo;
+                            this.buyNum = data.data.data.snatchOrder.buyNum;
+                            this.goodsName = data.data.data.snatchOrder.goodsName;
+                            this.buyTime = data.data.data.snatchOrder.buyTime;
+                            this.luckyCode = data.data.data.snatchOrder.luckyCode;
+                            this.publishTime = data.data.data.snatchOrder.publishTime;
+                            this.winStatus = data.data.data.snatchOrder.winStatus;
+                            this.currentTime = data.data.data.currentTime;
+                            this.statuspic = data.data.data.snatchOrder.winStatus;
+                            if (this.winStatus == 20) {
+                                this.startTime = new Date((this.publishTime).replace(/-/g, "/"));
+                                this.currentTime = new Date((this.currentTime).replace(/-/g, "/"));
+                                var count = (this.startTime - this.currentTime);
+                                var time = parseFloat(count) / 1000;
+                                this.counttime = time;
+                                this.publishTime = this.counttime;
+                                var num = this.counttime;
+                                var time = setInterval(function () {
+                                    if (num > 1) {
+                                        num--;
+                                        that.publishTime = "仅剩" + num + "秒";
+                                        var secondTime = parseInt(num);
+                                        var minuteTime = 0;
+                                        if (secondTime > 60) {
+                                            minuteTime = parseInt(secondTime / 60);
+                                            secondTime = parseInt(secondTime % 60);
+                                            if (minuteTime > 60) {
+                                                hourTime = parseInt(minuteTime / 60);
+                                                minuteTime = parseInt(minuteTime % 60)
+                                            }
+                                        }
+                                        var result = "" + parseInt(secondTime) + "秒";
+                                        if (minuteTime > 0) {
+                                            result = "" + parseInt(minuteTime) + "分" + result
+                                        }
+                                        that.publishTime = "仅剩" + result;
+                                        if (parseInt(minuteTime) == 0 && parseInt(secondTime) == 1) {
+                                            setTimeout(function () {
+                                                window.location.reload()
+                                            }, 3000)
+                                        }
+                                    } else {
+                                        that.publishTime = data.data.data.snatchOrder.publishTime;
+                                        clearInterval(time)
+                                    }
+                                }, 1000)
+                            }
+                            if (this.winStatus == 30 || this.winStatus == 40 || this.winStatus == 50 || this.winStatus == 60) {
+                                this.StatusluckyCode = this.luckyCode
+                            }
+                            if (this.winStatus == 10 || this.winStatus == 20) {
+                                if (this.winStatus == 10) {
+                                    this.StatusluckyCode = "进行中"
+                                } else {
+                                    if (this.winStatus == 20) {
+                                        this.StatusluckyCode = "待揭晓"
+                                    }
+                                }
+                            }
+                            switch (data.data.data.snatchOrder.status) {
+                                case 20:
+                                    this.status = "下单失败";
+                                    this.Statustext=false;
+                                    break;
+                                case -1:
+                                    this.status = "订单取消";
+                                    this.Statustext=false;
+                                    break;
+                                case 0:
+                                    this.status = "下单成功";
+                                    break
+                            }
+                            switch (data.data.data.snatchOrder.winStatus) {
+                                case 10:
+                                    this.winStatus = "进行中";
+                                    this.Statustext=1;
+                                    this.Statustext=false;
+                                    break;
+                                case 20:
+                                    this.winStatus = "待揭晓";
+                                    this.Statustext=false;
+                                    break;
+                                case 30:
+                                    this.winStatus = "已中奖未分享";
+                                    layer.open({
+                                        type: 1,
+                                        title: false,
+                                        closeBtn: 0,
+                                        area: "80%",
+                                        shadeClose: false,
+                                        content: $(".prizeDialog")
+                                    });
+                                    break;
+                                case 40:
+                                        this.winStatus = '夺宝成功';
+                                        break;
+                                case 60:
+                                    if(data.data.data.snatchOrder.classId == 698 || data.data.data.snatchOrder.classId == 713){
+                                        this.winStatus = "奖品已发放";
+                                    }else{
+                                        this.winStatus = "夺宝成功";
+                                    }
+                                    break;
+                                case 50:
+                                    this.winStatus = "本期未中奖，不要气馁鸭";
+                                    this.Statustext=false;
+                                    this.Statusyhtext=true;
+                                    break
+                            }
+                            this.luckCodeList = data.data.data.luckCodeList;
+                            console.log(this.winStatus);
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                    })
+                }, linkshareyqk: function (appType) {
+                    window.location.href = "../teacher/inviteFriend.html?token=" + this.token + "&appType=" + appType
+                },
+                linkdjcenter:function (appType) {
+                    if (appType == 'ios') {
+                        //ios 跳转兑换中心
+                        window.webkit.messageHandlers.goDuihuan.postMessage(1);
+                    }else if(appType =='android'){
+                        window.android.goDuihuan();
+                    }
+                }
+            },
+            mounted: function () {
+                this.getOrder()
+            }
+        })
+    });
+
+    function getInviteCode(token) {
+        var senddata2 = "token=" + this.token;
+        var sign = $.md5(senddata2 + key);
+        var mbencode = Base64.encode(sign);
+        $.ajax({
+            url: "/appUser/getInviteCode",
+            type: "POST",
+            data: {token: token, sign: mbencode},
+        }).done(function (res) {
+            inviteCode = res.data
+        }).fail(function (res) {
+            layer.msg("网络错误/服务器异常")
+        })
+    }
+    function sharelink(link) {
+        // console.log(periodId);
+        if (appType == "ios") {
+            window.webkit.messageHandlers.shareUrl.postMessage(link + inviteCode,periodId);
+            return
+        } else {
+            if (appType == "android") {
+                window.android.shareUrl(link + inviteCode,periodId);
+                return
+            } else {
+                layer.msg("请分享后领奖");
+                return
+            }
+        }
+    }
+
+    function sharereturun(result) {
+        if (result == "true") {
+            location.reload();
+            layer.closeAll()
+        } else {
+            layer.msg("分享失败")
+        }
+    };
+</script>
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?839939f47e36cd37836766e160e1a8f6";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

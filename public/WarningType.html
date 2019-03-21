@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>布谷</title>
+    <link rel="icon" href="favicon2018921.ico"  type="image/x-icon" />
+    <link rel="stylesheet" href="css/ydui.css">
+    <link rel="stylesheet" href="css/bb.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/ydui.flexible.js"></script>
+    <style>
+        body{padding: 0}
+        .m-grids-2{background: none; margin-top:.3rem}
+        .m-grids-2:before{border:0}
+        .m-grids-2 .grids-item{text-align: center}
+        .m-grids-2 .grids-item:not(:nth-child(2n)):before{ border: 0;}
+    </style>
+</head>
+
+<body>
+<div id="htmlWap">
+    <header class="m-navbar">
+        <a  href="javascript:history.go(-1);" class="navbar-item">
+            <i class="back-ico"></i>
+        </a>
+        <div class="navbar-center">
+            <span class="navbar-title">预警类型说明</span>
+        </div>
+    </header>
+    <section class="wartype">
+        <div class="content J_DemoContent"><strong><span>价格涨跌</span></strong></div>
+        <div class="demo-box J_Demo">
+            <div class="demo-content">
+                <div class="demoTextshow">
+                    价格突破您设置的上涨值/下跌值时触发提醒<br>
+                    支持在上次提醒的基础上按<em class="warningtext">3%</em>的幅度智能提醒
+                </div>
+            </div>
+        </div>
+        <div class="content J_DemoContent"><strong><span>盘中大涨/盘中大跌</span></strong></div>
+        <div class="demo-box J_Demo">
+        <div class="demo-content">
+            <div class="demoTextshow">
+                日涨幅度超过<em class="warningtext">10%</em>时触发提醒 <br>
+                支持在上次提醒的基础上按5%的幅度智能提醒
+            </div>
+        </div>
+        </div>
+        <div class="content J_DemoContent"><strong><span>极速拉升/猛烈打压</span></strong></div>
+        <div class="demo-box J_Demo">
+        <div class="demo-content">
+            <div class="demoTextshow">
+                1分种内涨/跌幅大于<em class="warningtext">2%</em>且1分钟前价格大于/小于昨收价触发提醒<br>
+                幅度默认<em class="warningtext">2%</em>可自定义<em class="warningtext">2%</em>或<em class="warningtext">3%</em><br>
+                持续涨跌支持10分钟间隔智能提醒
+            </div>
+        </div>
+        </div>
+        <div class="content J_DemoContent"><strong><span>极速反弹/高台跳水</span></strong></div>
+        <div class="demo-box J_Demo">
+            <div class="demo-content">
+                <div class="demoTextshow">
+                    5分种内涨跌幅超过<em class="warningtext">5%</em>且5分钟前价格大于/小于昨收价和今开价，
+                    支持持续涨跌10分钟间隔智能提醒
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+</body>
+<script>
+    var _hmt = _hmt || [];
+    (function() {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?23a7df0a4f6dd37bf6e346d0a4279fac";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+</html>

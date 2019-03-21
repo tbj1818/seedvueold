@@ -921,7 +921,7 @@ body { max-width: 750px; padding-bottom: 10px; margin: 0 auto; height: 100%; bac
 .invitecheats .cheats { border-radius: 10px; font-size: .5rem }
 .invitecheats { background: url(../images/teacher/guize-bg.jpg) no-repeat; background-size: cover; }
 .invitetextnew{width:70%; margin: 10px auto 50px;font-size: .28rem; text-align: center;background:rgba(34,61,2,.6);color: #B3FF00; line-height: .7rem; border-radius: 25px;}
-.seedbg .cell-input, .seedbg .cell-right{font-size: .3rem !important;}
+.seedbg .cell-input, .seedbg .cell-right{font-size: .28rem !important;}
 
 /*师徒邀请好友*/
 .invitesharefriendbg { max-width: 640px; background:#E9E400 url("../images/teacher/invitenewbg.jpg") no-repeat; background-size: contain; padding-bottom: 20px; }
@@ -1222,14 +1222,16 @@ body { max-width: 750px; padding-bottom: 10px; margin: 0 auto; height: 100%; bac
 .lh12{ line-height: 1.2rem}
 
 /*farm--email*/
-.seedemailbg{width: 100%}
+.seedemailbgwk{width: 100%; background: #FFDC8E; overflow: hidden;}
 .emailimg{width: 100%; position: relative;}
 .emailimg img{width: 100%}
-.seedemailbg{width: 100%;background: #FFF9DE; border-radius: 10px }
+.seedemailbg{width:95%;background: #FFF9DE; border-radius: 10px;margin: 10px auto }
 .seedtext{width: 90%; margin:10px auto; }
-.seedtext h1{width: 80%;color: #D07707; text-align: center; font-size:18px; line-height: 38px; margin:10px auto; border-bottom:#FFD884 solid 1px  }
+.seedtext h1{width:100%;color: #D5841C; text-align: center; font-size:24px; line-height: 38px; margin:10px auto;}
+.seedtext h2{width:100%;color: #D07707; text-align: left; font-size:17px; line-height: 38px; margin:10px auto; font-weight: normal}
 .centerimg{ text-align: center; margin-top: 20px}
-.seedcontent{ text-align: left; font-size: 16px; color:#D07707 ; margin-top: 20px}
+.centerimg img{  width:40%; margin: 0 auto}
+.seedcontent{ text-align: left; font-size: 16px; color:#D07707 ; margin-top: 20px; line-height:32px}
 .gofarmbtn{width:100%; background:#FCC456; border-radius: 10px; font-size: 18px; font-weight: bold; height: 50px; line-height: 50px; text-align: center; border: 0; margin: 10px auto; color: #FFF }
 .heartbeat{ position: absolute; left:50%; bottom: 0; margin:0 0 0 -40px; }
 .heartbeat img{

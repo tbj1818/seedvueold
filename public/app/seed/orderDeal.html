@@ -21,7 +21,7 @@
 <body>
 <div id="htmlWap" v-cloak>
         <header class="m-navbar">
-                <a href="javascript:;" @click="goback" class="navbar-item">
+                <a href="javascript:history.go(-1);"  class="navbar-item">
                     <i class="back-ico"></i>
                 </a>
                 <div class="navbar-center">
@@ -85,6 +85,7 @@
                 <div class="confirm-bd">出售内容: <em class="bluetext">树苗</em></div>
                 <div class="confirm-bd">出售总量: <em class="bluetext">{{dealnum}}棵</em></div>
                 <div class="confirm-bd">树苗单价: <em class="bluetext">{{dealprice}}BGT</em></div>
+                <div class="confirm-bd" v-if="publishType==20">购买保证金: <em class="bluetext">{{dealnum*dealprice}}BGT</em></div>
                 <div class="confirm-ft">
                     <a
                             href="javascript:;"
@@ -147,7 +148,10 @@
                 if(!this.dealnum){
                     layer.msg('请输入交易总数');
                     return;
-                }else if(!this.dealprice){
+                }else if(this.dealnum>1000){
+                    layer.msg('交易总数不能大于1000');
+                    return;
+                } else if(!this.dealprice){
                     layer.msg('请输入交易单价');
                     return;
                 }
@@ -171,8 +175,16 @@
                         emulateJSON: true
                     }).then(function (data) {
                         console.log(data);
-                        layer.msg(data.data.message)
-                        window.location.href="treeDeal.html?token="+token
+                        layer.msg(data.data.message);
+                        if(data.data.code==0){
+                            window.location.href="treeDeal.html?token="+token
+                        }else{
+                            layer.msg(data.data.message);
+                        }
+                        // setTimeout(function(){
+                        //     window.location.href="treeDeal.html?token="+token
+                        // },1000);
+                      
                     }, function (error) {
                         console.log(error);
                     });

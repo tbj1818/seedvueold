@@ -13,31 +13,43 @@
 <style>
 </style>
 <body>
-<div id="htmlWap" v-cloak>
+<div id="htmlWap" class="seedemailbgwk" v-cloak>
     <div class="seedemailbg">
         <div class="emailimg">
-            <img src="./images/seedtop.png" />
+            <img src="../../images/invite/seedtop.png" />
             <div class="heartbeat">
-                <img src="./images/heartbeat.png" />
+                <img src="../../images/invite/heartbeat.png" />
             </div>
         </div>
         <div class="seedtext">
-            <h1>布谷农场种子玩法</h1>
+            <h2>亲爱的用户：</h2>
+            <h1>见信佳！</h1>
+            <p class="seedcontent">
+                这是一封来自布谷农场的祝福，随着用户的增长越来越快，我们在压力之下承载更多的是对用户负责的动力，趁着这次全新农场的发布，我们想和您说说布谷的心里话，以这样的方式拉近我们彼此的距离。 </p>
+                <p class="seedcontent">在过去时间里，我们先后推出了夺宝、扑克竞猜不同类型的娱乐玩法。自布谷上线以来，我们也一直努力的将产品打造成一个数字化的娱乐平台，我们深知我们今天的成就，只是走出了第一步。虽然我们有些地方做的还不够好，但请你相信布谷是一个足够靠谱的团队，希望时间可以见证这一切。</p>
+                <p class="seedcontent">从今天起，布谷将在探索的各个场景增加新的元素及玩法，为所有人提供发现价值、创造价值的生活新方式。在布谷1.7.0的版本更新中，我们将首次在农场场景增加一个全新的玩法，我们内部将这个玩法暂定为：“种子计划”。</p>
+                <p class="seedcontent">在这个玩法中我们新增了三个物品种类，分别为：</p>
             <section class="centerimg">
-                <img src="./images/seed.png" />
+                <img src="../../images/invite/img-zhongzi@2x.png" />
             </section>
-            <section class="seedcontent">
-                获取途径：农场中赠送<br>
-                使用方法：农BGT是布谷生态内价值流通凭证，用户可在布谷收取BGT。并可以使用BGT在布谷中内购买商品或参与其他活动等...
-            </section>
+            <p class="seedcontent">可以在种子商店中购买得到的成长类物品，不可交易或转赠。</p>
             <section class="centerimg">
-                <img src="./images/seed.png" />
+                    <img src="../../images/invite/img-shumiao@2x.png" />
             </section>
-            <section class="seedcontent">
-                获取途径：农场中赠送<br>
-                使用方法：农BGT是布谷生态内价值流通凭证，用户可在布谷收取BGT。并可以使用BGT在布谷中内购买商品或参与其他活动等...
+            <p class="seedcontent">由种子培育而来的成熟产物，树苗可以在自由市场进行交易，且持有树苗可以获得阳光收益。</p>
+            <section class="centerimg">
+                    <img src="../../images/invite/img-yangguang@2x.png" />
             </section>
-            <button class="gofarmbtn" @click="gofarm(appType)">前往农场</button>
+            <p class="seedcontent">
+                    将种子培育为树苗的必要物品，持有树苗可获得。 同时我们还在场景中增加了树苗的交易区，作为农场的成熟产物，树苗的持有量代表了您在农场中的地位与财富，同时我们还为每一个新农场中赠送了神秘的礼物。</p>
+                    <p class="seedcontent">最后希望您能够在农场中寻找到属于自己的一份快乐，收获温暖人生。
+            </p>
+            <p class="seedcontent" style="text-align:right">
+                    布谷团队 <br>
+                    敬上 <br>
+                    2019 03 27  <br>
+                </p>
+            <button class="gofarmbtn" @click="gofarm(appType)">进入农场</button>
         </div>
     </div>
 </div>
@@ -59,136 +71,13 @@
             data: {
                 token: GetQueryString('token'),
                 appType: GetQueryString('appType'),
-                inviteCode:GetQueryString('code'),        //邀请码
-                wechatName:decodeURI(GetQueryString('wechatName')),     //用户微信昵称
-                dataList: [],
-                limit:100,                              //每页数据条数
-                offset:1,                              //第几页
-                loadMore:false,
-                isDisablebook:false,                //通讯录重复点击
-                userPhoto:'../../images/notuserphoto.png',                       //用户头像
-                invitNum:'0',                        //邀请人数
-                ranking:'100+',                         //排名
-                activeTime:'',                          //活动时间
+               
             },
             methods: {
-                getInvitelog: function (getPeriodNo) {
-                    this.$http({
-                        method: "post",
-                        url: web + "/appInviteGameRecord/inviteRecord",
-                        data: {
-                            token: this.token,
-                            periodId:getPeriodNo,
-                            offset:this.offset++,
-                            limit:this.limit,
-                            platform: 'H5'
-                        },
-                        emulateJSON: true
-                    }).then(function (data) {
-                        // console.log(data);
-                        this.dataList=[];
-                        if (data.data.code == 0) {
-                            if(data.data.data){
-                                // this.dataList=data.data.data.data;
-                                for (var i  in data.data.data.data) {
-                                    var item = data.data.data.data[i];
-                                    this.dataList.push(item);
-                                }
-                                this.userPhoto=data.data.data.photo;
-                                this.invitNum=data.data.data.invitNumSum;
-                                this.ranking=data.data.data.ranking;
-                                this.periodNo=data.data.data.periodNo;
-                                $('title').text('第'+this.periodNo+'期');
-                                this.activeTime=(data.data.data.startTime).substring(0,10);
-                                if(!data.data.data.photo){
-                                    this.userPhoto='../../images/notuserphoto.png';
-                                }
-                                if(!data.data.data.invitNumSum){
-                                    this.invitNum='0';
-                                }
-                                if(!data.data.data.ranking){
-                                    this.ranking='100+';
-                                }
-                                if (data.data.data.data.length >= this.limit) {
-                                    this.loadMore = true;
-                                }else {
-                                    this.loadMore = false;
-                                }
-
-                            }
-                        } else {
-                            layer.msg(data.data.message);
-                        }
-                    }, function (error) {
-                        console.log(error);
-                    })
-                },
-                copyBtnText: function () {
-                    //复制文案
-                    var clipboard = new Clipboard('.copylinkbtn', {
-                        target: function () {
-                            return document.querySelector('.copylink');
-                        }
-                    });
-                    clipboard.on('success', function (e) {
-                        layer.msg('复制成功')
-                    });
-                    clipboard.on('error', function (e) {
-                        layer.msg('复制失败')
-                    });
-                },
-                addressshare:function(appType) {
-                    // layer.msg('敬请期待');
-                    var that =this;
-                    this.isDisablebook=true;
-                   // 跳转通讯录邀请方法
-                    if(appType == 'ios'){
-                        // layer.msg('敬请期待');
-                        //调用IOS原生方法
-                        window.webkit.messageHandlers.addressbook.postMessage('');
-                        setTimeout(function () {
-                            that.isDisablebook=false;
-                        },1500)
-                        return;
-                    } else if (appType == 'android') {
-                        window.android.addressbook();
-                        setTimeout(function () {
-                            that.isDisablebook=false;
-                        },1500);
-                        return;
-                    } else {
-                        layer.msg('请在手机端操作');
-                        setTimeout(function () {
-                            that.isDisablebook=false;
-                        },1500);
-                        return;
-                    }
-                },
-                getPeriodNo:function(getPeriodNo){
-                    this.getPeriodNo=getPeriodNo;
-                    this.getInvitelog(getPeriodNo);
-                },
-                //分享按钮调取原生分享方法
-             sharelink:function(link,appType,inviteCode,wechatName) {
-                    if (appType == 'ios') {
-                        //调用IOS原生方法
-                        window.webkit.messageHandlers.shareUrl.postMessage(link + inviteCode + '&userName=' + encodeURI(wechatName));
-                        return;
-                    } else if (appType == 'android') {
-                        console.log(link + inviteCode+wechatName);
-                        window.android.shareUrl(link + inviteCode + '&userName=' + encodeURI(wechatName));
-                        return;
-                    } else {
-                        console.log(link + inviteCode + '&userName=' + encodeURI(wechatName));
-                        layer.msg('请在手机端操作')
-                        return;
-                    }
-             }
+               
             },
             mounted: function () {
-                this.getInvitelog();
-                this.web = web;
-                window.getPeriodNo=this.getPeriodNo;
+               
             },
         });
     });

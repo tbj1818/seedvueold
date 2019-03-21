@@ -54,7 +54,7 @@
                                     <div class="cellLR">
                                         <div class="left_cell">出售总数:<span class="graytext">{{item.goodsNum}}</span>
                                         </div>
-                                        <div class="right_cell">已成交:<span class="graytext">{{item.finishNum}}笔</span>
+                                        <div class="right_cell">已成交:<span class="graytext" >{{item.userId}}笔</span>
                                         </div>
                                     </div>
                                     <div class="cellLR">
@@ -67,11 +67,13 @@
                                     <span class="left_cell">树苗售价:<strong
                                             class="greenText">{{item.goodsPrice}}BGT/棵</strong></span>
                                     <span class="right_cell">
-                                        <button @click="clickHandler(token)" class="smallbuyBtn">立即购买</button>
+                                        <button @click="clickHandler(token,item)" v-if="getType==20" class="smallbuyBtn">立即购买</button>
+                                        <button @click="clickHandler(token,item)"  v-if="getType==10" class="smallbuyBtn">立即出售</button>
                                   </span>
                                 </section>
                             </section>
                         </li>
+                        <p class="nodata" v-if="buylist.length==0">暂无数据</p>
                     </ul>
                 </div>
             </div>
@@ -111,7 +113,8 @@
                     pourMoney: 20,
                     resultMoney: 200,
                     pourMoney: 5
-                }]
+                }],
+                finishnum:[]
             },
             methods: {
                 saletab: function (type) {
@@ -133,9 +136,9 @@
                 pluslink: function (token) {
                     window.location.href = "orderDeal.html?token=" + token+"&saplingBalance="+this.saplingBalance
                 },
-                clickHandler: function (token) {
+                clickHandler: function (token,item) {
                     // this.$router.push({ path: "/view/h5/app/seed/seedBuy" });
-                    window.location.href = "seedBuy.html?token=" + token;
+                    window.location.href = "seedBuy.html?token=" + token+"&goodsNum="+item.goodsNum+"&residueNum="+item.residueNum+"&goodsId="+item.rowId+"&goodsPrice="+item.goodsPrice+"&finishNum="+item.userId+"&getType="+this.getType;
                 },
                 getlist: function () {
                     var that=this;
@@ -152,19 +155,27 @@
                     }).then(function (data) {
                         console.log(data);
                         // this.buylist = data.data.data.list;
-                        for (var i  in data.data.data.list) {
-                            var item = data.data.data.list[i]
-                                that.buylist.push(item);
-                                if(!item.userPhoto){
-                                    item.userPhoto="../../images/notuserphoto.png";
+                            that.finishnum=data.data.data.finishNumMap;
+                      
+                                for (var i  in data.data.data.list) {
+                                        var item = data.data.data.list[i]
+                                            that.buylist.push(item);
+                                            if(!item.userPhoto){
+                                                item.userPhoto="../../images/notuserphoto.png";
+                                            }
+                                            var num=item.userId;
+                                        
+                                            if(item.userId=that.finishnum[num]){
+                                                item.userId=that.finishnum[num]
+                                            };
                                 }
-                            // for (var i  in data.data.data.finishNumMap) {
-                            //     var item2 = data.data.data.finishNumMap[i]
-                            //     that.buylist.finishNum.push(item2)
-                            // }
-                        }
-                        
-                        
+                                // for(var i in that.buylist){
+                                //     var item3=that.buylist[i] ;
+                                //     var num=item3.userId;
+                                //     // this.$set(that.buylist,"rowId", that.finishnum[num]);
+                                //     // Vue.set(that.buylist,i,{gameNum:that.finishnum[num]});
+                                // }
+                                // console.log(that.buylist)
                     }, function (error) {
                         layer.msg('接口出错');
                     });

@@ -22,7 +22,7 @@
 <body>
 <div id="htmlWap" v-cloak>
         <header class="m-navbar">
-            <a href="javascript:;" @click="goback" class="navbar-item">
+            <a href="javascript:history.go(-1);"  class="navbar-item">
                 <i class="back-ico"></i>
             </a>
             <div class="navbar-center">
@@ -33,22 +33,22 @@
         <ul>
             <li class="seedlist">
                 <h1><span class="userphoto"><img :src="userphoto" /></span><span class="userName">{{userName}}</span></h1>
-                <h2>已成交20笔，共售出1000棵</h2>
+                <h2>已成交20笔</h2>
                 <section class="seedWbg">
                     <div class="listcell">
                         <div class="cellLR">
                             <div class="left_cell">出售总数:</div>
-                            <div class="right_cell">10000</div>
+                            <div class="right_cell">{{goodsNum}}</div>
                         </div>
                         <div class="cellLR">
                             <div class="left_cell">剩余数量:</div>
-                            <div class="right_cell">10000</div>
+                            <div class="right_cell">{{residueNum}}</div>
                         </div>
                     </div>
                     <section class="cellLR">
                         <span class="left_cell">树苗售价:</span>
                         <span class="right_cell">
-                <strong class="greenText">10BGT/棵</strong>
+                <strong class="greenText">{{goodsPrice}}BGT/棵</strong>
               </span>
                     </section>
                 </section>
@@ -59,19 +59,17 @@
             <section class="buynum">
                 <input
                         type="number"
-                        pattern="[0-9]*"
+                        onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')" 
+                        pattern="[0-9]*" v-model="buynum"
                         class="cell-input"
                         placeholder="请输入购买数量"
                         autocomplete="off"
                 />
-                <a
-                        href="javascript:;"
-                        class="btn btn-hollow"
-                >全部购买</a>
+                <a href="javascript:;" @click="allbuy" class="btn btn-hollow">全部购买</a>
             </section>
             <div class="cellLR">
                 <div class="left_cell">最多可持有7000棵树</div>
-                <div class="right_cell">BGT余额: <span class="graytext marl10"> 200.0152</span></div>
+                <div class="right_cell">BGT余额: <span class="graytext marl10"> {{bgtnum | numSlicefour}}</span></div>
             </div>
         </div>
         <button type="button" class="btn-block btn_redgradual" @click="enterbuy">确定购买</button>
@@ -80,8 +78,9 @@
     <div class="mask-black-dialog" id="YDUI_CONFRIM" v-show="dialogshow">
         <div class="m-confirm">
             <div class="confirm-hd"><strong class="confirm-title">订单确认</strong></div>
-            <div class="confirm-bd">购买数量: <em class="bluetext">10棵</em></div>
-            <div class="confirm-bd">订单总价: <em class="bluetext">100BGT</em></div>
+            <div class="confirm-bd">购买数量: <em class="bluetext">{{buynum}}棵</em></div>
+            <div class="confirm-bd">订单总价: <em class="bluetext">{{buynum*goodsPrice}}BGT</em></div>
+            <div class="confirm-bd">交易手续费: <em class="bluetext">{{buynum*goodsPrice*0.01 | numSlicefour}}BGT  1%</em></div>
             <div class="confirm-ft">
                 <a
                         href="javascript:;"
@@ -91,7 +90,7 @@
                 <a
                         href="javascript:;"
                         class="confirm-btn primary"
-                        @click="hide"
+                        @click="dealGoods(token,dealType,buynum,goodsId)"
                 ><em class="bluetext">确定</em></a>
             </div>
         </div>
@@ -112,23 +111,97 @@
             el: '#htmlWap',
             data: {
                 token:GetQueryString('token'),//头部获取。,
+                goodsId:GetQueryString('goodsId'),//头部获取商品ID,
+                goodsNum:GetQueryString('goodsNum'),//头部获取出售总数,
+                residueNum:GetQueryString('residueNum'),//头部获取剩余数量,
+                goodsPrice:GetQueryString('goodsPrice'),//头部获取树苗单价,
+                finishNum:GetQueryString('finishNum'),//头部获取已成交数,
+                dealType:GetQueryString('getType'),//头部获取已成交数,
                 userphoto:"../../images/notuserphoto.png",
+                buynum:'',                      //交易数量
+                bgtnum:'',                     //bgt余额
                 userName: "珠穆拉玛",
+                // goodsTotal:'',              //商品总价
                 dialogshow: false
         },
         methods:{
             enterbuy: function() {
-                this.dialogshow = true;
+                if(!this.buynum){
+                    layer.msg('请输入购买数量');
+                    return;
+                }else{
+                    this.dialogshow = true;
+                }
+            
             },
             hide: function() {
                 this.dialogshow = false;
             },
+            allbuy:function(){
+                this.buynum=this.goodsNum;
+            },
             goback:function(){
                  window.location.href="treeDeal.html?token="+this.token
-            }
+            },
+            dealGoods:function(token,dealType,buynum,goodsId){
+                var that =this;
+                this.$http({
+                        method: "post",
+                        url: fund+"/appSceneGoods/dealGoods",
+                        data: {
+                            token:token,
+                            dealType:dealType,
+                            num:buynum,
+                            goodsId:goodsId,
+                            platform:'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        layer.msg(data.data.message);
+                        setTimeout(function(){
+                            window.location.href="dealDetail.html?token="+that.token
+                        },1000);
+                    }, function (error) {
+                        console.log(error);
+                    });
+            },
+            getUserWalletInfo:function() {
+                    var that = this;
+                    this.$http({
+                        method: "post",
+                        url: fund + "/appRedPacket/getUserWalletInfo",
+                        data: {
+                            token: this.token,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        // console.log(data);
+                        if (data.data.code == 0) {
+                            this.bgtnum = data.data.data.bgt;
+                        } else {
+                            layer.msg(data.data.message);
+                        }
+                    }, function (error) {
+                        layer.msg('接口出错');
+                    });
+                }
         },
+        filters: {
+                numSlicefour: function (val) {
+                    if (val) {
+                            return parseFloat(val.toFixed(4));
+                    }
+                },
+            },
         mounted:function(){
-
+            this.getUserWalletInfo();
+                if(this.dealType==10){
+                    this.dealType=20
+                    $('.navbar-title').text('出售树苗');
+                }else if(this.dealType==20){
+                    this.dealType=10
+                }
         }
     })
     });

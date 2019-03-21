@@ -15,7 +15,7 @@
 <body>
 <div id="htmlWap" v-cloak>
         <header class="m-navbar">
-                <a href="javascript:;" @click="goback" class="navbar-item">
+                <a href="javascript:history.go(-1);"  class="navbar-item">
                     <i class="back-ico"></i>
                 </a>
                 <div class="navbar-center">
@@ -28,64 +28,33 @@
     <div class="seedcontain seedbg">
             
             <div class="tab-panel-item">
-                <div class="m-cell seedWbg">
+                <div class="m-cell seedWbg" v-for="item in orderlist">
                     <section class="cellLR bottborl">
-                        <span class="left_cell" style="flex:1"><span class="sellIcon margr10"><img
+                        <span class="left_cell" style="flex:1" v-if="item.dealType==10"><span class="sellIcon margr10"><img
                                 src="../../images/seed/icon-chushou@2x.png"/></span>出售树苗</span>
-
-                        <span class="right_cell" style="flex:1">2019-02-08 18:06:32</span>
+                        <span class="left_cell" style="flex:1" v-if="item.dealType==20"><span class="sellIcon margr10"><img
+                                src="../../images/seed/icon-goumai@2x.png"/></span>购买树苗</span>
+                        <span class="right_cell" style="flex:1">{{item.buyTime}}</span>
                     </section>
                     <section class="cellLR ">
                         <span class="left_cell" style="flex:1">单价</span>
-                        <span class="right_cell" style="flex:1">10BGt/棵</span>
+                        <span class="right_cell" style="flex:1">{{item.goodsPrice}}BGt/棵</span>
                     </section>
                     <section class="cellLR ">
                         <span class="left_cell" style="flex:1">出售总量</span>
-                        <span class="right_cell" style="flex:1">100</span>
+                        <span class="right_cell" style="flex:1">{{item.goodsNum}}</span>
                     </section>
                     <section class="cellLR bottborl">
                         <span class="left_cell" style="flex:1">已出售量</span>
-                        <span class="right_cell" style="flex:1">23</span>
+                        <span class="right_cell" style="flex:1">{{item.residueNum}}</span>
                     </section>
-                    <section class="cellLR ">
+                    <section class="cellLR "  v-if="item.state==10">
                         <span class="left_cell" style="flex:1"></span>
-                        <span class="right_cell bluetext" style="flex:1"><strong
-                                @click="cancelorder">撤销挂单</strong></span>
+                        <span class="right_cell bluetext" style="flex:1"><strong @click="cancelorder">撤销挂单</strong></span>
                     </section>
-                    <section class="backout"><img src="../../images/seed/img-wancheng@2x.png"/></section>
-                </div>
-                <div class="m-cell seedWbg">
-                    <section class="cellLR bottborl">
-                        <span class="left_cell" style="flex:1"><span class="sellIcon margr10"><img
-                                src="../../images/seed/icon-goumai@2x.png"/></span>购买树苗</span>
-                        <span class="right_cell" style="flex:1">2019-02-08 18:06:32</span>
-                    </section>
-                    <section class="cellLR ">
-                        <span class="left_cell" style="flex:1">单价</span>
-                        <span class="right_cell" style="flex:1">10BGt/棵</span>
-                    </section>
-                    <section class="cellLR ">
-                        <span class="left_cell" style="flex:1">购买总量</span>
-                        <span class="right_cell" style="flex:1">100</span>
-                    </section>
-                    <section class="cellLR ">
-                        <span class="left_cell" style="flex:1">已购买量</span>
-                        <span class="right_cell" style="flex:1">23</span>
-                    </section>
-                    <section class="cellLR">
-                        <span class="left_cell" style="flex:1">初始保证金</span>
-                        <span class="right_cell" style="flex:1">100</span>
-                    </section>
-                    <section class="cellLR bottborl">
-                        <span class="left_cell" style="flex:1">当前保证金</span>
-                        <span class="right_cell" style="flex:1">100</span>
-                    </section>
-                    <section class="cellLR ">
-                        <span class="left_cell" style="flex:1"></span>
-                        <span class="right_cell bluetext" style="flex:1"><strong>撤销挂单</strong></span>
-                    </section>
-                    <section class="backout"><img src="../../images/seed/img-chexiao@2x.png"/></section>
-                </div>
+                    <section class="backout" v-if="item.state==20"><img src="../../images/seed/img-wancheng@2x.png"/></section>
+                    <section class="backout" v-if="item.state==30"><img src="../../images/seed/img-wancheng@2x.png"/></section>
+                </div> 
             </div>
         </div>
 
@@ -94,7 +63,7 @@
             <div class="confirm-hd"><strong class="confirm-title">撤销挂单</strong></div>
             <div class="confirm-bd">确定撤销挂单？</div>
             <div class="confirm-ft">
-                <a href="javascript:;" class="confirm-btn default">取消</a>
+                <a href="javascript:;" @click="hide" class="confirm-btn default">取消</a>
                 <a href="javascript:;"  @click="orderentrer(token)" class="confirm-btn primary">确定</a>
             </div>
         </div>
@@ -117,13 +86,14 @@
                 token: GetQueryString('token'),//头部获取。,
                 buystate: GetQueryString('buystate'),       //订单状态0为出售，1位购买
                 dialogshow:false,
+                orderlist:[]                                //记录列表
 
             },
             methods: {
                 cancelorder: function () {
                     this.dialogshow=true;
                 },
-                orderentrer:function () {
+                hide:function () {
                     this.dialogshow=false;
                 },
                 goorderdeal:function(token){
@@ -131,9 +101,40 @@
                 },
                 goback:function(){
                     window.location.href="orderDeal.html?token="+this.token
-                }
+                },
+                getlist: function () {
+                    var that=this;
+                    that.orderlist=[];
+                    this.$http({
+                        method: "post",
+                        url: fund+ "/appSceneGoods/getMyGoodsList",
+                        data: {
+                            token: this.token,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if(data.data.code==0){
+                            // layer.msg(data.data.message);
+                            if(data.data.data){
+                                for (var i  in data.data.data.list) {
+                                        var item = data.data.data.list[i]
+                                            that.orderlist.push(item);
+                                }
+                            }
+                            
+                        }else{
+                            layer.msg(data.data.message)
+                        }
+                               
+                            }, function (error) {
+                        layer.msg('接口出错');
+                    })
+                },       
             },
             mounted: function () {
+                this.getlist()
             }
         })
     });

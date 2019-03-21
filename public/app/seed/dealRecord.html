@@ -20,7 +20,7 @@
 <body>
 <div id="htmlWap" v-cloak>
         <header class="m-navbar">
-            <a href="javascript:;" @click="goback" class="navbar-item">
+            <a href="javascript:history.go(-1);"  class="navbar-item">
                 <i class="back-ico"></i>
             </a>
             <div class="navbar-center">
@@ -38,37 +38,39 @@
 
         <div class="seedWcontainr">
             <div class="tab-panel-item">
-                    <div class="m-cell seedWbg" @click="dealdetail(token,buystate)">
+                    <div class="m-cell seedWbg" @click="dealdetail(token,getType)" v-for="item in orderlist">
                         <section class="cellLR bottborl">
-                            <span class="left_cell blacktext" v-if="buystate==0"  style="flex:1"><span class="sellIcon margr10"><img src="../../images/seed/icon-chushou@2x.png" /></span>出售树苗</span>
-                            <span class="left_cell blacktext" v-if="buystate==1" style="flex:1"><span class="sellIcon margr10"><img src="../../images/seed/icon-goumai@2x.png" /></span>购买树苗</span>
-                            <span class="right_cell fontcolorB" style="flex:1;">2019-02-08 18:06:32</span>
+                            <span class="left_cell blacktext" v-if="getType==20"  style="flex:1"><span class="sellIcon margr10"><img src="../../images/seed/icon-chushou@2x.png" /></span>出售树苗</span>
+                            <span class="left_cell blacktext" v-if="getType==10" style="flex:1"><span class="sellIcon margr10"><img src="../../images/seed/icon-goumai@2x.png" /></span>购买树苗</span>
+                            <span class="right_cell fontcolorB" style="flex:1;">{{item.buyTime}}</span>
                         </section>
                         <section class="cellLR ">
-                            <span class="left_cell fontcolorB" style="flex:1">买家</span>
-                            <span class="right_cell" style="flex:1">微信昵称</span>
+                            <span class="left_cell fontcolorB" v-if="getType==20" style="flex:1">卖家</span>
+                            <span class="left_cell fontcolorB" v-if="getType==10" style="flex:1">买家</span>
+                            <span class="right_cell" style="flex:1">{{item.sellerUserNickname}}</span>
                         </section>
                         <section class="cellLR ">
                             <span class="left_cell fontcolorB" style="flex:1">单价</span>
-                            <span class="right_cell" style="flex:1">10BGT/棵</span>
+                            <span class="right_cell" style="flex:1">{{item.goodsPrice}}BGT/棵</span>
                         </section>
                         <section class="cellLR ">
                             <span class="left_cell fontcolorB" style="flex:1">总价</span>
-                            <span class="right_cell" style="flex:1">1000BGT</span>
+                            <span class="right_cell" style="flex:1">{{item.payMoney}}BGT</span>
                         </section>
-                        <section class="cellLR ">
+                        <section class="cellLR" v-if="getType==20">
                             <span class="left_cell fontcolorB" style="flex:1">手续费</span>
-                            <span class="right_cell" style="flex:1">12BGT 1%</span>
+                            <span class="right_cell" style="flex:1">{{item.sxFee}}BGT {{item.sxFee/item.payMoney*100}}%</span>
                         </section>
                         <section class="cellLR bottborl">
                             <span class="left_cell fontcolorB" style="flex:1">订单号</span>
-                            <span class="right_cell" style="flex:1">OTC12345678915432145</span>
+                            <span class="right_cell" style="flex:1">{{item.orderNo}}</span>
                         </section>
                         <section class="cellLR lh12">
-                            <span class="left_cell fontcolorB" style="flex:1">数量<span class="blacktext">120</span></span>
+                            <span class="left_cell fontcolorB" style="flex:1">数量<span class="blacktext">{{item.buyNum}}</span></span>
                             <span class="right_cell blacktext" style="flex:1">交易成功</span>
                         </section>
                     </div>
+                    <p class="nodata" v-if="orderlist.length==0">暂无数据</p>
             </div>
         </div>
     </div>
@@ -91,19 +93,52 @@
                 userphoto:"../../images/notuserphoto.png",
                 tabactive: true,
                 tabactive2: false,
-                buystate:0,       //订单状态0为出售，1位购买
-
+                getType:20,       //订单状态10：我购买的订单 20：我出售的订单
+                orderlist:[]        //订单列表
             },
         methods:{
+            getlist: function () {
+                    var that=this;
+                    that.orderlist=[];
+                    this.$http({
+                        method: "post",
+                        url: fund+ "/appSceneGoodsOrder/getOrderList",
+                        data: {
+                            token: this.token,
+                            getType: this.getType,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        if(data.data.code==0){
+                            layer.msg(data.data.message);
+                            if(data.data.data){
+                                for (var i  in data.data.data.list) {
+                                        var item = data.data.data.list[i]
+                                            that.orderlist.push(item);
+                                }
+                            }
+                            
+                        }else{
+                            layer.msg(data.data.message)
+                        }
+                               
+                            }, function (error) {
+                        layer.msg('接口出错');
+                    })
+                },       
             saletab:function(type){
                     if(type==0){
                         this.tabactive=true;
                         this.tabactive2=false;
-                        this.buystate =0;
+                        this.getType =20;
+                        this.getlist();
                     }else if(type==1){
                         this.tabactive=false;
                         this.tabactive2=true;
-                        this.buystate =1;
+                        this.getType =10;
+                        this.getlist();
                     }
                 },
             dealdetail:function(token,buystate){
@@ -117,6 +152,7 @@
             }
         },
         mounted:function(){
+            this.getlist()
         }
     })
     });

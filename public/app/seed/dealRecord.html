@@ -18,7 +18,7 @@
     .cell-item:not(:last-child){border-bottom: #f3f3f3 solid 1px}
 </style>
 <body>
-<div id="htmlWap" v-cloak>
+<div id="htmlWap"  class="seedhead" v-cloak>
         <header class="m-navbar">
             <a href="javascript:history.go(-1);"  class="navbar-item">
                 <i class="back-ico"></i>
@@ -74,6 +74,10 @@
             </div>
         </div>
     </div>
+     <!--等待图标-->
+     <div class="pukeloading" v-show="loadpic">
+        <img src="../../images/blueloading.gif" />
+    </div>
 </div>
 </body>
 <script>
@@ -93,6 +97,7 @@
                 userphoto:"../../images/notuserphoto.png",
                 tabactive: true,
                 tabactive2: false,
+                loadpic: true,      //等待图标     
                 getType:20,       //订单状态10：我购买的订单 20：我出售的订单
                 orderlist:[]        //订单列表
             },
@@ -114,8 +119,11 @@
                         if(data.data.code==0){
                             if(data.data.data){
                                 for (var i  in data.data.data.list) {
-                                        var item = data.data.data.list[i]
-                                            that.orderlist.push(item);
+                                    var item = data.data.data.list[i]
+                                        that.orderlist.push(item);
+                                        if(!item.sellerUserNickname){
+                                            item.sellerUserNickname='微信昵称';
+                                        }
                                 }
                             }
                             
@@ -128,6 +136,12 @@
                     })
                 },       
             saletab:function(type){
+                    //加载层
+                     var that = this;
+                     that.loadpic = true;
+                    setTimeout(function () {
+                        that.loadpic = false;
+                    }, 1000)
                     if(type==0){
                         this.tabactive=true;
                         this.tabactive2=false;
@@ -137,7 +151,7 @@
                         this.tabactive=false;
                         this.tabactive2=true;
                         this.getType =10;
-                        this.getlist();
+                        this.getlist(); 
                     }
                 },
             dealdetail:function(token,getType,item){
@@ -152,6 +166,13 @@
         },
         mounted:function(){
             this.getlist()
+        },
+        beforeCreate:function(){
+                //加载层
+                var that = this;
+                setTimeout(function () {
+                    that.loadpic = false;
+                }, 1000);
         }
     })
     });

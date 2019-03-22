@@ -19,7 +19,7 @@
     .cell-item{line-height: 1.15rem}
 </style>
 <body>
-<div id="htmlWap" v-cloak>
+<div id="htmlWap"  class="seedhead" v-cloak>
         <header class="m-navbar">
                 <a href="javascript:history.go(-1);"  class="navbar-item">
                     <i class="back-ico"></i>
@@ -47,8 +47,8 @@
                             <div class="cell-left" v-if="publishType==10">出售总数</div>
                             <div class="cell-left" v-if="publishType==20">收购总数</div>
                             <div class="cell-right">
-                                <input type="number"  v-if="publishType==10" pattern="[0-9]*" v-model="dealnum" style="text-align:right" class="cell-input" placeholder="请输入出售总量" autocomplete="off" />
-                                <input type="number"  v-if="publishType==20" pattern="[0-9]*" v-model="dealnum" style="text-align:right" class="cell-input" placeholder="请输入收购总量" autocomplete="off" />
+                                <input type="number"  v-if="publishType==10" pattern="[0-9]*" oninput="if(value.length>4)value=value.slice(0,4)" v-model="dealnum" style="text-align:right" class="cell-input" placeholder="请输入出售总量" autocomplete="off" />
+                                <input type="number"  v-if="publishType==20" pattern="[0-9]*" oninput="if(value.length>4)value=value.slice(0,4)" v-model="dealnum" style="text-align:right" class="cell-input" placeholder="请输入收购总量" autocomplete="off" />
                             </div>
                         </div>
                         <div class="cell-item">
@@ -69,7 +69,12 @@
                         <div class="cell-item">
                             <div class="cell-left">设置单价</div>
                             <div class="cell-right">
-                                <input type="number" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')" pattern="[0-9]*" v-model="dealprice" style="text-align:right" class="cell-input mar_r10" placeholder="请设置单价" autocomplete="off" />BGT
+                                <input type="number" 
+                                onkeyup="this.value=this.value.replace(/\D/g,'')" 
+                                onafterpaste="this.value=this.value.replace(/\D/g,'')" 
+                                pattern="[0-9]*" 
+                                oninput="if(value.length>4)value=value.slice(0,4)"
+                                v-model="dealprice" style="text-align:right" class="cell-input mar_r10" placeholder="请设置单价" autocomplete="off" />BGT
                             </div>
                         </div>
                     </div>
@@ -107,11 +112,12 @@
                             href="javascript:;"
                             class="confirm-btn default"
                             @click="hide">取消</a>
-                    <a
-                            href="javascript:;"
-                            class="confirm-btn primary"
-                            @click="orderentrer(token,publishType,dealnum,dealprice)"
-                    ><em class="bluetext">确定</em></a>
+                    <button
+                                href="javascript:;"  :disabled="isDisable"
+                                class="confirm-btn primary"
+                                @click="orderentrer(token,publishType,dealnum,dealprice)"
+                        ><em class="bluetext">确定</em>
+                    </button>
                 </div>
             </div>
         </div>
@@ -132,12 +138,14 @@
             el: '#htmlWap',
             data: {
                 token:GetQueryString('token'),       //头部获取token
-                saplingNum:'',                      //我的树苗总量
-                balance:'',                         //我的BGT总量
+                saplingNum:0,                      //我的树苗总量
+                balance:0,                         //我的BGT总量
                 userphoto:"../../images/notuserphoto.png",
                 tabactive: true,
                 tabactive2: false,
                 dialogshow: false,
+                loadpic:true,                       //等待图标
+                isDisable:false,                    //按钮重复点击
                 publishType:10,                     //挂单交易状态10为出售 20为购买
                 dealnum:'',                         //交易数量
                 dealprice:'',                       //交易单价
@@ -168,7 +176,10 @@
                 }else if(this.dealnum>1000){
                     layer.msg('交易总数不能大于1000');
                     return;
-                } else if(!this.dealprice){
+                }else if(this.dealnum>saplingNum){
+                    layer.msg('不能大于您的持有量');
+                    return;
+                }else if(!this.dealprice){
                     layer.msg('请输入交易单价');
                     return;
                 }
@@ -187,7 +198,7 @@
                         },
                         emulateJSON: true
                     }).then(function (data) {
-                        console.log(data);
+                        // console.log(data);
                         if(data.data.code==0){
                             this.saplingNum= data.data.data.saplingNum;
                             for(var i in data.data.data.walletInfo){
@@ -197,7 +208,7 @@
                                 }
                             }
                             // this.balance=data.data.data.walletInfo.balance;
-                            console.log(data.data.data.walletInfo);
+                            // console.log(data.data.data.walletInfo);
                         }else{
                             layer.msg(data.data.message);
                         }
@@ -208,6 +219,7 @@
             },
             orderentrer:function(token,publishType,num,price){
                 this.dialogshow=false;
+                this.isDisable=true;
                 this.$http({
                         method: "post",
                         url: fund+"/appSceneGoods/publishGoods",
@@ -224,7 +236,8 @@
                         layer.msg(data.data.message);
                         if(data.data.code==0){
                             layer.msg(data.data.message);
-                            window.location.href="treeDeal.html?token="+token
+                            this.isDisable=false;
+                            window.location.href="treeDeal.html?token="+token+"&getType=10";
                         }else{
                             layer.msg(data.data.message);
                         }
@@ -248,6 +261,13 @@
                 },
             },
         mounted:function(){
+             //加载层
+             this.$nextTick(function () {
+                    var that = this;
+                    setTimeout(function () {
+                        that.loadpic = false;
+                    }, 1000)
+                });
             this.getUserWalletV2();
         }
     })

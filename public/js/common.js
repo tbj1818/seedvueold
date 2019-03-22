@@ -9,3 +9,13 @@ document.write('<script src="js/layer/layer.js"  type="text/javascript"></script
 document.write('<script src="js/ydui.js"  type="text/javascript"></script>');
 document.write('<script src="js/ydui.flexible.js"  type="text/javascript"></script>');
 document.write('<script src="js/clipboard.min.js"  type="text/javascript"></script>');
+
+
+function loadpic(num){
+      //加载层
+        var that = this;
+        that.loadpic = true;
+        setTimeout(function () {
+            that.loadpic = false;
+        }, 1000)
+}

@@ -13,7 +13,7 @@
 <style>
 </style>
 <body>
-<div id="htmlWap" v-cloak>
+<div id="htmlWap"  class="seedhead" v-cloak>
         <header class="m-navbar">
                 <a href="javascript:history.go(-1);" class="navbar-item">
                     <i class="back-ico"></i>
@@ -50,11 +50,11 @@
                         <span class="left_cell" style="flex:1">总价 </span>
                         <span class="right_cell" style="flex:1">{{payMoney}}BGT</span>
                     </section>
-                    <section class="cellLR">
+                    <section class="cellLR" v-if="getType==20">
                         <span class="left_cell" style="flex:1">手续费 </span>
                         <span class="right_cell" style="flex:1">{{sxFee}}BGT 1%</span>
                     </section>
-                    <section class="cellLR">
+                    <section class="cellLR" v-if="getType==20">
                         <span class="left_cell" style="flex:1">实际收入 </span>
                         <span class="right_cell" style="flex:1">{{payMoney-sxFee}}BGT</span>
                     </section>
@@ -118,7 +118,6 @@
                             this.orderNo=datainfo.orderNo;
                             this.payMoney=datainfo.payMoney;
                             this.goodsPrice=datainfo.goodsPrice;
-                            this.
                             this.sxFee=datainfo.sxFee;
                         }
                     }, function (error) {

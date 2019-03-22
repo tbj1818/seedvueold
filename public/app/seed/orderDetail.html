@@ -13,7 +13,7 @@
 <style>
 </style>
 <body>
-<div id="htmlWap" v-cloak>
+<div id="htmlWap"  class="seedhead" v-cloak>
         <header class="m-navbar">
                 <a href="javascript:history.go(-1);"  class="navbar-item">
                     <i class="back-ico"></i>
@@ -84,6 +84,10 @@
             </div>
         </div>
     </div>
+    <!--等待图标-->
+    <div class="pukeloading" v-show="loadpic">
+        <img src="../../images/blueloading.gif" />
+    </div>
 </div>
 </body>
 <script>
@@ -102,6 +106,7 @@
                 token: GetQueryString('token'),//头部获取。,
                 buystate: GetQueryString('buystate'),       //订单状态0为出售，1位购买
                 dialogshow:false,
+                loadpic:true,                               //等待图标
                 orderlist:[]                                //记录列表
 
             },

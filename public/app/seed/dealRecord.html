@@ -32,8 +32,8 @@
         </header>
     <div class="seedcontain seedbg">
         <ul class="tab-nav">
-            <li class="tab-nav-item"  :class="tabactive?'tab-active':''" @click="saletab(0)"><a href="javascript:;">我出售的</a></li>
-            <li class="tab-nav-item"  :class="tabactive2?'tab-active':''" @click="saletab(1)"><a href="javascript:;">我购买的</a></li>
+            <li class="tab-nav-item"  :class="tabactive?'tab-active':''" @click="saletab(20)"><a href="javascript:;">我出售的</a></li>
+            <li class="tab-nav-item"  :class="tabactive2?'tab-active':''" @click="saletab(10)"><a href="javascript:;">我购买的</a></li>
         </ul>
 
         <div class="seedWcontainr">
@@ -71,6 +71,7 @@
                         </section>
                     </div>
                     <p class="nodata" v-if="orderlist.length==0">暂无数据</p>
+                    <div class="nodata downtext" @click="loadMorelist(getType)" v-show="loadMore">加载更多</div>
             </div>
         </div>
     </div>
@@ -97,6 +98,9 @@
                 userphoto:"../../images/notuserphoto.png",
                 tabactive: true,
                 tabactive2: false,
+                loadMore:false,
+                limit:20,
+                offset:1,
                 loadpic: true,      //等待图标     
                 getType:20,       //订单状态10：我购买的订单 20：我出售的订单
                 orderlist:[]        //订单列表
@@ -104,13 +108,14 @@
         methods:{
             getlist: function () {
                     var that=this;
-                    that.orderlist=[];
                     this.$http({
                         method: "post",
                         url: fund+ "/appSceneGoodsOrder/getOrderList",
                         data: {
                             token: this.token,
                             getType: this.getType,
+                            limit:this.limit,
+                            offset:this.offset++,
                             platform: 'H5'
                         },
                         emulateJSON: true
@@ -125,8 +130,16 @@
                                             item.sellerUserNickname='微信昵称';
                                         }
                                 }
+                                if (data.data.data.list.length >= this.limit) {
+                                    this.loadMore = true;
+                                }else{
+                                    this.loadMore = false;
+                                    layer.msg('已加载完');
+                                }
+                            }else{
+                                this.loadMore = false;
+                                    // layer.msg('已加载完'); 
                             }
-                            
                         }else{
                             layer.msg(data.data.message)
                         }
@@ -134,20 +147,25 @@
                             }, function (error) {
                         layer.msg('接口出错');
                     })
-                },       
+                },
+                loadMorelist:function(getType){
+                    this.getlist(getType)
+                },   
             saletab:function(type){
+                    this.orderlist=[];
+                    this.offset=1;
                     //加载层
                      var that = this;
                      that.loadpic = true;
                     setTimeout(function () {
                         that.loadpic = false;
                     }, 1000)
-                    if(type==0){
+                    if(type==20){
                         this.tabactive=true;
                         this.tabactive2=false;
                         this.getType =20;
                         this.getlist();
-                    }else if(type==1){
+                    }else if(type==10){
                         this.tabactive=false;
                         this.tabactive2=true;
                         this.getType =10;

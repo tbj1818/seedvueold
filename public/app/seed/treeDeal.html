@@ -74,6 +74,7 @@
                             </section>
                         </li>
                         <p class="nodata" v-if="buylist.length==0">暂无数据</p>
+                        <div class="nodata downtext" @click="loadMorelist(getType)" v-show="loadMore">加载更多</div>
                     </ul>
                 </div>
             </div>
@@ -106,23 +107,85 @@
                 appType: GetQueryString('appType'),     //头部获取设备来源,
                 getType: GetQueryString('getType'),     //交易类型20：出售单，10：收购单
                 userphoto: "../../images/notuserphoto.png",
-                userName: "珠穆拉玛",
                 tabactive: true,
                 tabactive2: false,  
                 isDisable:false,   
+                loadMore:false,
+                limit:20,
+                offset:1,
                 loadpic: true,      //等待图标       
                 buylist: [],
                 finishnum:[]
             },
             methods: {
+                getlist: function (getType) {
+                    var that=this;
+                    // if(getType){
+                    //     that.buylist=[];
+                    // }
+                   
+                    this.$http({
+                        method: "post",
+                        url: fund+ "/appSceneGoods/getGoodsList",
+                        data: {
+                            token: this.token,
+                            getType: this.getType,
+                            limit:this.limit,
+                            offset:this.offset++,
+                            platform: 'H5'
+                        },
+                        emulateJSON: true
+                    }).then(function (data) {
+                        console.log(data);
+                        // this.buylist = data.data.data.list;
+                        if(data.data.code==0){
+                            if(data.data.data){
+                                that.finishnum=data.data.data.finishNumMap;
+                                for (var i  in data.data.data.list) {
+                                        var item = data.data.data.list[i]
+                                            that.buylist.push(item);
+                                            if(!item.userPhoto){
+                                                item.userPhoto="../../images/notuserphoto.png";
+                                            }
+                                            if(!item.userNickname){
+                                                item.userNickname="微信昵称";
+                                            }
+
+                                            var num=item.userId;
+                                            if(item.userId=that.finishnum[num]){
+                                                item.userId=that.finishnum[num]
+                                            };
+                                }
+                                if (data.data.data.list.length >= this.limit) {
+                                    this.loadMore = true;
+                                }else{
+                                    this.loadMore = false;
+                                    layer.msg('已加载完');
+                                }
+                            }else{
+                                    this.loadMore = false;
+                                    // layer.msg('已加载完');
+                                }
+                           
+                        }else{
+                            layer.msg(data.data.message)
+                        }
+                    }, function (error) {
+                        layer.msg('接口出错');
+                    });
+                },
+                loadMorelist:function(getType){
+                    this.getlist(getType)
+                },
                 saletab: function (type) {
                     var test=window.location.href;  
                     // console.log(test);
+                    this.buylist=[];
+                    this.offset=1;
                     if (type ==10) {
                         this.getType =10;
                         this.tabactive = true;
                         this.tabactive2 = false;
-                          
                         if(test.indexOf("getType")>=0){
                             history.replaceState("", "Title", 'treeDeal.html?token='+this.token+'&getType=10');
                         }
@@ -148,41 +211,7 @@
                     // this.$router.push({ path: "/view/h5/app/seed/seedBuy" });
                     window.location.href = "seedBuy.html?token=" + token+"&goodsNum="+item.goodsNum+"&residueNum="+item.residueNum+"&goodsId="+item.rowId+"&goodsPrice="+item.goodsPrice+"&finishNum="+item.userId+"&getType="+this.getType+"&userNickname="+encodeURIComponent(item.userNickname)+"&userPhoto="+item.userPhoto;
                 },
-                getlist: function () {
-                    var that=this;
-                    that.buylist=[];
-                    this.$http({
-                        method: "post",
-                        url:  "http://192.168.192.121:20050/appSceneGoods/getGoodsList",
-                        data: {
-                            token: this.token,
-                            getType: this.getType,
-                            platform: 'H5'
-                        },
-                        emulateJSON: true
-                    }).then(function (data) {
-                        console.log(data);
-                        // this.buylist = data.data.data.list;
-                        if(data.data.code==0){
-                            that.finishnum=data.data.data.finishNumMap;
-                            for (var i  in data.data.data.list) {
-                                    var item = data.data.data.list[i]
-                                        that.buylist.push(item);
-                                        if(!item.userPhoto){
-                                            item.userPhoto="../../images/notuserphoto.png";
-                                        }
-                                        var num=item.userId;
-                                        if(item.userId=that.finishnum[num]){
-                                            item.userId=that.finishnum[num]
-                                        };
-                            }
-                        }else{
-                            layer.msg(data.data.message)
-                        }
-                    }, function (error) {
-                        layer.msg('接口出错');
-                    });
-                },
+                
                 goback:function(appType){
                     if (appType == 'ios') {
                     //调用IOS原生方法

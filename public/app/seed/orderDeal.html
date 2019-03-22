@@ -176,9 +176,6 @@
                 }else if(this.dealnum>1000){
                     layer.msg('交易总数不能大于1000');
                     return;
-                }else if(this.dealnum>saplingNum){
-                    layer.msg('不能大于您的持有量');
-                    return;
                 }else if(!this.dealprice){
                     layer.msg('请输入交易单价');
                     return;

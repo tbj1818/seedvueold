@@ -63,21 +63,31 @@
             return r[2];
         }
     };
-    var appType = GetQueryString('appType');
-    var inviteCode;
     $(function () {
         new Vue({
             el: '#htmlWap',
             data: {
                 token: GetQueryString('token'),
                 appType: GetQueryString('appType'),
-               
             },
             methods: {
-               
+                gofarm:function(appType){
+                    if (appType == 'ios') {
+                    //调用IOS原生方法
+                        window.webkit.messageHandlers.goFarm.postMessage(1);
+                        return;
+                    } else if (appType == 'android') {
+                        window.android.goFarm(1);
+                        return;
+                    } else {
+                        console.log(1);
+                        layer.msg('请在手机端操作')
+                        return;
+                    }
+                }
             },
             mounted: function () {
-               
+                
             },
         });
     });

@@ -173,6 +173,7 @@
                     }).then(function (data) {
                         layer.msg(data.data.message);
                         if(data.data.code==0){
+                            this.dialogshow = false;
                                 window.location.href="dealDetail.html?token="+token+"&orderNo="+data.data.data.orderNo+"&getType="+getType;
                         }else{
                             layer.msg(data.data.message);

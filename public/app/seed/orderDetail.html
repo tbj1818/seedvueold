@@ -71,6 +71,8 @@
                     <section class="backout" v-if="item.state==20"><img src="../../images/seed/img-wancheng@2x.png"/></section>
                     <section class="backout" v-if="item.state==30"><img src="../../images/seed/img-wancheng@2x.png"/></section>
                 </div> 
+                <p class="nodata" v-if="orderlist.length==0">暂无数据</p>
+                <div class="nodata downtext" @click="loadMorelist()" v-show="loadMore">加载更多</div>
             </div>
         </div>
 
@@ -106,9 +108,11 @@
                 token: GetQueryString('token'),//头部获取。,
                 buystate: GetQueryString('buystate'),       //订单状态0为出售，1位购买
                 dialogshow:false,
+                loadMore:false,
+                limit:1,
+                offset:1,
                 loadpic:true,                               //等待图标
                 orderlist:[]                                //记录列表
-
             },
             methods: {
                 cancelorder: function () {
@@ -125,12 +129,13 @@
                 },
                 getlist: function () {
                     var that=this;
-                    that.orderlist=[];
                     this.$http({
                         method: "post",
                         url: fund+ "/appSceneGoods/getMyGoodsList",
                         data: {
                             token: this.token,
+                            limit:this.limit,
+                            offset:this.offset++,
                             platform: 'H5'
                         },
                         emulateJSON: true
@@ -143,7 +148,16 @@
                                         var item = data.data.data.list[i]
                                             that.orderlist.push(item);
                                 }
-                            }
+                                if (data.data.data.list.length >= this.limit) {
+                                    this.loadMore = true;
+                                }else{
+                                    this.loadMore = false;
+                                    layer.msg('已加载完');
+                                }
+                            }else{
+                                    this.loadMore = false;
+                                    // layer.msg('已加载完');
+                                }
                         }else{
                             layer.msg(data.data.message)
                         }
@@ -151,10 +165,20 @@
                             }, function (error) {
                         layer.msg('接口出错');
                     })
-                },       
+                }, 
+                loadMorelist:function(){
+                    this.getlist()
+                },        
             },
             mounted: function () {
                 this.getlist()
+            },
+            beforeCreate:function(){
+                    //加载层
+                    var that = this;
+                    setTimeout(function () {
+                        that.loadpic = false;
+                    }, 1000);
             }
         })
     });

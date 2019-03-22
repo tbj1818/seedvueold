@@ -146,7 +146,7 @@
                 <p class="textline">奖池容量大于 <input type="number" oninput="if(value.length>8)value=value.slice(0,8)" class="smallinput" placeholder="0" v-model="stopProfitValue" autocomplete="off"/>时，自动关闭。
                 </p>
             </div>
-            <button type="button" v-if="btnrepetitionclick" class="btn-block foundroombtn" @click='submitnext()'>下一步</button>
+            <button type="button" v-if="btnrepetitionclick" class="btn-block foundroombtn" @click="submitnext()">下一步</button>
             <button type="button" v-if="btnrepetitionclickno" class="btn-block foundroombtn">下一步</button>
         </div>
     </div>
@@ -182,9 +182,9 @@
                             </li>
                         </ul>
                     </div>
-                    <button type="button" class="btn-block randombtn" @click='randomresult(roomgamenum)'>随机一组</button>
+                    <button type="button" class="btn-block randombtn" @click="randomresult(roomgamenum)">随机一组</button>
                 </div>
-                <button type="button" class="btn-block foundroombtn" @click='enterroomresult(appType)'>确定</button>
+                <button type="button" class="btn-block foundroombtn" @click="enterroomresult(appType)">确定</button>
             </div>
         </div>
     </div>
@@ -300,7 +300,7 @@
                     </li>
 
                 </ul>
-                <button type="button" class="btn-block foundroombtn" @click='resultnumenter(resultactive,gameType)'>确定</button>
+                <button type="button" class="btn-block foundroombtn" @click="resultnumenter(resultactive,gameType)">确定</button>
             </div>
         </div>
     </div>
@@ -338,7 +338,7 @@
                         <p>大>7</p>
                     </li>
                 </ul>
-                <button type="button" class="btn-block foundroombtn" @click='resultnumenter(resultactive,gameType)'>确定</button>
+                <button type="button" class="btn-block foundroombtn" @click="resultnumenter(resultactive,gameType)">确定</button>
             </div>
         </div>
     </div>
@@ -381,7 +381,7 @@
                         </section>
                     </li>
                 </ul>
-                <button type="button" class="btn-block foundroombtn" @click='resultnumenter(resultactive,gameType)'>确定</button>
+                <button type="button" class="btn-block foundroombtn" @click="resultnumenter(resultactive,gameType)">确定</button>
             </div>
         </div>
     </div>

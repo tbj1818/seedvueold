@@ -22,7 +22,7 @@
 <body>
 <div id="htmlWap"  class="seedhead" v-cloak>
         <header class="m-navbar">
-            <a href="javascript:history.go(-1);"  class="navbar-item">
+             <a href="javascript:history.go(-1);" class="navbar-item">
                 <i class="back-ico"></i>
             </a>
             <div class="navbar-center">
@@ -46,7 +46,7 @@
                             <div class="right_cell">{{residueNum}}</div>
                         </div>
                     </div>
-                    <section class="cellLR">
+                    <section class="cellLR" style="line-height: 45px;">
                         <span class="left_cell">树苗售价:</span>
                         <span class="right_cell">
                 <strong class="greenText">{{goodsPrice}}BGT/棵</strong>
@@ -61,30 +61,31 @@
             <section class="buynum">
                 <input
                         type="number" v-if="getType==10"
-                        onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')" 
+                       
                         pattern="[0-9]*" v-model="buynum"
-                        class="cell-input"
+                        class="cell-input"  @input="inputFun($event.target)"
                         placeholder="请输入购买数量"
                         autocomplete="off"
                 />
                 <input
                         type="number" v-if="getType==20"
-                        onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')" 
+                      
                         pattern="[0-9]*" v-model="buynum"
-                        class="cell-input"
+                        class="cell-input"   @input="inputFun($event.target)"
                         placeholder="请输入出售数量"
                         autocomplete="off"
                 />
-                <a href="javascript:;" @click="allbuy" class="btn btn-hollow" v-if="getType==10">全部购买</a>
-                <a href="javascript:;" @click="allbuy" class="btn btn-hollow" v-if="getType==20">全部出售</a>
+                <a href="javascript:;" @click="allbuy" class="btn btn-hollow"  v-if="getType==10">全部购买</a>
+                <a href="javascript:;" @click="allbuy" class="btn btn-hollow"  v-if="getType==20">全部出售</a>
             </section>
-            <div class="cellLR">
-                <div class="left_cell">最多可持有7000棵树</div>
-                <div class="right_cell">BGT余额: <span class="graytext marl10"> {{bgtnum | numSlicefour}}</span></div>
+            <div class="cellLR" style="line-height:40px">
+                <div class="left_cell"  v-if="getType==10">最多持有7000棵</div>
+                <div class="left_cell"  v-if="getType==20">当前树苗量:{{saplingNum}}</div>
+                <div class="right_cell"  v-if="getType==10">BGT余额: <span class="graytext marl10"> {{bgtnum | numSlicefour}}</span></div>
             </div>
         </div>
-        <button type="button" class="btn-block btn_redgradual" @click="enterbuy"  v-if="getType==10">确定购买</button>
-        <button type="button" class="btn-block btn_redgradual" @click="enterbuy"  v-if="getType==20">确定出售</button>
+        <button type="button" class="btn-block btn_redgradual" @click="enterbuy" :class="btnactive?'active':''"  v-if="getType==10">确定购买</button>
+        <button type="button" class="btn-block btn_redgradual" @click="enterbuy" :class="btnactive?'active':''" v-if="getType==20">确定出售</button>
     </div>
     <!-- 订单确认弹窗 -->
     <div class="mask-black-dialog" id="YDUI_CONFRIM" v-show="dialogshow">
@@ -125,6 +126,8 @@
             el: '#htmlWap',
             data: {
                 token:GetQueryString('token'),//头部获取。,
+                // appType:'',             //设备来源
+                saplingNum:0,                      //我的树苗总量
                 UserNickname:decodeURIComponent( GetQueryString('userNickname')),//头部获取商品ID,
                 userPhoto:GetQueryString('userPhoto'),//头部获取商品ID,
                 goodsId:GetQueryString('goodsId'),//头部获取商品ID,
@@ -136,9 +139,18 @@
                 buynum:'',                      //交易数量
                 bgtnum:'',                     //bgt余额
                 isDisable:false,               //控制重复点击
-                dialogshow: false
+                dialogshow: false,
+                btnactive:false
         },
         methods:{
+            inputFun:function(target){
+                if(!/^\d+$/.test(target.value)){
+                this.buynum = '';
+                }
+                if(this.buynum){
+                    this.btnactive=true;
+                }
+            },
             enterbuy: function() {
                 if(!this.buynum){
                     layer.msg('请输入购买数量');
@@ -154,7 +166,7 @@
                 this.buynum=this.residueNum;
             },
             goback:function(){
-                 window.location.href="treeDeal.html?token="+this.token
+                 window.location.href="treeDeal.html?token="+this.token;
             },
             dealGoods:function(token,getType,goodsId,buynum ){
                 var that =this;
@@ -171,11 +183,13 @@
                         },
                         emulateJSON: true
                     }).then(function (data) {
-                        layer.msg(data.data.message);
+                        // layer.msg(data.data.message);
                         if(data.data.code==0){
+                            this.isDisable=false;
                             this.dialogshow = false;
                                 window.location.href="dealDetail.html?token="+token+"&orderNo="+data.data.data.orderNo+"&getType="+getType;
                         }else{
+                            this.isDisable=false;
                             layer.msg(data.data.message);
                         }
                     }, function (error) {
@@ -187,7 +201,7 @@
                     var that = this;
                     this.$http({
                         method: "post",
-                        url: fund + "/appRedPacket/getUserWalletInfo",
+                        url: fund + "/appFundUserWallet/getUserWalletV2",
                         data: {
                             token: this.token,
                             platform: 'H5'
@@ -195,25 +209,44 @@
                         emulateJSON: true
                     }).then(function (data) {
                         // console.log(data);
-                        if (data.data.code == 0) {
-                            this.bgtnum = data.data.data.bgt;
-                        } else {
+                        if(data.data.code==0){
+                            this.saplingNum= data.data.data.saplingNum;
+                            // console.log(this.saplingNum);
+                            for(var i in data.data.data.walletInfo){
+                                var item =data.data.data.walletInfo;
+                                if(data.data.data.walletInfo[i].wallteType==30){
+                                    this.bgtnum=data.data.data.walletInfo[i].balance;
+                                }
+                            }
+                            // this.balance=data.data.data.walletInfo.balance;
+                            // console.log(data.data.data.walletInfo);
+                        }else{
                             layer.msg(data.data.message);
                         }
+                        // if (data.data.code == 0) {
+                        //     this.bgtnum = data.data.data.bgt;
+                        //     this.saplingNum=data.data.data.saplingNum;
+                        // } else {
+                        //     layer.msg(data.data.message);
+                        // }
                     }, function (error) {
                         layer.msg('接口出错');
                     });
                 }
         },
         filters: {
-                numSlicefour: function (val) {
+            numSlicefour: function (val) {
                     if (val) {
-                       return parseFloat(val.toFixed(4));
+                        let transformVal = parseFloat(val).toFixed(5)
+                        let realVal = transformVal.substring(0, transformVal.length - 1)
+                        // num.toFixed(3)获取的是字符串
+                        return parseFloat(realVal)
                     }
                 },
             },
         mounted:function(){
             this.getUserWalletInfo();
+            // this.appType = localStorage.getItem("appType");
                 if(this.getType==20){
                     $('.navbar-title').text('出售树苗');
                 }

@@ -28,7 +28,7 @@
     </header>
     <div class="hello">
         <!-- tab -->
-        <section class="mart10">
+        <section>
             <ul class="tab-nav">
                 <li class="tab-nav-item"
                     :class="tabactive?'tab-active':''"
@@ -52,7 +52,9 @@
                             <section class="seedWbg">
                                 <div class="listcell">
                                     <div class="cellLR">
-                                        <div class="left_cell">出售总数:<span class="graytext">{{item.goodsNum}}</span>
+                                        <div class="left_cell" v-if="getType==10" >出售总数:<span class="graytext">{{item.goodsNum}}</span>
+                                        </div>
+                                        <div class="left_cell" v-if="getType==20" >收购总数:<span class="graytext">{{item.goodsNum}}</span>
                                         </div>
                                         <div class="right_cell">已成交:<span class="graytext" >{{item.userId}}笔</span>
                                         </div>
@@ -99,6 +101,7 @@
             return r[2];
         }
     };
+    var appType;
     $(function () {
         new Vue({
             el: '#htmlWap',
@@ -160,7 +163,7 @@
                                     this.loadMore = true;
                                 }else{
                                     this.loadMore = false;
-                                    layer.msg('已加载完');
+                                    // layer.msg('已加载完');
                                 }
                             }else{
                                     this.loadMore = false;
@@ -187,7 +190,7 @@
                         this.tabactive = true;
                         this.tabactive2 = false;
                         if(test.indexOf("getType")>=0){
-                            history.replaceState("", "Title", 'treeDeal.html?token='+this.token+'&getType=10');
+                            history.replaceState("", "Title", 'treeDeal.html?token='+this.token+'&getType=10'+"&appType="+this.appType);
                         }
                         this.getlist();
                     } else if (type ==20) {
@@ -196,7 +199,7 @@
                         this.tabactive2 = true;
                             
                         if(test.indexOf("getType")>=0){
-                            history.replaceState("", "Title", 'treeDeal.html?token='+this.token+'&getType=20');
+                            history.replaceState("", "Title", 'treeDeal.html?token='+this.token+'&getType=20'+"&appType="+this.appType);
                         }
                         this.getlist();
                     }
@@ -213,6 +216,11 @@
                 },
                 
                 goback:function(appType){
+                    if(appType==undefined){
+                        console.log(localStorage.getItem("appType"));
+                        var appType = localStorage.getItem("appType");
+                        layer.msg(appType);
+                    }
                     if (appType == 'ios') {
                     //调用IOS原生方法
                         window.webkit.messageHandlers.closePage.postMessage(1);
@@ -228,6 +236,7 @@
                 }
             },
             mounted: function () {
+                localStorage.setItem("appType", this.appType);
                 if(this.getType==10){
                     this.tabactive = true;
                     this.tabactive2 = false;

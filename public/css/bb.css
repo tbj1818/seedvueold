@@ -930,7 +930,7 @@ body { max-width: 750px; padding-bottom: 10px; margin: 0 auto; height: 100%; bac
 .inviterulestag { padding: 10px 15px 15px 15px; float: right; margin-right: 20px; font-size: .32rem; color: rgba(254, 254, 254, 1); text-shadow: 0px 0px 10px rgba(204, 115, 0, 0.7); font-weight: bold; background: linear-gradient(-57deg, rgba(247, 174, 0, 1), rgba(255, 212, 10, 1)); border-radius: 0px 0px 45px 45px; }
 .invpictopbanner { width: 100%; padding-top: 40px; }
 .invpictopbanner img { width: 72%; margin: 0 auto 10px }
-.mycodebg { width: 90%; margin: 0 auto 60px; background: #FFF; border-radius: 5px; min-height: 200px; padding: 15px; position: relative }
+.mycodebg { width: 90%; margin: 0 auto 30px; background: #FFF; border-radius: 5px; min-height: 200px; padding: 15px; position: relative }
 .mycodebg:last-child { margin-bottom: 20px }
 .titgz { width: 100%; text-align: center; margin-bottom: 20px; position: relative; }
 .titgz img { width: 55%; position: absolute; left: 50%; top: -35px; margin-left: -27%; z-index: 999999 }
@@ -938,6 +938,7 @@ body { max-width: 750px; padding-bottom: 10px; margin: 0 auto; height: 100%; bac
 .tagnum { width:25px; height: 20px;vertical-align: middle; line-height: 20px; margin-right: 5px; border-radius: 20px; color: #fff;  text-align: center; display: inline-block }
 .tagnum img{ width:100%}
 .mycodebg p { line-height: 30px; font-size: .26rem; }
+.mycodebg p.overflow { word-wrap: normal; text-overflow: ellipsis; white-space: nowrap;overflow: hidden; }
 .mycodebgpic { position: relative }
 .mycodebgpic img { width: 100%; }
 .mycodebgpic h3 { width: 100%; text-align: center; color: #FFF; font-size: .3rem; position: absolute; top: 15px; left: 0; font-weight: normal }
@@ -977,10 +978,10 @@ body { max-width: 750px; padding-bottom: 10px; margin: 0 auto; height: 100%; bac
 .redcenter { width: 100%; text-align: center; line-height: 1rem; font-size: .32rem; color: #FB403F; display: inline-block; }
 .alipaycopyBtn { width: auto; padding: 5px 15px; color: #FFF; background: #5856D0; border: #5856D0 solid 1px; margin: 20px auto; }
 .clearfix:after { content: "."; display: block; height: 0; clear: both; visibility: hidden; }
-.bgticon{width:38px;margin: 0 auto }
+.bgticon{width:30px;margin: 0 auto }
 .bgticon img{width:100%}
 .fontbold{font-weight: bold; font-size: .28rem}
-.swiper-wrapper{height:440px; overflow-y: auto}
+.invitesharefriendbg .swiper-wrapper{height:440px; overflow-y: auto}
 
 .m-grids-4:before{border-bottom: 1px solid #f3f3f3;}
 /*foundroom*/
@@ -1158,6 +1159,7 @@ body { max-width: 750px; padding-bottom: 10px; margin: 0 auto; height: 100%; bac
 .duihuandetailcon .orderlistshow img { margin-top: 10px }
 
 /*树苗交易区*/
+.navbar-item{font-size: 0.26rem !important}
 .seedhead{padding-top: 0.9rem;}
 .mart10 { margin-top: 10px; }
 .marl10 { margin-left: 10px; }
@@ -1168,19 +1170,19 @@ body { max-width: 750px; padding-bottom: 10px; margin: 0 auto; height: 100%; bac
 .margr10 { margin-right: 10px }
 .seedWcontainr { width: 95%; margin: 0 auto; }
 .seedbg { background: #f5f5f5; }
-.seedlist { width: 100%; background: #7cba28 url(../images/seed/seedlistRight.png) no-repeat right 0; background-size: 80%; text-align: left; border-radius: 10px; padding: 10px 0 5px; margin-bottom: 10px }
-.seedlist h1 { width: 100%; color: #fff; margin: 5px 0 0 10px; display: inline-block; font-size: 16px; line-height: 40px; }
-.seedlist h2 { width: 100%; color: #fff; margin: 0 0 0 10px; display: inline-block; font-size: 16px; }
+.seedlist { width: 100%; background: #7cba28 url(../images/seed/seedlistRight.png) no-repeat right 0;    margin-bottom: 10px; background-size:60%; text-align: left; border-radius: 10px; padding:0 0 5px; }
+.seedlist h1 { width: 100%; color: #fff; margin:10px 0 0 10px; display: inline-block; font-size:15px; }
+.seedlist h2 { width: 100%; color: #fff; margin:5px 0 10px 10px; display: inline-block; font-size: 16px; }
 .userphoto { width: 40px; display: inline-block; margin-right: 10px; }
 .userphoto img { width: 100%; border-radius: 50%; vertical-align: middle; }
-.userName { display: inline-block; vertical-align: text-bottom; }
-.seedWbg { width: 98%; margin: 10px auto 0 !important; background: #fff; border-radius: 5px; padding: 0 10px 0 10px; }
-.seedWbg .listcell { width: 100%; border-bottom: #f3f3f3 solid 1px; }
+.userName { display: inline-block; vertical-align: text-bottom;     line-height: 43px;}
+.seedWbg { width: 98%; margin:5px auto 0 !important; background: #fff; border-radius: 5px; padding: 0 10px 0 10px; }
+.seedWbg .listcell { width: 100%; border-bottom: #f3f3f3 solid 1px; padding:10px 0}
 .seedWbg .listcell p { line-height: 32px; font-size: 14px; }
 .nut-tab-item { height: auto !important; }
-.cellLR { width: 100%; display: flex; line-height: .8rem; font-size: 16px; }
-.cellLR .left_cell { width: 60%; text-align: left; color: #333; -webkit-box-align: center; -webkit-align-items: center; -ms-flex-align: center; align-items: center; }
-.cellLR .right_cell { width: 40%; color: #666; text-align: left; display: flex; -webkit-box-align: center; -webkit-align-items: center; -ms-flex-align: center; align-items: center; -webkit-box-pack: end; -webkit-justify-content: flex-end; -ms-flex-pack: end; justify-content: flex-end; }
+.cellLR { width: 100%; display: flex; line-height: .5rem; font-size: 16px; }
+.cellLR .left_cell { width: 60%; text-align: left; color: #333; font-size:.26rem; display: flex; -webkit-box-align: center; -webkit-align-items: center; -ms-flex-align: center; align-items: center; }
+.cellLR .right_cell { width: 40%; color: #666; text-align: left;font-size:.26rem; display: flex; -webkit-box-align: center; -webkit-align-items: center; -ms-flex-align: center; align-items: center; -webkit-box-pack: end; -webkit-justify-content: flex-end; -ms-flex-pack: end; justify-content: flex-end; }
 .seedcontain { width: 100%; padding: 10px; }
 .seedbuynum { width: 100%; background: #fff; padding: 10px; margin-top: 10px; border-radius: 10px; }
 .seedbuynum h1 { width: 100%; line-height: 0.8rem; font-size: 0.34rem; color: #333; text-align: left; }
@@ -1195,11 +1197,13 @@ body { max-width: 750px; padding-bottom: 10px; margin: 0 auto; height: 100%; bac
 .bluetext { color: #5856d0 !important; }
 .graytext { color: #999; margin-left: 5px }
 .btn_redgradual { background: linear-gradient(270deg, rgba(255, 147, 83, .49) 0%, rgba(255, 85, 83, .49) 100%); border-radius: 5px; color: #fff; font-size: .34rem; font-weight: bold }
+.btn_redgradual.active { background: linear-gradient(270deg, rgba(255, 147, 83, 1) 0%, rgba(255, 85, 83, 1) 100%);}
 .roundicon { width:55px; height:55px; position: fixed; border-radius: 50%; right: 20px; bottom: 80px; text-align: center; box-shadow: 0 0 15px #A3A6FB; }
 .roundicon img { width: 100%; }
 .tab-nav-item { font-size: 0.3rem !important; }
 .tab-nav-item.tab-active { color: #5856d0 !important; font-weight: bold; }
-.rechargeaffirmbtn { width: 95%; background: #a5a4e2; color: #fff; margin: 10px auto; }
+.rechargeaffirmbtn { width: 95%; background:rgba(88,86,208,.5); color: #fff; margin: 10px auto; }
+.rechargeaffirmbtn.active { width: 95%; background:rgba(88,86,208,1); color: #fff; margin: 10px auto; }
 .guadanrules { text-align: left; margin-left: 10px; }
 .guadanrules h1 { font-size: 0.3rem; line-height: 0.6rem; }
 .guadanrules li { font-size: 0.28rem; color: #999; line-height: 0.5rem; }
@@ -1210,16 +1214,20 @@ body { max-width: 750px; padding-bottom: 10px; margin: 0 auto; height: 100%; bac
 .tab-panel { background: none }
 .sellIcon { width: 30px; height: 20px; display: inline-block }
 .sellIcon img { width: 100% }
-.bottborl { border-bottom: #F3F3F3 solid 1px; padding: 5px 0 }
+.bottborl { border-bottom: #F3F3F3 solid 1px;}
 .blacktext { color: #333333 !important; font-size: .3rem !important; font-weight: bold }
 .succeedicon { width: 100%; text-align: center; padding: 20px 0; }
 .succeedicon img { width: 50px; margin: 10px auto }
 .succeedicon p { font-size: .3rem; color: #333 }
 .backout { position: absolute; right: 40px; bottom: 30px; width: 120px; }
 .backout img { width: 100%; }
-.mask-black-dialog .confirm-bd{ font-size: .3rem; color: #333}
+.mask-black-dialog .confirm-bd{ font-size: .26rem; color: #333}
 .fontcolorB{ color: #bbb !important;}
+
+.paddtb10{padding: 10px 0}
 .lh15{ line-height: 1.5rem}
+.lh8{ line-height:.8rem}
+.lh10{ line-height:1rem}
 .lh12{ line-height: 1.2rem}
 
 .confirm-ft>button{    position: relative; border: 0;
@@ -1253,6 +1261,7 @@ body { max-width: 750px; padding-bottom: 10px; margin: 0 auto; height: 100%; bac
     -webkit-animation-iteration-count: infinite;  /*动画播放的次数*/
     -webkit-animation-duration:5s; /*动画所花费的时间*/
 }
+.userphoto{border-radius: 25%;}
 
 @keyframes scaleDraw {  /*定义关键帧、scaleDrew是需要绑定到选择器的关键帧名称*/
     0%{

@@ -17,11 +17,12 @@
     .tab-nav-item{ background: #FFF !important;}
     .cell-item:not(:last-child){border-bottom: #f3f3f3 solid 1px}
     .cell-item{line-height: 1.15rem}
+    .cell-left{font-size:0.28rem}
 </style>
 <body>
 <div id="htmlWap"  class="seedhead" v-cloak>
         <header class="m-navbar">
-                <a href="javascript:history.go(-1);"  class="navbar-item">
+            <a href="javascript:;" @click="goback"  class="navbar-item">
                     <i class="back-ico"></i>
                 </a>
                 <div class="navbar-center">
@@ -47,15 +48,27 @@
                             <div class="cell-left" v-if="publishType==10">出售总数</div>
                             <div class="cell-left" v-if="publishType==20">收购总数</div>
                             <div class="cell-right">
-                                <input type="number"  v-if="publishType==10" pattern="[0-9]*" oninput="if(value.length>4)value=value.slice(0,4)" v-model="dealnum" style="text-align:right" class="cell-input" placeholder="请输入出售总量" autocomplete="off" />
-                                <input type="number"  v-if="publishType==20" pattern="[0-9]*" oninput="if(value.length>4)value=value.slice(0,4)" v-model="dealnum" style="text-align:right" class="cell-input" placeholder="请输入收购总量" autocomplete="off" />
+                                <input type="number"  v-if="publishType==10" pattern="[0-9]*"
+                                @input="inputFun($event.target)"
+                               
+                                 oninput="if(value.length>4)value=value.slice(0,4)" v-model="dealnum" style="text-align:right" class="cell-input" placeholder="请输入出售总量" autocomplete="off" />
+                                <input type="number"  v-if="publishType==20" pattern="[0-9]*"
+                                @input="inputFun($event.target)"
+                               
+                                 oninput="if(value.length>4)value=value.slice(0,4)" v-model="dealnum" style="text-align:right" class="cell-input" placeholder="请输入收购总量" autocomplete="off" />
                             </div>
                         </div>
                         <div class="cell-item">
                             <div class="cell-left"></div>
                             <div class="cell-right">
                                 <section v-if="publishType==10">
-                                    我的树苗总量{{saplingNum | numSlicefour}}  <span class="bluetext marl10" @click="allsale">全部出售</span>
+                                    <span v-if="saplingNum">
+                                        我的树苗总量{{saplingNum | numSlicefour}}  
+                                    </span>
+                                    <span v-else>
+                                        我的树苗总量0
+                                    </span>
+                                    <span class="bluetext marl10" @click="allsale">全部出售</span>
                                 </section>
                                 <section v-if="publishType==20">
                                     当前BGT总量{{balance | numSlicefour}}
@@ -69,10 +82,9 @@
                         <div class="cell-item">
                             <div class="cell-left">设置单价</div>
                             <div class="cell-right">
-                                <input type="number" 
-                                onkeyup="this.value=this.value.replace(/\D/g,'')" 
-                                onafterpaste="this.value=this.value.replace(/\D/g,'')" 
+                                <input type="number"
                                 pattern="[0-9]*" 
+                                @input="inputFun2($event.target)"
                                 oninput="if(value.length>4)value=value.slice(0,4)"
                                 v-model="dealprice" style="text-align:right" class="cell-input mar_r10" placeholder="请设置单价" autocomplete="off" />BGT
                             </div>
@@ -80,7 +92,8 @@
                     </div>
 
                 </div>
-                <button type="button" class="btn-block rechargeaffirmbtn" @click="enterbuy">确定出售</button>
+                <button type="button"  v-if="publishType==10" class="btn-block rechargeaffirmbtn" :class="btnactive?'active':''" @click="enterbuy">确定出售</button>
+                <button type="button"  v-if="publishType==20" class="btn-block rechargeaffirmbtn" :class="btnactive?'active':''" @click="enterbuy">确定购买</button>
                 <section class="guadanrules" v-if="publishType==10">
                     <h1>挂单出售规则：</h1>
                     <ul>
@@ -138,6 +151,7 @@
             el: '#htmlWap',
             data: {
                 token:GetQueryString('token'),       //头部获取token
+                appType:'',                         //设备来源
                 saplingNum:0,                      //我的树苗总量
                 balance:0,                         //我的BGT总量
                 userphoto:"../../images/notuserphoto.png",
@@ -149,8 +163,25 @@
                 publishType:10,                     //挂单交易状态10为出售 20为购买
                 dealnum:'',                         //交易数量
                 dealprice:'',                       //交易单价
+                btnactive:false
             },
         methods:{
+            inputFun:function(target){
+                if(!/^\d+$/.test(target.value)){
+                this.dealnum = '';
+                }
+                if(this.dealnum>1000){
+                    layer.msg('交易总数不能大于1000');
+                    return;
+                }
+                this.btnactive=true;
+            },
+            inputFun2:function(target){
+                if(!/^\d+$/.test(target.value)){
+                this.dealprice = '';
+                }
+                this.btnactive=true;
+            },
             saletab:function(type){
                 if(type==0){
                     this.tabactive=true;
@@ -198,6 +229,7 @@
                         // console.log(data);
                         if(data.data.code==0){
                             this.saplingNum= data.data.data.saplingNum;
+                            // console.log(this.saplingNum);
                             for(var i in data.data.data.walletInfo){
                                 var item =data.data.data.walletInfo;
                                 if(data.data.data.walletInfo[i].wallteType==30){
@@ -234,8 +266,9 @@
                         if(data.data.code==0){
                             layer.msg(data.data.message);
                             this.isDisable=false;
-                            window.location.href="treeDeal.html?token="+token+"&getType=10";
+                            window.location.href="treeDeal.html?token="+token+"&getType=10"+"&appType="+this.appType;
                         }else{
+                            this.isDisable=false;
                             layer.msg(data.data.message);
                         }
                         // setTimeout(function(){
@@ -246,25 +279,27 @@
                     });
                 // window.location.href="dealRecord.html?token="+token
             },
-            // goback:function(){
-            //     window.location.href="orderDetail.html?token="+this.token
-            // }
+            goback:function(){
+                window.location.href="treeDeal.html?token="+this.token+"&appType="+this.appType;
+            }
         },
         filters: {
-                numSlicefour: function (val) {
+            numSlicefour: function (val) {
                     if (val) {
-                       return parseFloat(val.toFixed(4));
+                        let transformVal = parseFloat(val).toFixed(5)
+                        let realVal = transformVal.substring(0, transformVal.length - 1)
+                        // num.toFixed(3)获取的是字符串
+                        return parseFloat(realVal)
                     }
                 },
             },
         mounted:function(){
+            this.appType = localStorage.getItem("appType");
              //加载层
-             this.$nextTick(function () {
                     var that = this;
                     setTimeout(function () {
                         that.loadpic = false;
                     }, 1000)
-                });
             this.getUserWalletV2();
         }
     })

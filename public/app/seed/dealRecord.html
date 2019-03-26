@@ -16,11 +16,13 @@
     .m-cell:after{border: 0 !important}
     .tab-nav-item{ background: #FFF !important;}
     .cell-item:not(:last-child){border-bottom: #f3f3f3 solid 1px}
+    .tab-panel-item{padding-top: 10px}
+    .seedWbg{padding:0 10px 0 10px; margin-bottom: 10px !important}
 </style>
 <body>
 <div id="htmlWap"  class="seedhead" v-cloak>
         <header class="m-navbar">
-            <a href="javascript:history.go(-1);"  class="navbar-item">
+         <a href="javascript:history.go(-1);" class="navbar-item">
                 <i class="back-ico"></i>
             </a>
             <div class="navbar-center">
@@ -39,33 +41,35 @@
         <div class="seedWcontainr">
             <div class="tab-panel-item">
                     <div class="m-cell seedWbg" @click="dealdetail(token,getType,item)" v-for="item in orderlist">
-                        <section class="cellLR bottborl">
+                        <section class="cellLR bottborl lh8">
                             <span class="left_cell blacktext" v-if="getType==20"  style="flex:1"><span class="sellIcon margr10"><img src="../../images/seed/icon-chushou@2x.png" /></span>出售树苗</span>
                             <span class="left_cell blacktext" v-if="getType==10" style="flex:1"><span class="sellIcon margr10"><img src="../../images/seed/icon-goumai@2x.png" /></span>购买树苗</span>
                             <span class="right_cell fontcolorB" style="flex:1;">{{item.buyTime}}</span>
                         </section>
-                        <section class="cellLR ">
-                            <span class="left_cell fontcolorB" v-if="getType==10" style="flex:1">卖家</span>
-                            <span class="left_cell fontcolorB" v-if="getType==20" style="flex:1">买家</span>
-                            <span class="right_cell" style="flex:1">{{item.sellerUserNickname}}</span>
-                        </section>
-                        <section class="cellLR ">
-                            <span class="left_cell fontcolorB" style="flex:1">单价</span>
-                            <span class="right_cell" style="flex:1">{{item.goodsPrice}}BGT/棵</span>
-                        </section>
-                        <section class="cellLR ">
-                            <span class="left_cell fontcolorB" style="flex:1">总价</span>
-                            <span class="right_cell" style="flex:1">{{item.payMoney}}BGT</span>
-                        </section>
-                        <section class="cellLR" v-if="getType==20">
-                            <span class="left_cell fontcolorB" style="flex:1">手续费</span>
-                            <span class="right_cell" style="flex:1">{{item.sxFee}}BGT {{item.sxFee/item.payMoney*100}}%</span>
-                        </section>
-                        <section class="cellLR bottborl">
-                            <span class="left_cell fontcolorB" style="flex:1">订单号</span>
-                            <span class="right_cell" style="flex:1">{{item.orderNo}}</span>
-                        </section>
-                        <section class="cellLR lh12">
+                        <section class="paddtb10 bottborl">
+                                <section class="cellLR ">
+                                    <span class="left_cell fontcolorB" v-if="getType==10" style="flex:1">卖家</span>
+                                    <span class="left_cell fontcolorB" v-if="getType==20" style="flex:1">买家</span>
+                                    <span class="right_cell" style="flex:1">{{item.sellerUserNickname}}</span>
+                                </section>
+                                <section class="cellLR ">
+                                    <span class="left_cell fontcolorB" style="flex:1">单价</span>
+                                    <span class="right_cell" style="flex:1">{{item.goodsPrice}}BGT/棵</span>
+                                </section>
+                                <section class="cellLR ">
+                                    <span class="left_cell fontcolorB" style="flex:1">总价</span>
+                                    <span class="right_cell" style="flex:1">{{item.payMoney | numSlicefour}}BGT</span>
+                                </section>
+                                <section class="cellLR" v-if="getType==20">
+                                    <span class="left_cell fontcolorB" style="flex:1">手续费</span>
+                                    <span class="right_cell" style="flex:1">{{item.sxFee}}BGT {{item.sxFee/item.payMoney*100}}%</span>
+                                </section>
+                                <section class="cellLR">
+                                    <span class="left_cell fontcolorB" style="flex:1">订单号</span>
+                                    <span class="right_cell" style="flex:1">{{item.orderNo}}</span>
+                                </section>
+                        </section>    
+                        <section class="cellLR lh8">
                             <span class="left_cell fontcolorB" style="flex:1">数量<span class="blacktext mar_l5">{{item.buyNum}}</span></span>
                             <span class="right_cell blacktext" style="flex:1">交易成功</span>
                         </section>
@@ -95,6 +99,7 @@
             el: '#htmlWap',
             data: {
                 token:GetQueryString('token'),//头部获取。,
+                // appType:'',                     //设备来源
                 userphoto:"../../images/notuserphoto.png",
                 tabactive: true,
                 tabactive2: false,
@@ -134,7 +139,7 @@
                                     this.loadMore = true;
                                 }else{
                                     this.loadMore = false;
-                                    layer.msg('已加载完');
+                                    // layer.msg('已加载完');
                                 }
                             }else{
                                 this.loadMore = false;
@@ -179,11 +184,22 @@
                 window.location.href="orderDetail.html?token="+token;
             },
             goback:function(){
-                window.location.href="treeDeal.html?token="+this.token
+                window.location.href="treeDeal.html?token="+this.token;
             }
         },
+        filters: {
+                numSlicefour: function (val) {
+                    if (val) {
+                        let transformVal = parseFloat(val).toFixed(5)
+                        let realVal = transformVal.substring(0, transformVal.length - 1)
+                        // num.toFixed(3)获取的是字符串
+                        return parseFloat(realVal)
+                    }
+                },
+            },
         mounted:function(){
-            this.getlist()
+            this.getlist();
+            // this.appType = localStorage.getItem("appType");
         },
         beforeCreate:function(){
                 //加载层

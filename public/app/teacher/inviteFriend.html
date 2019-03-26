@@ -38,8 +38,7 @@
         <div class="mycodebg">
             <div class="titgz"><img src="../../images/teacher/inviterules.png" /></div>
             <p><span class="tagnum"><img src="../../images/teacher/treeicon.png" /></span>每邀请一个用户赠送20算力，仅限前10名用户。</p>
-            <p><span class="tagnum"><img src="../../images/teacher/treeicon.png" /></span>一级好友每次在场景中领取BGT，您将获得10%的BGT返利，二级好友领取BGT，您将获得2%的BG
-                T返利，每个好友返利上限为20BGT。</p>
+            <p><span class="tagnum"><img src="../../images/teacher/treeicon.png" /></span>一级好友每次在场景中领取BGT，您将获得10%的BGT返利，二级好友领取BGT，您将获得2%的BGT返利，每个好友返利上限为20BGT。</p>
             <p><span class="tagnum"><img src="../../images/teacher/treeicon.png" /></span>一级好友每次在农场中获得阳光，您将获得5%的返利，二级好友为您带来1%的返利，不设上限。</p>
 
         </div>
@@ -163,12 +162,12 @@
                     </div>
                     <div class="m-grids-4" v-for="item in dataList">
                         <a href="javascript:;" class="grids-item" style="width: 12%">
-                            <div class="grids-txt" v-if="item.userphoto"><span>{{item.userphoto}}</span></div>
-                            <div class="grids-txt" v-if="!item.userphoto"><img style="width: 100%;" src="../../images/notuserphoto.png" /></div>
+                            <div class="grids-txt userphoto" v-if="item.photo"><span><img style="width: 100%;" :src="item.photo" /></span></div>
+                            <div class="grids-txt userphoto" v-if="!item.photo"><img style="width: 100%;" src="../../images/notuserphoto.png" /></div>
                         </a>
                         <a href="javascript:;" class="grids-item" style="width:38%;">
-                            <div class="grids-txt" style="text-align: left;padding-left: 5px; line-height:30px;" v-if="item.buyerNickname"><p class="fontbold">{{item.buyerNickname}}</p>树苗 1</div>
-                            <div class="grids-txt" style="text-align: left;padding-left: 5px; line-height:30px;" v-if="!item.buyerNickname"><p class="fontbold">{{item.buyerAccount}}</p>树苗 1</div>
+                            <div class="grids-txt" style="text-align: left;padding-left: 5px;" v-if="item.buyerNickname"><p class="fontbold overflow">{{item.buyerNickname}}</p>树苗 {{item.buyerSaplingBalance}}</div>
+                            <div class="grids-txt" style="text-align: left;padding-left: 5px;" v-if="!item.buyerNickname"><p class="fontbold overflow">{{item.buyerAccount}}</p>树苗 {{item.buyerSaplingBalance}}</div>
                         </a>
 
                         <a href="javascript:;" v-if="item.backFeeNotGet ==0" class="grids-item btn-notsmallget">
@@ -177,7 +176,7 @@
                         </a>
                         <button href="javascript:;" v-if="item.backFeeNotGet >0" class="grids-item" :disabled="isDisable" @click="getBgt(item.backFeeNotGet,item.rowId,item.buyerType,$event)">
                             <p class="bgticon"><img src="../../images/teacher/icon-bgt@2x.png" /></p>
-                            <span>{{item.backFeeNotGet}}BGT</span>
+                            <span>{{item.backFeeNotGet | numSlicefour}}BGT</span>
                         </button>
                         <a href="javascript:;" v-if="item.backSunNotGet ==0" class="grids-item btn-notsmallget">
                             <p class="bgticon"><img src="../../images/teacher/icon-taiyang-d@2x.png" /></p>
@@ -185,17 +184,17 @@
                         </a>
                         <button href="javascript:;" v-if="item.backSunNotGet >0" class="grids-item" :disabled="isDisable" @click="getTgSun(item.backSunNotGet,item.rowId,item.buyerType,$event)">
                             <p class="bgticon"><img src="../../images/teacher/icon-taiyang@2x.png" /></p>
-                            <span>{{item.backSunNotGet}}克</span>
+                            <span>{{item.backSunNotGet | numSlicefour}}克</span>
                         </button>
                     </div>
                     <div class="m-grids-4" v-for="item in dataList2">
                         <a href="javascript:;" class="grids-item" style="width: 12%">
-                            <div class="grids-txt" v-if="item.userphoto"><span>{{item.userphoto}}</span></div>
-                            <div class="grids-txt" v-if="!item.userphoto"><img style="width: 100%;" src="../../images/notuserphoto.png" /></div>
+                            <div class="grids-txt userphoto" v-if="item.photo"><span><img style="width: 100%;" :src="item.photo" /></span></div>
+                            <div class="grids-txt userphoto" v-if="!item.photo"><img style="width: 100%;" src="../../images/notuserphoto.png" /></div>
                         </a>
                         <a href="javascript:;" class="grids-item" style="width:38%;">
-                            <div class="grids-txt" style="text-align: left;padding-left: 5px; line-height:30px;" v-if="item.buyerNickname"><p class="fontbold">{{item.buyerNickname}}</p>树苗 1</div>
-                            <div class="grids-txt" style="text-align: left;padding-left: 5px; line-height:30px;" v-if="!item.buyerNickname"><p class="fontbold">{{item.buyerAccount}}</p>树苗 1</div>
+                            <div class="grids-txt" style="text-align: left;padding-left: 5px;" v-if="item.buyerNickname"><p class="fontbold">{{item.buyerNickname}}</p>树苗  {{item.buyerSaplingBalance}}</div>
+                            <div class="grids-txt" style="text-align: left;padding-left: 5px;" v-if="!item.buyerNickname"><p class="fontbold">{{item.buyerAccount}}</p>树苗  {{item.buyerSaplingBalance}}</div>
                         </a>
 
                         <a href="javascript:;" v-if="item.backFeeNotGet ==0" class="grids-item btn-notsmallget">
@@ -204,15 +203,15 @@
                         </a>
                         <button href="javascript:;" v-if="item.backFeeNotGet >0" class="grids-item" :disabled="isDisable" @click="getBgt(item.backFeeNotGet,item.rowId,item.buyerType,$event)">
                             <p class="bgticon"><img src="../../images/teacher/icon-bgt@2x.png" /></p>
-                            <span>{{item.backFeeNotGet}}BGT</span>
+                            <span>{{item.backFeeNotGet | numSlicefour}}BGT</span>
                         </button>
                         <a href="javascript:;" v-if="item.backSunNotGet ==0" class="grids-item btn-notsmallget">
                             <p class="bgticon"><img src="../../images/teacher/icon-taiyang-d@2x.png" /></p>
                             <span>0克</span>
                         </a>
-                        <button href="javascript:;" v-if="item.backSunNotGet >0" class="grids-item" :disabled="isDisable" @click="getTgSun(item.backFeeNotGet,item.rowId,item.buyerType,$event)">
+                        <button href="javascript:;" v-if="item.backSunNotGet >0" class="grids-item" :disabled="isDisable" @click="getTgSun(item.backSunNotGet,item.rowId,item.buyerType,$event)">
                             <p class="bgticon"><img src="../../images/teacher/icon-taiyang@2x.png" /></p>
-                            <span>{{item.backSunNotGet}}克</span>
+                            <span>{{item.backSunNotGet | numSlicefour}}克</span>
                         </button>
                     </div>
                     <p v-if="dataList.length==0 && dataList2.length==0" class="nodata">暂无数据</p>
@@ -543,6 +542,16 @@
                         this.isDisable = false;
                     })
                 }
+            },
+            filters: {
+            numSlicefour: function (val) {
+                    if (val) {
+                        let transformVal = parseFloat(val).toFixed(5)
+                        let realVal = transformVal.substring(0, transformVal.length - 1)
+                        // num.toFixed(3)获取的是字符串
+                        return parseFloat(realVal)
+                    }
+                },
             },
             mounted: function () {
                 this.getInvitelog();

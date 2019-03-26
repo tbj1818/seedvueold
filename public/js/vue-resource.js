@@ -3,7 +3,7 @@
  * https://github.com/vuejs/vue-resource
  * Released under the MIT License.
  */
-var fund="http://testfund.3yx.cn:8088";var web="http://192.168.192.121:10080";var snatch="http://testsnatch.3yx.cn:8088";var key="aswfeeJKxikxmfj&z;j.w$##@!OLzskghld";var sysh5='http://zhjwhome.iok.la';
+var fund="http://testfund.3yx.cn:8088";var web="http://zhjwhome.iok.la";var snatch="http://testsnatch.3yx.cn:8088";var key="aswfeeJKxikxmfj&z;j.w$##@!OLzskghld";var sysh5='http://zhjwhome.iok.la';
 (function webpackUniversalModuleDefinition(root, factory) {
     if(typeof exports === 'object' && typeof module === 'object')
         module.exports = factory();
